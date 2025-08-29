@@ -17,8 +17,8 @@ var client = utils.CreateClient("https://api.youpin898.com")
 
 func GetHeaders() map[string]string {
 	ctx := context.Background()
-	var yp models.YpToken
-	err := yp.GetYpToken(ctx)
+	var yp models.UUToken
+	err := yp.GetUUToken(ctx)
 	if err != nil {
 		config.Log.Errorf("get youpin token error: %s", err)
 	}
