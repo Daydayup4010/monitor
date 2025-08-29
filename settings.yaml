@@ -1,0 +1,27 @@
+mysql:
+  host: 127.0.0.1
+  port: 3306
+  db: uu
+  username: root
+  password: 2333tv.top
+  log_level: dev
+  config: charset=utf8mb4&parseTime=True
+  maxIdleConns: 10
+  maxOpenConns: 25
+
+logger:
+  level: info
+  prefix: '[uu]'
+  show-line: true
+  log-in-console: true
+
+server:
+  host: "0.0.0.0"
+  port: 8080
+  env: release
+
+redis:
+  host: 127.0.0.1
+  port: 6379
+  password:
+  db: 0
