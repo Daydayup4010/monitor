@@ -1,5 +1,0 @@
-time="2025-08-29T11:14:52+08:00" level=info Agent=PostmanRuntime/7.45.0 ClientIP="::1" DataSize=0 HostName="localhost:8080" Method=POST Path=/api/test SpendTime="598 ms" Status=200
-time="2025-08-29T11:15:01+08:00" level=info Agent=PostmanRuntime/7.45.0 ClientIP="::1" DataSize=31920 HostName="localhost:8080" Method=GET Path=/api/data SpendTime="2 ms" Status=200
-s" Status=404
-time="2025-08-28T17:23:49+08:00" level=warning Agent=PostmanRuntime/7.45.0 ClientIP="::1" DataSize=0 HostName="localhost:8080" Method=GET Path=/api/tokens/data SpendTime="0 ms" Status=404
-200

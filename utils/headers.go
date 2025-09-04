@@ -20,11 +20,17 @@ type UU struct {
 	ContentType    string `yaml:"content-type"`
 	Platform       string `yaml:"platform"`
 	UserAgent      string `yaml:"user-agent"`
-	Uk             string `yaml:"uk"`
-	Authorization  string `yaml:"authorization"`
+	Uk             string
+	Authorization  string
 }
 
 type Buff struct {
+	Accept         string `yaml:"accept"`
+	AcceptLanguage string `yaml:"accept-language"`
+	ContentType    string `yaml:"content-type"`
+	UserAgent      string `yaml:"user-agent"`
+	Session        string
+	Csrf           string
 }
 
 func ReadeHeaders() *Headers {

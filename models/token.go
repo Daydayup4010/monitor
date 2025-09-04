@@ -10,6 +10,11 @@ type UUToken struct {
 	Uk            string `json:"uk" binding:"required"`
 }
 
+type BuffToken struct {
+	CsrfToken string `json:"csrf_token" binding:"required"`
+	Session   string `json:"session" binding:"required"`
+}
+
 func (yp *UUToken) SetUUToken(ctx context.Context) error {
 	err := config.RDB.HSet(ctx, "uu_token", "authorization", yp.Authorization, "uk", yp.Uk).Err()
 	return err
@@ -23,5 +28,20 @@ func (yp *UUToken) GetUUToken(ctx context.Context) error {
 		yp.Uk = uk
 	}
 
+	return err
+}
+
+func (buff *BuffToken) SetBuffToken(ctx context.Context) error {
+	err := config.RDB.HSet(ctx, "buff_token", "session", buff.Session, "csrf_token", buff.CsrfToken).Err()
+	return err
+}
+
+func (buff *BuffToken) GetBuffToken(ctx context.Context) error {
+	session, err := config.RDB.HGet(ctx, "buff_token", "session").Result()
+	csrf, err := config.RDB.HGet(ctx, "buff_token", "csrf_token").Result()
+	if err == nil {
+		buff.Session = session
+		buff.CsrfToken = csrf
+	}
 	return err
 }

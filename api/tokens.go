@@ -39,3 +39,20 @@ func GetUUToken(c *gin.Context) {
 		"message": message,
 	})
 }
+
+func UpdateBuffToken(c *gin.Context) {
+	var buff models.BuffToken
+	_ = c.ShouldBindJSON(&buff)
+	err := buff.SetBuffToken(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"code":    0,
+			"message": "update buff token error",
+		})
+		config.Log.Errorf("update buff token error: %s", err)
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"code":    1,
+		"message": "success",
+	})
+}

@@ -8,9 +8,10 @@ import (
 )
 
 type UUResponse struct {
-	Code int             `json:"Code"`
-	Msg  string          `json:"Msg"`
-	Data []*models.UItem `json:"Data"`
+	Code       int             `json:"Code"`
+	Msg        string          `json:"Msg"`
+	Data       []*models.UItem `json:"Data"`
+	TotalCount int             `json:"TotalCount"`
 }
 
 var client = utils.CreateClient("https://api.youpin898.com")
@@ -35,7 +36,7 @@ func GetHeaders() map[string]string {
 	}
 }
 
-func GetUUItems(pageSize, PageNum int) []*models.UItem {
+func GetUUItems(pageSize, PageNum int) ([]*models.UItem, int, error) {
 	var header = GetHeaders()
 	var uuResp UUResponse
 	var opts = utils.RequestOptions{
@@ -51,6 +52,6 @@ func GetUUItems(pageSize, PageNum int) []*models.UItem {
 	if err != nil || res.StatusCode() != 200 {
 		config.Log.Warnf("request uu list api error: %s, code: %d", err, res.StatusCode())
 	}
-	return uuResp.Data
+	return uuResp.Data, uuResp.TotalCount, err
 
 }

@@ -1,9 +1,0 @@
-time="2025-08-28 11:11:02" level=info Agent=PostmanRuntime/7.45.0 ClientIP="::1" DataSize=30 HostName="localhost:8080" Method=POST Path=/api/tokens/youpin SpendTime="1 ms" Status=200
-time="2025-08-28 11:11:14" level=info Agent=PostmanRuntime/7.45.0 ClientIP="::1" DataSize=86 HostName="localhost:8080" Method=GET Path=/api/tokens/youpin SpendTime="0 ms" Status=200
-time="2025-08-28 16:39:48" level=info Agent=PostmanRuntime/7.45.0 ClientIP="::1" DataSize=30 HostName="localhost:8080" Method=POST Path=/api/tokens/youpin SpendTime="70 ms" Status=200
-time="2025-08-28 16:40:24" level=info Agent=PostmanRuntime/7.45.0 ClientIP="::1" DataSize=578 HostName="localhost:8080" Method=GET Path=/api/tokens/youpin SpendTime="62 ms" Status=200
-time="2025-08-28 16:40:36" level=info Agent=PostmanRuntime/7.45.0 ClientIP="::1" DataSize=578 HostName="localhost:8080" Method=GET Path=/api/tokens/youpin SpendTime="0 ms" Status=200
-time="2025-08-28 17:23:22" level=warning Agent=PostmanRuntime/7.45.0 ClientIP="::1" DataSize=0 HostName="localhost:8080" Method=GET Path=/api/tokens/items SpendTime="0 ms" Status=404
-time="2025-08-28 17:23:43" level=warning Agent=PostmanRuntime/7.45.0 ClientIP="::1" DataSize=0 HostName="localhost:8080" Method=GET Path=/api/tokens/data SpendTime="0 ms" Status=404
-time="2025-08-28 17:23:49" level=warning Agent=PostmanRuntime/7.45.0 ClientIP="::1" DataSize=0 HostName="localhost:8080" Method=GET Path=/api/tokens/data SpendTime="0 ms" Status=404
-time="2025-08-28 17:32:19" level=info Agent=PostmanRuntime/7.45.0 ClientIP="::1" DataSize=14996 HostName="localhost:8080" Method=GET Path=/api/data SpendTime="296 ms" Status=200
