@@ -16,4 +16,5 @@ func main() {
 	if err != nil {
 		config.Log.Panicf("server start fail: %s", err)
 	}
+
 }

@@ -20,7 +20,7 @@ type GoodsInfo struct {
 	IconURL         string  `json:"icon_url" gorm:"type:varchar(255)"`
 	BuffItemID      int64   // 外键，指向 BuffItem 的 ID
 	SteamPriceCNY   float64 `json:"steam_price_cny" gorm:"type:decimal(10,2)"`
-	OriginalIconURL string  `json:"original_icon_url" gorm:"type:varchar(255)"`
+	OriginalIconURL string  `json:"original_icon_url" gorm:"type:text"`
 }
 
 func BatchAddBuffItem(buff []*BuffItem) {

@@ -19,5 +19,10 @@ func InitRouter() *gin.Engine {
 		tokens.POST("buff", api.UpdateBuffToken)
 
 	}
+	settings := v1.Group("settings")
+	{
+		settings.GET("", api.GetSettings)
+		settings.PUT("", api.UpdateSetting)
+	}
 	return r
 }

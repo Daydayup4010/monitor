@@ -10,7 +10,7 @@ import (
 
 var UUMaxPageSize = 100
 var BuffMaxPageSize = "80"
-var RequestDelay = time.Second * 2
+var RequestDelay = time.Second * 1
 var wg sync.WaitGroup
 
 func UpdateAllUUItems() {
@@ -28,7 +28,7 @@ func UpdateAllUUItems() {
 }
 
 func UpdateAllBuffItems() {
-	//defer wg.Done()
+	defer wg.Done()
 	_, total, _, _ := GetBuffItems("20", "1")
 	size, _ := strconv.Atoi(BuffMaxPageSize)
 	pageNum := total/size + 1
@@ -49,14 +49,11 @@ func UpdateAllBuffItems() {
 	}
 }
 
-func UpdateFullData() chan bool {
-	var c chan bool
+func UpdateFullData() {
 	go func() {
 		wg.Add(2)
 		go UpdateAllUUItems()
 		go UpdateAllBuffItems()
 		wg.Wait()
-		c <- true
 	}()
-	return c
 }
