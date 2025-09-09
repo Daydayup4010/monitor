@@ -42,7 +42,7 @@ func (t *LogFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	// 日志前缀
 	log := config.CONFIG.Logger.Prefix
 	// 自定义日期格式
-	timestamp := entry.Time.Format("2006-01-02 15:01:05")
+	timestamp := entry.Time.Format("2006-01-02 15:04:05")
 	if entry.HasCaller() {
 		// 自定义log存放路径
 		funcVal := entry.Caller.Function

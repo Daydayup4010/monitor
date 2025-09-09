@@ -39,7 +39,7 @@ func GetBuffHeaders() map[string]string {
 	}
 }
 
-func GetBuffItems(pageSize, pageNum string) ([]*models.BuffItem, int, error, int) {
+func GetBuffItems(pageSize, pageNum string) ([]*models.BuffItem, int, error) {
 	header := GetBuffHeaders()
 	var buffResponse BuffResponse
 	var opt = utils.RequestOptions{
@@ -55,5 +55,5 @@ func GetBuffItems(pageSize, pageNum string) ([]*models.BuffItem, int, error, int
 	if err != nil || res.StatusCode() != 200 {
 		config.Log.Errorf("request buff api error : %s", err)
 	}
-	return buffResponse.Data.Items, buffResponse.Data.TotalCount, err, res.StatusCode()
+	return buffResponse.Data.Items, buffResponse.Data.TotalCount, err
 }

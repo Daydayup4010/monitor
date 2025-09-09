@@ -12,6 +12,7 @@ require (
 	github.com/redis/go-redis/v9 v9.12.1
 	github.com/rifflock/lfshook v0.0.0-20180920164130-b9218ef580f5
 	github.com/sirupsen/logrus v1.9.3
+	golang.org/x/time v0.6.0
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/mysql v1.6.0
 	gorm.io/gorm v1.30.1

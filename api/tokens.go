@@ -25,21 +25,6 @@ func UpdateUUToken(c *gin.Context) {
 	}
 }
 
-func GetUUToken(c *gin.Context) {
-	var yp models.UUToken
-	err := yp.GetUUToken(c)
-	message := "success"
-	if err != nil {
-		config.Log.Errorf("get youpin token error: %s", err)
-		message = "get youpin token error"
-	}
-	c.JSON(http.StatusOK, gin.H{
-		"code":    1,
-		"data":    yp,
-		"message": message,
-	})
-}
-
 func UpdateBuffToken(c *gin.Context) {
 	var buff models.BuffToken
 	_ = c.ShouldBindJSON(&buff)

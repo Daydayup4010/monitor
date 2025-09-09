@@ -7,7 +7,7 @@ import (
 )
 
 func UpdateFull(c *gin.Context) {
-	services.UpdateAllBuffItems()
+	services.UpdateFullData()
 	c.JSON(http.StatusOK, gin.H{
 		"msg": "success",
 	})

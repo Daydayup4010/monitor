@@ -1,7 +1,10 @@
 package services
 
 import (
+	"context"
+	"golang.org/x/time/rate"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 	"uu/config"
@@ -10,48 +13,81 @@ import (
 
 var UUMaxPageSize = 100
 var BuffMaxPageSize = "80"
-var RequestDelay = time.Second * 1
+var RequestDelay = time.Second * 5
 var wg sync.WaitGroup
+
+var uuLimiter = rate.NewLimiter(2, 1) // 速率: 3 tokens/s, 突发容量: 1
+var buffLimiter = rate.NewLimiter(rate.Every(2100*time.Millisecond), 1)
 
 func UpdateAllUUItems() {
 	defer wg.Done()
 	_, total, _ := GetUUItems(20, 1)
-	pageNum := total/UUMaxPageSize + 1
-	for i := 1; i <= pageNum+1; i++ {
-		items, _, err := GetUUItems(UUMaxPageSize, i)
-		models.BatchAddUUItem(items)
-		if err == nil {
-			config.Log.Infof("Full Update uu item pageName: %d, success", i)
+	totalPages := total/UUMaxPageSize + 1
+
+	for page := 1; page <= totalPages+1; page++ {
+		if err := uuLimiter.Wait(context.Background()); err != nil {
+			config.Log.Errorf("wait limiter error: %v", err)
+			return
 		}
-		time.Sleep(RequestDelay)
+
+		items, _, err := GetUUItems(UUMaxPageSize, page)
+		if err != nil {
+			if isRateLimitError(err) {
+				// 动态退避：遇到429时增加延迟
+				handleRateLimitError(uuLimiter)
+				page-- // 重试当前页
+				continue
+			}
+			config.Log.Errorf("request uu %d page fail: %v", page, err)
+			continue
+		}
+		models.BatchAddUUItem(items)
+		config.Log.Infof("Full Update uu item pageName: %d, success", page)
 	}
+}
+
+// 判断是否为速率限制错误
+func isRateLimitError(err error) bool {
+	return strings.Contains(err.Error(), "429") ||
+		strings.Contains(err.Error(), "too many requests")
+}
+
+// 处理速率限制错误（动态退避）
+func handleRateLimitError(limiter *rate.Limiter) {
+	config.Log.Warnf("limits sleep %v", RequestDelay)
+	time.Sleep(RequestDelay)
 }
 
 func UpdateAllBuffItems() {
 	defer wg.Done()
-	_, total, _, _ := GetBuffItems("20", "1")
+	_, total, _ := GetBuffItems("20", "1")
 	size, _ := strconv.Atoi(BuffMaxPageSize)
 	pageNum := total/size + 1
 	config.Log.Infof("buff page_num: %d", pageNum)
 	for i := 1; i <= pageNum+1; i++ {
-		items, _, err, code := GetBuffItems(BuffMaxPageSize, strconv.Itoa(i))
-		if err == nil {
-			config.Log.Infof("Full Update buff item pageName: %d, success", i)
-		} else {
-			if code == 429 {
-				config.Log.Infof("Full Update buff item pageName: %d, retry", i)
-				time.Sleep(time.Second * 10)
-				items, _, err, code = GetBuffItems(BuffMaxPageSize, strconv.Itoa(i))
-			}
+		if err := buffLimiter.Wait(context.Background()); err != nil {
+			config.Log.Errorf("wait buff limiter error: %v", err)
+			return
 		}
+		items, _, err := GetBuffItems(BuffMaxPageSize, strconv.Itoa(i))
+		if err != nil {
+			if isRateLimitError(err) {
+				// 动态退避：遇到429时增加延迟
+				handleRateLimitError(buffLimiter)
+				i-- // 重试当前页
+				continue
+			}
+			config.Log.Errorf("request buff %d page fail: %v", i, err)
+			continue
+		}
+		config.Log.Infof("Full Update buff item pageName: %d, success", i)
 		models.BatchAddBuffItem(items)
-		time.Sleep(RequestDelay)
 	}
 }
 
 func UpdateFullData() {
 	go func() {
-		wg.Add(2)
+		wg.Add(1)
 		go UpdateAllUUItems()
 		go UpdateAllBuffItems()
 		wg.Wait()

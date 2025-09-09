@@ -24,5 +24,10 @@ func InitRouter() *gin.Engine {
 		settings.GET("", api.GetSettings)
 		settings.PUT("", api.UpdateSetting)
 	}
+	data := v1.Group("data")
+	{
+		data.GET("", api.GetSkinItem)
+		data.POST("full_update", api.UpdateFull)
+	}
 	return r
 }

@@ -22,7 +22,10 @@ type SkinItem struct {
 func GetSkinItems(pageSize, pageNum int) ([]SkinItem, int64) {
 	var skins []SkinItem
 	var total int64
-	config.DB.Limit(pageSize).Offset((pageNum - 1) * pageSize).Find(&skins).Count(&total)
+	err := config.DB.Limit(pageSize).Offset((pageNum - 1) * pageSize).Find(&skins).Count(&total).Error
+	if err != nil {
+		config.Log.Errorf("Get skins error : %s", err)
+	}
 	return skins, total
 }
 
