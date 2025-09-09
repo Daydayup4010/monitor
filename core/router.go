@@ -12,7 +12,6 @@ func InitRouter() *gin.Engine {
 	r := gin.Default()
 	r.Use(gin.Recovery(), middleware.Cors(), middleware.Logger())
 	v1 := r.Group("api/v1")
-	v1.POST("full_update", api.UpdateFull)
 	tokens := v1.Group("tokens")
 	{
 		tokens.POST("uu", api.UpdateUUToken)

@@ -8,26 +8,41 @@ import (
 type UUToken struct {
 	Authorization string `json:"authorization" binding:"required"`
 	Uk            string `json:"uk" binding:"required"`
+	Expired       string `json:"expired"`
 }
 
 type BuffToken struct {
 	CsrfToken string `json:"csrf_token" binding:"required"`
 	Session   string `json:"session" binding:"required"`
+	Expired   string `json:"expired"`
 }
 
-func (yp *UUToken) SetUUToken(ctx context.Context) error {
-	err := config.RDB.HSet(ctx, "uu_token", "authorization", yp.Authorization, "uk", yp.Uk).Err()
+func (uu *UUToken) SetUUToken(ctx context.Context) error {
+	err := config.RDB.HSet(ctx, "uu_token", "authorization", uu.Authorization, "uk", uu.Uk).Err()
 	return err
 }
 
-func (yp *UUToken) GetUUToken(ctx context.Context) error {
+func (uu *UUToken) GetUUToken(ctx context.Context) error {
 	auth, err := config.RDB.HGet(ctx, "uu_token", "authorization").Result()
 	uk, err := config.RDB.HGet(ctx, "uu_token", "uk").Result()
 	if err == nil {
-		yp.Authorization = auth
-		yp.Uk = uk
+		uu.Authorization = auth
+		uu.Uk = uk
 	}
 
+	return err
+}
+
+func (uu *UUToken) UpdateUUExpired() error {
+	err := config.RDB.HSet(context.Background(), "uu_token", "expired", uu.Expired).Err()
+	return err
+}
+
+func (uu *UUToken) GetUUExpired() error {
+	ex, err := config.RDB.HGet(context.Background(), "uu_token", "expired").Result()
+	if err == nil {
+		uu.Expired = ex
+	}
 	return err
 }
 
@@ -42,6 +57,19 @@ func (buff *BuffToken) GetBuffToken(ctx context.Context) error {
 	if err == nil {
 		buff.Session = session
 		buff.CsrfToken = csrf
+	}
+	return err
+}
+
+func (buff *BuffToken) UpdateBuffExpired() error {
+	err := config.RDB.HSet(context.Background(), "buff_token", "expired", buff.Expired).Err()
+	return err
+}
+
+func (buff *BuffToken) GetBuffExpired() error {
+	ex, err := config.RDB.HGet(context.Background(), "buff_token", "expired").Result()
+	if err == nil {
+		buff.Expired = ex
 	}
 	return err
 }

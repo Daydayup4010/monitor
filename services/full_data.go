@@ -15,7 +15,7 @@ var UUMaxPageSize = 100
 var BuffMaxPageSize = "80"
 var RequestDelay = time.Second * 5
 var wg sync.WaitGroup
-
+var task sync.Mutex
 var uuLimiter = rate.NewLimiter(2, 1) // 速率: 3 tokens/s, 突发容量: 1
 var buffLimiter = rate.NewLimiter(rate.Every(2100*time.Millisecond), 1)
 
@@ -86,10 +86,15 @@ func UpdateAllBuffItems() {
 }
 
 func UpdateFullData() {
-	go func() {
-		wg.Add(1)
-		go UpdateAllUUItems()
-		go UpdateAllBuffItems()
-		wg.Wait()
-	}()
+	if !task.TryLock() {
+		config.Log.Info("update full data running")
+		return
+	}
+	defer task.Unlock()
+	config.Log.Info("Start full update")
+	wg.Add(2)
+	go UpdateAllUUItems()
+	go UpdateAllBuffItems()
+	wg.Wait()
+	config.Log.Info("Full update completed")
 }

@@ -55,3 +55,29 @@ func GetUUItems(pageSize, PageNum int) ([]*models.UItem, int, error) {
 	return uuResp.Data, uuResp.TotalCount, err
 
 }
+
+func VerifyUUToken() {
+	var header = GetHeaders()
+	var uuResp UUResponse
+	var uuToken models.UUToken
+	var opts = utils.RequestOptions{
+		Body: map[string]int{
+			"listSortType": 0,
+			"sortType":     0,
+			"pageSize":     100,
+			"pageIndex":    3},
+		Headers: header,
+		Result:  &uuResp,
+	}
+	res, err := client.DoRequest("POST", "api/homepage/pc/goods/market/querySaleTemplate", opts)
+	if err != nil || res.StatusCode() != 200 || uuResp.Code != 0 {
+		config.Log.Warn("uu token expired")
+		uuToken.Expired = "yes"
+	} else {
+		uuToken.Expired = "no"
+	}
+	err = uuToken.UpdateUUExpired()
+	if err != nil {
+		config.Log.Errorf("uu token expired update error: %v", err)
+	}
+}

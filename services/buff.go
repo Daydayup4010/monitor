@@ -57,3 +57,30 @@ func GetBuffItems(pageSize, pageNum string) ([]*models.BuffItem, int, error) {
 	}
 	return buffResponse.Data.Items, buffResponse.Data.TotalCount, err
 }
+
+// VerifyBuffToken 校验buff token
+func VerifyBuffToken() {
+	header := GetBuffHeaders()
+	var buffResponse BuffResponse
+	var buffToken models.BuffToken
+	var opt = utils.RequestOptions{
+		QueryParams: map[string]string{
+			"page_size": "30",
+			"page_num":  "1",
+			"game":      "csgo",
+		},
+		Headers: header,
+		Result:  &buffResponse,
+	}
+	res, err := BuffClient.DoRequest("GET", "api/market/goods", opt)
+	if err != nil || res.StatusCode() != 200 || buffResponse.Code != "OK" {
+		config.Log.Warn("buff token expired")
+		buffToken.Expired = "yes"
+	} else {
+		buffToken.Expired = "no"
+	}
+	err = buffToken.UpdateBuffExpired()
+	if err != nil {
+		config.Log.Errorf("update buff expired error: %v", err)
+	}
+}
