@@ -16,6 +16,7 @@ func InitRouter() *gin.Engine {
 	{
 		tokens.POST("uu", api.UpdateUUToken)
 		tokens.POST("buff", api.UpdateBuffToken)
+		tokens.GET("verify", api.VerifyToken)
 
 	}
 	settings := v1.Group("settings")
