@@ -18,6 +18,8 @@ func UpdateSetting(c *gin.Context) {
 		})
 		config.Log.Errorf("update setting err: %s", err)
 	} else {
+		models.UpdateSkinItems()
+		config.Log.Info("Update skin item")
 		c.JSON(http.StatusOK, gin.H{
 			"code": 1,
 			"msg":  "success",

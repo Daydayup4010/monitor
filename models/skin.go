@@ -36,10 +36,14 @@ func UpdateSkinItems() {
 	if err != nil {
 		config.Log.Errorf("Get settings error: %s", err)
 	}
+
+	if err = config.DB.Exec("delete from skin_item").Error; err != nil {
+		config.Log.Errorf("delete skin table fail: %s", err)
+	}
 	var skins []SkinItem
 	err = config.DB.Model(&UItem{}).Select("uitem.id as id, uitem.commodity_name as name, uitem.icon_url as image_url, uitem.type_name as category, uitem.price as u_price, buff_item.sell_min_price as buff_price, (uitem.price - buff_item.sell_min_price) as price_diff, ROUND((uitem.price - buff_item.sell_min_price)/buff_item.sell_min_price,2) as profit_rate").
 		Joins("join buff_item ON uitem.commodity_hash_name = buff_item.market_hash_name").
-		Where("uitem.price - buff_item.sell_min_price > ? and buff_item.sell_num > ? and buff_item.sell_min_price < ? and buff_item.sell_min_price > ?", settings.MinDiff, settings.MinSellNum, settings.MaxSellPrice, settings.MinSellPrice).Scan(&skins).Error
+		Where("(uitem.price - buff_item.sell_min_price) > ? and buff_item.sell_num > ? and buff_item.sell_min_price < ? and buff_item.sell_min_price > ?", settings.MinDiff, settings.MinSellNum, settings.MaxSellPrice, settings.MinSellPrice).Scan(&skins).Error
 	if err != nil {
 		config.Log.Errorf("get price diff data fail: %s", err)
 	}

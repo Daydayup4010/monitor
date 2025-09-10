@@ -16,14 +16,13 @@ var BuffMaxPageSize = "80"
 var RequestDelay = time.Second * 5
 var wg sync.WaitGroup
 var task sync.Mutex
-var uuLimiter = rate.NewLimiter(2, 1) // 速率: 3 tokens/s, 突发容量: 1
+var uuLimiter = rate.NewLimiter(1, 1) // 速率: 3 tokens/s, 突发容量: 1
 var buffLimiter = rate.NewLimiter(rate.Every(2100*time.Millisecond), 1)
 
 func UpdateAllUUItems() {
 	defer wg.Done()
 	_, total, _ := GetUUItems(20, 1)
 	totalPages := total/UUMaxPageSize + 1
-
 	for page := 1; page <= totalPages+1; page++ {
 		if err := uuLimiter.Wait(context.Background()); err != nil {
 			config.Log.Errorf("wait limiter error: %v", err)

@@ -44,12 +44,12 @@ func UpdateBuffToken(c *gin.Context) {
 
 }
 
-func VerifyToken(c *gin.Context) {
+func GetVerify(c *gin.Context) {
 	var uu models.UUToken
 	var buff models.BuffToken
 	var expired = map[string]string{
 		"uu":   "yes",
-		"buff": "no",
+		"buff": "yes",
 	}
 	err := uu.GetUUExpired()
 	err = buff.GetBuffExpired()
@@ -66,6 +66,25 @@ func VerifyToken(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"code": 1,
 			"data": expired,
+			"msg":  "success",
+		})
+	}
+}
+
+func VerifyToken(c *gin.Context) {
+	var uu models.UUToken
+	var buff models.BuffToken
+	err := uu.UpdateUUExpired()
+	err = buff.UpdateBuffExpired()
+	if err != nil {
+		config.Log.Errorf("Update token expired error : %v", err)
+		c.JSON(http.StatusOK, gin.H{
+			"code": 0,
+			"msg":  "Update token expired error",
+		})
+	} else {
+		c.JSON(http.StatusOK, gin.H{
+			"code": 1,
 			"msg":  "success",
 		})
 	}

@@ -65,8 +65,8 @@ func VerifyBuffToken() {
 	var buffToken models.BuffToken
 	var opt = utils.RequestOptions{
 		QueryParams: map[string]string{
-			"page_size": "30",
-			"page_num":  "1",
+			"page_size": "80",
+			"page_num":  "2",
 			"game":      "csgo",
 		},
 		Headers: header,
