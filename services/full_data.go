@@ -96,5 +96,6 @@ func UpdateFullData() {
 	go UpdateAllUUItems()
 	go UpdateAllBuffItems()
 	wg.Wait()
+	models.UpdateSkinItems()
 	config.Log.Info("Full update completed")
 }
