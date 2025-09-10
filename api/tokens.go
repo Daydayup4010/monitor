@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"uu/config"
 	"uu/models"
+	"uu/services"
 )
 
 func UpdateUUToken(c *gin.Context) {
@@ -74,17 +75,27 @@ func GetVerify(c *gin.Context) {
 func VerifyToken(c *gin.Context) {
 	var uu models.UUToken
 	var buff models.BuffToken
-	err := uu.UpdateUUExpired()
-	err = buff.UpdateBuffExpired()
+	var expired = map[string]string{
+		"uu":   "yes",
+		"buff": "yes",
+	}
+	services.VerifyUUToken()
+	services.VerifyBuffToken()
+	err := uu.GetUUExpired()
+	err = buff.GetBuffExpired()
 	if err != nil {
-		config.Log.Errorf("Update token expired error : %v", err)
+		config.Log.Errorf("Get token expired error : %v", err)
 		c.JSON(http.StatusOK, gin.H{
 			"code": 0,
-			"msg":  "Update token expired error",
+			"data": expired,
+			"msg":  "Get token expired error",
 		})
 	} else {
+		expired["uu"] = uu.Expired
+		expired["buff"] = buff.Expired
 		c.JSON(http.StatusOK, gin.H{
 			"code": 1,
+			"data": expired,
 			"msg":  "success",
 		})
 	}
