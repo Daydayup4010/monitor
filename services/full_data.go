@@ -41,7 +41,7 @@ func UpdateAllUUItems() {
 			continue
 		}
 		models.BatchAddUUItem(items)
-		config.Log.Infof("Full Update uu item pageName: %d, success", page)
+		//config.Log.Infof("Full Update uu item pageName: %d, success", page)
 	}
 }
 
@@ -62,7 +62,6 @@ func UpdateAllBuffItems() {
 	_, total, _ := GetBuffItems("20", "1")
 	size, _ := strconv.Atoi(BuffMaxPageSize)
 	pageNum := total/size + 1
-	config.Log.Infof("buff page_num: %d", pageNum)
 	for i := 1; i <= pageNum+1; i++ {
 		if err := buffLimiter.Wait(context.Background()); err != nil {
 			config.Log.Errorf("wait buff limiter error: %v", err)
@@ -76,10 +75,10 @@ func UpdateAllBuffItems() {
 				i-- // 重试当前页
 				continue
 			}
-			config.Log.Errorf("request buff %d page fail: %v", i, err)
+			//config.Log.Errorf("request buff %d page fail: %v", i, err)
 			continue
 		}
-		config.Log.Infof("Full Update buff item pageName: %d, success", i)
+		//config.Log.Infof("Full Update buff item pageName: %d, success", i)
 		models.BatchAddBuffItem(items)
 	}
 }
