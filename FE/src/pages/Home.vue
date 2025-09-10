@@ -55,6 +55,20 @@
               </div>
             </div>
           </div>
+          
+          <div class="filter-item refresh-item">
+            <div class="filter-label">&nbsp;</div>
+            <el-button
+              type="primary"
+              size="large"
+              :loading="skinStore.loading"
+              @click="refreshData"
+              class="refresh-btn"
+            >
+              <el-icon><Refresh /></el-icon>
+              刷新
+            </el-button>
+          </div>
         </div>
       </div>
     </div>
@@ -362,6 +376,11 @@ const handleCurrentChange = (page: number) => {
   }
 }
 
+// 刷新数据
+const refreshData = () => {
+  skinStore.getSkinItems()
+}
+
 // 处理图片加载失败
 const handleImageError = (e: Event) => {
   const img = e.target as HTMLImageElement
@@ -438,7 +457,7 @@ onUnmounted(() => {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   border-radius: 24px;
-  padding: 32px;
+  padding: 40px 48px;
   box-shadow: 
     0 8px 32px rgba(24, 144, 255, 0.08),
     0 4px 16px rgba(0, 0, 0, 0.04);
@@ -473,8 +492,8 @@ onUnmounted(() => {
 
 .filter-row {
   display: grid;
-  grid-template-columns: 300px 200px 560px;
-  gap: 40px;
+  grid-template-columns: 300px 200px 1fr 140px;
+  gap: 48px;
   align-items: end;
   max-width: none;
   justify-content: start;
@@ -558,7 +577,8 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 20px;
+  max-width: 500px;
 }
 
 .slider-container:hover {
@@ -583,6 +603,26 @@ onUnmounted(() => {
   white-space: nowrap;
   min-width: 80px;
   text-align: center;
+}
+
+.refresh-btn {
+  height: 48px;
+  border-radius: 12px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #1890ff, #40a9ff);
+  border: none;
+  box-shadow: 0 4px 15px rgba(24, 144, 255, 0.3);
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.refresh-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(24, 144, 255, 0.4);
+}
+
+.refresh-btn:active {
+  transform: translateY(0);
 }
 
 /* 表格美化 */
@@ -1171,10 +1211,21 @@ onUnmounted(() => {
 }
 
 /* 响应式设计 */
+@media (max-width: 1400px) {
+  .filter-row {
+    grid-template-columns: 280px 180px 1fr 130px;
+    gap: 40px;
+  }
+}
+
 @media (max-width: 1200px) {
   .filter-row {
-    grid-template-columns: 280px 180px 400px;
-    gap: 24px;
+    grid-template-columns: 260px 160px 1fr 120px;
+    gap: 32px;
+  }
+  
+  .filter-section {
+    padding: 32px 40px;
   }
 }
 
@@ -1186,7 +1237,24 @@ onUnmounted(() => {
   
   .slider-item {
     grid-column: 1 / -1;
-    max-width: 400px;
+  }
+  
+  .slider-container {
+    max-width: 500px;
+    margin: 0 auto;
+  }
+  
+  .refresh-item {
+    grid-column: 1 / -1;
+    justify-self: center;
+  }
+  
+  .refresh-btn {
+    max-width: 200px;
+  }
+  
+  .filter-section {
+    padding: 28px 32px;
   }
 }
 

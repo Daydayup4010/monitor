@@ -3,10 +3,16 @@ package core
 import (
 	"bytes"
 	"fmt"
-	"github.com/sirupsen/logrus"
+	"io"
 	"os"
 	"path"
+	"path/filepath"
+	"time"
 	"uu/config"
+
+	rota "github.com/lestrrat-go/file-rotatelogs"
+	"github.com/rifflock/lfshook"
+	"github.com/sirupsen/logrus"
 )
 
 // 字体颜色
@@ -57,9 +63,62 @@ func (t *LogFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 
 func InitLogger() {
 	mLog := logrus.New()
-	mLog.SetOutput(os.Stdout)                           // 设置输出类型
+
+	// 创建log目录
+	logDir := "log"
+	if err := os.MkdirAll(logDir, 0755); err != nil {
+		fmt.Printf("创建日志目录失败: %v\n", err)
+		return
+	}
+
+	// 设置日志文件路径和名称
+	fileName := "app.log"
+	filePath := filepath.Join(logDir, fileName)
+	linkName := filepath.Join(logDir, "latest.log")
+
+	// 创建日志文件轮转器
+	logWriter, err := rota.New(
+		filePath+"%Y%m%d.log",               // 日志文件名格式
+		rota.WithMaxAge(7*24*time.Hour),     // 保留7天的日志
+		rota.WithRotationTime(24*time.Hour), // 每天轮转一次
+		rota.WithLinkName(linkName),         // 创建最新日志的软链接
+	)
+	if err != nil {
+		fmt.Printf("创建日志轮转器失败: %v\n", err)
+		mLog.SetOutput(os.Stdout) // 如果文件输出失败，回退到标准输出
+	} else {
+		// 根据配置决定输出方式
+		var writers []io.Writer
+		writers = append(writers, logWriter) // 总是输出到文件
+
+		if config.CONFIG.Logger.LogInConsole {
+			writers = append(writers, os.Stdout) // 如果配置允许，也输出到控制台
+		}
+
+		// 创建多重输出
+		multiWriter := io.MultiWriter(writers...)
+		mLog.SetOutput(multiWriter)
+
+		// 为不同级别的日志设置文件输出钩子（使用自定义格式器）
+		wireMap := lfshook.WriterMap{
+			logrus.InfoLevel:  logWriter,
+			logrus.DebugLevel: logWriter,
+			logrus.FatalLevel: logWriter,
+			logrus.WarnLevel:  logWriter,
+			logrus.PanicLevel: logWriter,
+			logrus.ErrorLevel: logWriter,
+		}
+
+		// 为文件输出使用简化的格式（不带颜色）
+		fileHook := lfshook.NewHook(wireMap, &logrus.TextFormatter{
+			TimestampFormat: "2006-01-02 15:04:05",
+			DisableColors:   true, // 文件输出不需要颜色
+		})
+		mLog.AddHook(fileHook)
+	}
+
 	mLog.SetReportCaller(config.CONFIG.Logger.ShowLine) // 开启返回函数名和行号
-	mLog.SetFormatter(&LogFormatter{})                  // 设置自己定义的formatter
+	mLog.SetFormatter(&LogFormatter{})                  // 设置自己定义的formatter（用于控制台输出）
 	parseLevel, err := logrus.ParseLevel(config.CONFIG.Logger.Level)
 	if err != nil {
 		parseLevel = logrus.InfoLevel
