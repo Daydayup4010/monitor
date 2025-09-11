@@ -5,5 +5,5 @@ type Logger struct {
 	Prefix       string `yaml:"prefix"`
 	Director     string `yaml:"director"`
 	ShowLine     bool   `yaml:"show-line"`
-	LogInConsole bool   `yaml:"logInConsole"`
+	LogInConsole bool   `yaml:"log-in-console"`
 }
