@@ -20,5 +20,11 @@ export default defineConfig({
       }
     }
   },
-  base: '/csgo/' // 设置基础路径，匹配 nginx 的 location
+  base: '/csgo/', // 设置基础路径，匹配 nginx 的 location
+  define: {
+    // 定义 Vue 3 特性标志
+    __VUE_OPTIONS_API__: true,
+    __VUE_PROD_DEVTOOLS__: false,
+    __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false
+  }
 })

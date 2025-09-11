@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Layout from '@/layouts/Layout.vue'
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory('/csgo/'), // 设置基础路径，匹配 nginx 配置
   routes: [
     {
       path: '/',
