@@ -13,6 +13,9 @@ export default defineConfig({
   server: {
     port: 3000,
     host: '0.0.0.0', // 允许外部访问
+    hmr: {
+      port: 3001, // HMR WebSocket 端口
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:8080',
@@ -25,6 +28,8 @@ export default defineConfig({
     // 定义 Vue 3 特性标志
     __VUE_OPTIONS_API__: true,
     __VUE_PROD_DEVTOOLS__: false,
-    __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false
+    __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false,
+    // 定义 WebSocket token 以避免 HMR 错误
+    __WS_TOKEN__: JSON.stringify('vite-hmr-token')
   }
 })
