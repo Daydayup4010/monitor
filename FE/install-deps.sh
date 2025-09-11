@@ -16,3 +16,4 @@ echo "验证 Vite 版本..."
 npm list vite
 
 echo "完成！现在可以运行 npm run dev"
+

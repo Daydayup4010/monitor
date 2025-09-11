@@ -13,3 +13,4 @@ npm list vite
 
 echo 完成！现在可以运行 npm run dev
 pause
+
