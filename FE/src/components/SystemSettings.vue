@@ -109,48 +109,6 @@
       </el-form-item>
     </el-form>
     
-    <!-- 设置说明 -->
-    <el-card class="help-card">
-      <template #header>
-        <div class="card-header">
-          <el-icon size="20"><QuestionFilled /></el-icon>
-          <span>设置说明</span>
-        </div>
-      </template>
-      
-      <el-row :gutter="24">
-        <el-col :span="12">
-          <div class="help-section">
-            <h4>参数说明：</h4>
-            <ul>
-              <li><strong>最小销售量：</strong>筛选销售量大于等于此值的商品</li>
-              <li><strong>最小价格差异：</strong>筛选UU价格与Buff价格差异大于此值的商品</li>
-              <li><strong>价格区间：</strong>筛选在指定价格区间内的商品</li>
-            </ul>
-          </div>
-        </el-col>
-        
-        <el-col :span="12">
-          <div class="help-section">
-            <h4>建议配置：</h4>
-            <ul>
-              <li>新手用户：最小销售量 ≥ 10，价格差异 ≥ 5元</li>
-              <li>进阶用户：最小销售量 ≥ 5，价格差异 ≥ 2元</li>
-              <li>专业用户：根据市场情况灵活调整参数</li>
-            </ul>
-          </div>
-        </el-col>
-      </el-row>
-      
-      <el-alert
-        title="重要提醒"
-        type="warning"
-        description="修改设置后，新的筛选条件将在下次数据刷新时生效。"
-        show-icon
-        :closable="false"
-        class="alert-section"
-      />
-    </el-card>
     
     <!-- 当前设置预览 -->
     <el-card v-if="!settingsStore.loading" class="preview-card">
@@ -354,7 +312,6 @@ watch(
   box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
 }
 
-.help-card,
 .preview-card {
   margin-top: 24px;
   border-radius: 16px;
@@ -367,28 +324,6 @@ watch(
   align-items: center;
 }
 
-.help-section {
-  padding: 16px;
-}
-
-.help-section h4 {
-  margin: 0 0 12px 0;
-  color: #262626;
-}
-
-.help-section ul {
-  margin: 0;
-  padding-left: 20px;
-}
-
-.help-section li {
-  margin-bottom: 8px;
-  line-height: 1.5;
-}
-
-.alert-section {
-  margin-top: 16px;
-}
 
 .preview-content {
   display: flex;
