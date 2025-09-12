@@ -1,10 +1,6 @@
 <template>
   <div class="system-settings">
-    <div v-if="settingsStore.loading" class="loading-container">
-      <el-loading
-        element-loading-text="加载设置中..."
-        element-loading-background="transparent"
-      />
+    <div v-if="settingsStore.loading" class="loading-container" v-loading="true" element-loading-text="加载设置中..." element-loading-background="transparent">
     </div>
     
     <el-form

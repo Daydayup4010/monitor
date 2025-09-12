@@ -75,11 +75,7 @@
 
     <!-- 数据表格 -->
     <el-card class="table-card">
-      <div v-if="skinStore.loading" class="loading-container">
-        <el-loading
-          element-loading-text="加载饰品数据中..."
-          element-loading-background="transparent"
-        />
+      <div v-if="skinStore.loading" class="loading-container" v-loading="true" element-loading-text="加载饰品数据中..." element-loading-background="transparent">
       </div>
       
       <div v-else class="table-container">
