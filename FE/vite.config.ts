@@ -15,8 +15,8 @@ export default defineConfig({
     host: '0.0.0.0', // 允许外部访问
     hmr: {
       port: 3001, // HMR WebSocket 端口
-      // 在生产环境中禁用HMR或设置正确的HMR主机
-      host: process.env.NODE_ENV === 'production' ? false : 'localhost'
+      // 确保HMR使用正确的主机地址
+      host: 'localhost'
     },
     proxy: {
       '/api': {
