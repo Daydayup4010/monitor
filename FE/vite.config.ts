@@ -13,20 +13,22 @@ export default defineConfig({
   server: {
     port: 3000,
     host: '0.0.0.0', // 允许外部访问
+    // 允许所有主机访问（开发环境）
+    allowedHosts: 'all',
     hmr: {
       port: 3001, // HMR WebSocket 端口
-      // 确保HMR使用正确的主机地址
-      host: 'localhost'
+      // 设置HMR主机为当前域名
+      host: 'www.2333tv.top'
     },
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: 'http://localhost:3601',
         changeOrigin: true,
       }
     }
   },
-  // 只在构建时使用base路径，开发时不使用
-  base: process.env.NODE_ENV === 'production' ? '/csgo/' : '/',
+  // 生产环境使用base路径
+  base: '/csgo/',
   define: {
     // 定义 Vue 3 特性标志
     __VUE_OPTIONS_API__: true,
