@@ -15,11 +15,7 @@ export default defineConfig({
     host: '0.0.0.0', // 允许外部访问
     // 允许所有主机访问（开发环境）
     allowedHosts: 'all',
-    hmr: {
-      port: 3001, // HMR WebSocket 端口
-      // 设置HMR主机为当前域名
-      host: 'www.2333tv.top'
-    },
+    hmr: false, // 生产环境禁用HMR
     proxy: {
       '/api': {
         target: 'http://localhost:3601',
@@ -29,6 +25,21 @@ export default defineConfig({
   },
   // 生产环境使用base路径
   base: '/csgo/',
+  build: {
+    // 生产构建优化
+    outDir: 'dist',
+    assetsDir: 'assets',
+    sourcemap: false,
+    minify: 'terser',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['vue', 'vue-router', 'pinia'],
+          elementPlus: ['element-plus']
+        }
+      }
+    }
+  },
   define: {
     // 定义 Vue 3 特性标志
     __VUE_OPTIONS_API__: true,
