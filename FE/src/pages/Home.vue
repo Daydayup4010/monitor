@@ -57,9 +57,12 @@
           </div>
           
           <div class="filter-item refresh-item">
-            <div class="update-time-display" v-if="lastUpdateTime">
-              <el-icon><Clock /></el-icon>
-              <span>更新时间：{{ formatUpdateTime(lastUpdateTime) }}</span>
+            <div class="update-time-wrapper" v-if="lastUpdateTime">
+              <div class="update-time-label">
+                <el-icon><Clock /></el-icon>
+                <span>更新时间</span>
+              </div>
+              <div class="update-time-value">{{ formatUpdateTime(lastUpdateTime) }}</div>
             </div>
             <el-button
               type="primary"
@@ -622,28 +625,49 @@ onUnmounted(() => {
   text-align: center;
 }
 
-.update-time-display {
+.update-time-wrapper {
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid rgba(24, 144, 255, 0.1);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+  text-align: center;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(24, 144, 255, 0.08);
+}
+
+.update-time-wrapper:hover {
+  border-color: rgba(24, 144, 255, 0.25);
+  background: rgba(255, 255, 255, 1);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 25px rgba(24, 144, 255, 0.15);
+}
+
+.update-time-label {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  font-size: 13px;
-  color: #666;
-  margin-bottom: 12px;
-  padding: 8px 16px;
-  background: rgba(24, 144, 255, 0.05);
-  border-radius: 8px;
-  border: 1px solid rgba(24, 144, 255, 0.1);
-  transition: all 0.3s ease;
+  font-size: 12px;
+  color: #8c8c8c;
+  font-weight: 500;
+  margin-bottom: 4px;
+  white-space: nowrap;
 }
 
-.update-time-display:hover {
-  background: rgba(24, 144, 255, 0.1);
-  border-color: rgba(24, 144, 255, 0.2);
-}
-
-.update-time-display .el-icon {
+.update-time-label .el-icon {
   color: #1890ff;
+  font-size: 14px;
+}
+
+.update-time-value {
+  font-size: 14px;
+  color: #262626;
+  font-weight: 600;
+  font-family: 'Courier New', Monaco, monospace;
+  white-space: nowrap;
+  letter-spacing: 0.5px;
 }
 
 .refresh-btn {
