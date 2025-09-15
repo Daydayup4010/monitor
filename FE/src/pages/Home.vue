@@ -527,7 +527,7 @@ onUnmounted(() => {
 
 .refresh-item {
   align-items: center;
-  max-width: 180px;
+  max-width: 200px;
 }
 
 .filter-label {
@@ -634,14 +634,15 @@ onUnmounted(() => {
   background: rgba(255, 255, 255, 0.95);
   border: 2px solid rgba(24, 144, 255, 0.1);
   border-radius: 12px;
-  padding: 8px 12px;
+  padding: 8px 16px;
   margin-bottom: 12px;
   text-align: center;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
   box-shadow: 0 4px 20px rgba(24, 144, 255, 0.08);
   width: 100%;
-  max-width: 180px;
+  max-width: 200px;
+  min-width: 180px;
 }
 
 .update-time-wrapper:hover {
@@ -669,14 +670,13 @@ onUnmounted(() => {
 }
 
 .update-time-value {
-  font-size: 11px;
+  font-size: 12px;
   color: #262626;
   font-weight: 600;
   font-family: 'Courier New', Monaco, monospace;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  letter-spacing: 0.2px;
+  letter-spacing: 0.1px;
+  line-height: 1.2;
 }
 
 .refresh-btn {
@@ -1323,7 +1323,7 @@ onUnmounted(() => {
   .refresh-item {
     grid-column: 1 / -1;
     justify-self: center;
-    max-width: 180px;
+    max-width: 200px;
   }
   
   .refresh-btn {
