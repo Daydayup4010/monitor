@@ -57,7 +57,10 @@
           </div>
           
           <div class="filter-item refresh-item">
-            <div class="filter-label">&nbsp;</div>
+            <div class="update-time-display" v-if="lastUpdateTime">
+              <el-icon><Clock /></el-icon>
+              <span>更新时间：{{ formatUpdateTime(lastUpdateTime) }}</span>
+            </div>
             <el-button
               type="primary"
               size="large"
@@ -219,9 +222,13 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useSkinStore } from '@/stores/skin'
 import { formatTime, formatPrice, formatPercent, getProfitColor, debounce } from '@/utils'
+import dayjs from 'dayjs'
 import type { SkinItem } from '@/types'
 
 const skinStore = useSkinStore()
+
+// 更新时间
+const lastUpdateTime = ref('')
 
 // 搜索和筛选
 const searchKeyword = ref('')
@@ -373,8 +380,18 @@ const handleCurrentChange = (page: number) => {
 }
 
 // 刷新数据
-const refreshData = () => {
-  skinStore.getSkinItems()
+const refreshData = async () => {
+  await skinStore.getSkinItems()
+  // 更新时间：取第一个饰品的update_at值
+  if (skinStore.skinItems.length > 0) {
+    lastUpdateTime.value = skinStore.skinItems[0].updated_at
+  }
+}
+
+// 格式化更新时间
+const formatUpdateTime = (timeStr: string) => {
+  if (!timeStr) return ''
+  return dayjs(timeStr).format('YYYY-MM-DD HH:mm:ss')
 }
 
 // 处理图片加载失败
@@ -411,8 +428,12 @@ const calculateTableHeight = () => {
 }
 
 // 初始化数据
-onMounted(() => {
-  skinStore.getSkinItems()
+onMounted(async () => {
+  await skinStore.getSkinItems()
+  // 初始化更新时间
+  if (skinStore.skinItems.length > 0) {
+    lastUpdateTime.value = skinStore.skinItems[0].updated_at
+  }
   calculateTableHeight()
   
   // 监听窗口大小变化
@@ -599,6 +620,30 @@ onUnmounted(() => {
   white-space: nowrap;
   min-width: 80px;
   text-align: center;
+}
+
+.update-time-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 12px;
+  padding: 8px 16px;
+  background: rgba(24, 144, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(24, 144, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.update-time-display:hover {
+  background: rgba(24, 144, 255, 0.1);
+  border-color: rgba(24, 144, 255, 0.2);
+}
+
+.update-time-display .el-icon {
+  color: #1890ff;
 }
 
 .refresh-btn {
