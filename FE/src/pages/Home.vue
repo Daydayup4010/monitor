@@ -525,6 +525,11 @@ onUnmounted(() => {
   gap: 12px;
 }
 
+.refresh-item {
+  align-items: center;
+  min-width: 220px;
+}
+
 .filter-label {
   font-size: 15px;
   font-weight: 700;
@@ -629,12 +634,15 @@ onUnmounted(() => {
   background: rgba(255, 255, 255, 0.95);
   border: 2px solid rgba(24, 144, 255, 0.1);
   border-radius: 16px;
-  padding: 16px;
+  padding: 12px 20px;
   margin-bottom: 16px;
   text-align: center;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
   box-shadow: 0 4px 20px rgba(24, 144, 255, 0.08);
+  min-width: 200px;
+  width: auto;
+  display: inline-block;
 }
 
 .update-time-wrapper:hover {
@@ -662,12 +670,15 @@ onUnmounted(() => {
 }
 
 .update-time-value {
-  font-size: 14px;
+  font-size: 13px;
   color: #262626;
   font-weight: 600;
   font-family: 'Courier New', Monaco, monospace;
   white-space: nowrap;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .refresh-btn {
@@ -1312,6 +1323,11 @@ onUnmounted(() => {
   .refresh-item {
     grid-column: 1 / -1;
     justify-self: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    min-width: 220px;
   }
   
   .refresh-btn {
