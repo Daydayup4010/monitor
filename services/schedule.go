@@ -5,7 +5,7 @@ import (
 )
 
 func StartFullUpdateScheduler() {
-	ticker := time.NewTicker(30 * time.Minute)
+	ticker := time.NewTicker(20 * time.Minute)
 	defer ticker.Stop()
 	for range ticker.C {
 		go UpdateFullData()
@@ -13,7 +13,7 @@ func StartFullUpdateScheduler() {
 }
 
 func StartVerifyToken() {
-	ticker := time.NewTicker(5 * time.Minute)
+	ticker := time.NewTicker(2 * time.Minute)
 	defer ticker.Stop()
 	for range ticker.C {
 		go func() {
