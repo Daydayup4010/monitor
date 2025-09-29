@@ -21,6 +21,16 @@ type UItem struct {
 	TypeName           string `json:"typeName" gorm:"type:varchar(255)"`
 }
 
+type UItemsInfo struct {
+	MarketHashName      string  `json:"marketHashName" gorm:"type:varchar(255);uniqueIndex"`
+	Name                string  `json:"Name" gorm:"type:varchar(255)"`
+	ImageUrl            string  `json:"imageUrl" gorm:"type:varchar(255)"`
+	Id                  int64   `gorm:"type:int;primaryKey"`
+	CacheExpirationDesc string  `json:"cacheExpirationDesc" gorm:"type:varchar(20)"`
+	AssetMergeCount     int64   `json:"assetMergeCount" gorm:"type:int"`
+	Price               float64 `json:"price" gorm:"type:decimal(10,2)"`
+}
+
 func BatchAddUUItem(uu []*UItem) {
 	err := config.DB.Clauses(clause.OnConflict{UpdateAll: true}).CreateInBatches(uu, 100).Error
 	if err != nil {
@@ -28,8 +38,9 @@ func BatchAddUUItem(uu []*UItem) {
 	}
 }
 
-func GetUUItems() []UItem {
-	var uu []UItem
-	config.DB.Find(&uu)
-	return uu
+func BatchAddUUInventory(uu []*UItemsInfo) {
+	err := config.DB.Clauses(clause.OnConflict{UpdateAll: true}).CreateInBatches(uu, 100).Error
+	if err != nil {
+		config.Log.Errorf("barch insert uu inventory fail: %s", err)
+	}
 }

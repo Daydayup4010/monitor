@@ -20,6 +20,16 @@ type BuffResponse struct {
 	} `json:"data"`
 }
 
+type BuffInventoryResponse struct {
+	Code string `json:"code"`
+	Msg  string `json:"msg"`
+	Data struct {
+		TotalCount int                     `json:"total_count"`
+		TotalPage  int                     `json:"total_page"`
+		Items      []*models.BuffInventory `json:"items"`
+	} `json:"data"`
+}
+
 var BuffClient = utils.CreateClient("https://buff.163.com")
 
 func GetBuffHeaders() map[string]string {
@@ -83,4 +93,24 @@ func VerifyBuffToken() {
 	if err != nil {
 		config.Log.Errorf("update buff expired error: %v", err)
 	}
+}
+
+func GetBuffInventory() []*models.BuffInventory {
+	header := GetBuffHeaders()
+	var buffResponse BuffInventoryResponse
+	var opt = utils.RequestOptions{
+		QueryParams: map[string]string{
+			"page_size": "999",
+			"page_num":  "1",
+			"game":      "csgo",
+			"fold":      "true",
+		},
+		Headers: header,
+		Result:  &buffResponse,
+	}
+	res, err := BuffClient.DoRequest("GET", "api/market/steam_inventory", opt)
+	if err != nil || res.StatusCode() != 200 {
+		config.Log.Errorf("request buff inventory api error : %s", err)
+	}
+	return buffResponse.Data.Items
 }

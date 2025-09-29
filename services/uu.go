@@ -14,6 +14,17 @@ type UUResponse struct {
 	TotalCount int             `json:"TotalCount"`
 }
 
+type UUInventory struct {
+	Code int    `json:"code"`
+	Msg  string `json:"msg"`
+	Data struct {
+		ItemCount  int                  `json:"itemCount"`
+		ItemsInfos []*models.UItemsInfo `json:"itemsInfos"`
+		TotalCount int                  `json:"totalCount"`
+		Valuation  string               `json:"valuation"`
+	} `json:"data"`
+}
+
 var client = utils.CreateClient("https://api.youpin898.com")
 
 func GetHeaders() map[string]string {
@@ -80,4 +91,22 @@ func VerifyUUToken() {
 	if err != nil {
 		config.Log.Errorf("uu token expired update error: %v", err)
 	}
+}
+
+func GetUUInventory() []*models.UItemsInfo {
+	var header = GetHeaders()
+	var uuInventory UUInventory
+	var opts = utils.RequestOptions{
+		Body: map[string]int{
+			"isMerge":   1,
+			"pageSize":  999,
+			"pageIndex": 1},
+		Headers: header,
+		Result:  &uuInventory,
+	}
+	res, err := client.DoRequest("POST", "api/youpin/pc/inventory/list", opts)
+	if err != nil || res.StatusCode() != 200 {
+		config.Log.Warnf("request uu inventory list api error: %s, code: %d", err, res.StatusCode())
+	}
+	return uuInventory.Data.ItemsInfos
 }

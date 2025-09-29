@@ -33,7 +33,7 @@ func UpdateAllUUItems() {
 		if err != nil {
 			if isRateLimitError(err) {
 				// 动态退避：遇到429时增加延迟
-				handleRateLimitError(uuLimiter)
+				handleRateLimitError()
 				page-- // 重试当前页
 				continue
 			}
@@ -52,7 +52,7 @@ func isRateLimitError(err error) bool {
 }
 
 // 处理速率限制错误（动态退避）
-func handleRateLimitError(limiter *rate.Limiter) {
+func handleRateLimitError() {
 	config.Log.Warnf("limits sleep %v", RequestDelay)
 	time.Sleep(RequestDelay)
 }
@@ -71,7 +71,7 @@ func UpdateAllBuffItems() {
 		if err != nil {
 			if isRateLimitError(err) {
 				// 动态退避：遇到429时增加延迟
-				handleRateLimitError(buffLimiter)
+				handleRateLimitError()
 				i-- // 重试当前页
 				continue
 			}
@@ -96,4 +96,11 @@ func UpdateFullData() {
 	wg.Wait()
 	models.UpdateSkinItems()
 	config.Log.Info("Full update completed")
+}
+
+func UpdateInventory() {
+	uu := GetUUInventory()
+	models.BatchAddUUInventory(uu)
+	buff := GetBuffInventory()
+	models.BatchAddBuffInventory(buff)
 }
