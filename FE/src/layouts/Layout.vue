@@ -334,10 +334,16 @@ onMounted(() => {
 @media (max-width: 768px) {
   .header-content {
     padding: 0 16px;
+    height: 60px;
+  }
+  
+  .brand-icon {
+    width: 35px;
+    height: 35px;
   }
   
   .brand-title {
-    font-size: 18px;
+    font-size: 16px;
   }
   
   .nav-menu {
@@ -345,7 +351,47 @@ onMounted(() => {
   }
   
   .main-content {
-    padding: 16px;
+    padding: 12px;
+    min-height: calc(100vh - 60px);
+  }
+  
+  .content-wrapper {
+    border-radius: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-content {
+    padding: 0 12px;
+    height: 55px;
+  }
+  
+  .brand {
+    gap: 8px;
+  }
+  
+  .brand-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+  }
+  
+  .brand-title {
+    font-size: 14px;
+  }
+  
+  .main-content {
+    padding: 8px;
+    min-height: calc(100vh - 55px);
+  }
+  
+  .content-wrapper {
+    border-radius: 12px;
+  }
+  
+  .settings-btn {
+    width: 35px;
+    height: 35px;
   }
 }
 </style>

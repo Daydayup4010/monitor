@@ -335,6 +335,82 @@ watch(
 
 .filter-description h4 {
   margin: 0 0 8px 0;
+}
+
+/* 移动端响应式样式 */
+@media (max-width: 768px) {
+  :deep(.el-row) {
+    margin: 0 !important;
+  }
+  
+  :deep(.el-col) {
+    width: 100% !important;
+    margin-bottom: 16px;
+  }
+  
+  :deep(.el-form-item__label) {
+    width: 100px !important;
+    font-size: 13px;
+  }
+  
+  :deep(.el-form-item__content) {
+    margin-left: 100px !important;
+  }
+  
+  .form-help {
+    font-size: 12px;
+    margin-top: 6px;
+  }
+  
+  .save-btn {
+    width: 100%;
+    height: 44px;
+    margin-bottom: 8px;
+  }
+  
+  .form-actions {
+    margin-top: 24px;
+  }
+  
+  :deep(.el-button) {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .settings-form {
+    padding: 16px 0;
+  }
+  
+  :deep(.el-form-item__label) {
+    width: 80px !important;
+    font-size: 12px;
+    line-height: 1.2;
+  }
+  
+  :deep(.el-form-item__content) {
+    margin-left: 80px !important;
+  }
+  
+  .form-help {
+    font-size: 11px;
+    margin-top: 4px;
+  }
+  
+  .save-btn {
+    height: 40px;
+    font-size: 14px;
+  }
+  
+  :deep(.el-input-number) {
+    width: 100%;
+  }
+  
+  :deep(.el-input-number .el-input__wrapper) {
+    padding: 8px 12px;
+  }
+}
   color: #262626;
 }
 

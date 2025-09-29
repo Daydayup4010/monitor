@@ -88,7 +88,7 @@
         <el-table
           ref="tableRef"
           :data="displayData"
-          style="width: 100%"
+          style="width: 100%; min-width: 600px"
           stripe
           size="large"
           class="modern-table"
@@ -756,7 +756,7 @@ onUnmounted(() => {
   flex: 1;
   border-radius: 20px;
   position: relative;
-  overflow: hidden;
+  overflow: auto;
   min-height: 0;
 }
 
@@ -1340,53 +1340,296 @@ onUnmounted(() => {
 
 @media (max-width: 768px) {
   .home-page {
-    padding: 20px 24px;
+    padding: 12px;
+  }
+  
+  .filter-section {
+    padding: 20px 16px;
+    margin-bottom: 20px;
   }
   
   .filter-row {
     grid-template-columns: 1fr;
-    gap: 20px;
+    gap: 16px;
   }
   
   .filter-item {
     width: 100%;
   }
   
+  .filter-input,
+  .filter-select {
+    height: 44px;
+  }
+  
+  :deep(.filter-input .el-input__wrapper) {
+    height: 44px;
+  }
+  
+  :deep(.filter-select .el-select__wrapper) {
+    height: 44px;
+  }
+  
+  .slider-container {
+    height: 44px;
+    padding: 16px;
+  }
+  
+  .table-card {
+    height: calc(100vh - 220px);
+  }
+  
   .custom-pagination {
     flex-direction: column;
-    gap: 16px;
-    padding: 20px;
+    gap: 12px;
+    padding: 16px;
   }
   
   .pagination-controls {
     order: -1;
   }
   
+  .pagination-size {
+    padding: 8px 12px;
+  }
+  
+  .size-option {
+    width: 35px;
+    height: 32px;
+    font-size: 12px;
+  }
+  
+  .page-btn {
+    width: 35px;
+    height: 35px;
+  }
+  
+  .page-number {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+  
   .skin-info {
-    gap: 12px;
+    gap: 10px;
+    padding: 8px 0;
+  }
+  
+  .skin-image {
+    width: 45px;
+    height: 45px;
   }
   
   .skin-name {
-    font-size: 14px;
+    font-size: 13px;
+    line-height: 1.3;
+  }
+  
+  .skin-category {
+    font-size: 11px;
   }
   
   .price-value, .diff-value {
-    font-size: 14px;
-    min-width: 70px;
+    font-size: 13px;
+    min-width: 65px;
+    padding: 5px 10px;
+  }
+  
+  .profit-tag {
+    font-size: 12px;
     padding: 6px 12px;
+    min-width: 65px;
   }
   
   .modern-table {
-    font-size: 14px;
-  }
-  
-  :deep(.el-table th) {
-    height: 50px;
     font-size: 13px;
   }
   
+  :deep(.el-table th) {
+    height: 45px;
+    font-size: 12px;
+  }
+  
   :deep(.el-table td) {
-    height: 60px;
+    height: 55px;
+  }
+}
+
+@media (max-width: 480px) {
+  .home-page {
+    padding: 8px;
+  }
+  
+  .filter-section {
+    padding: 16px 12px;
+    margin-bottom: 16px;
+    border-radius: 16px;
+  }
+  
+  .filter-label {
+    font-size: 13px;
+  }
+  
+  .filter-input,
+  .filter-select {
+    height: 40px;
+  }
+  
+  :deep(.filter-input .el-input__wrapper) {
+    height: 40px;
+    padding: 0 12px;
+  }
+  
+  :deep(.filter-select .el-select__wrapper) {
+    height: 40px;
+  }
+  
+  .slider-container {
+    height: 40px;
+    padding: 12px;
+  }
+  
+  .range-display {
+    font-size: 11px;
+    min-width: 70px;
+  }
+  
+  .update-time-wrapper {
+    padding: 6px 12px;
+    min-width: 160px;
+  }
+  
+  .update-time-label {
+    font-size: 10px;
+  }
+  
+  .update-time-value {
+    font-size: 10px;
+  }
+  
+  .refresh-btn {
+    height: 40px;
+    font-size: 12px;
+    max-width: 100px;
+  }
+  
+  .table-card {
+    height: calc(100vh - 200px);
+    border-radius: 16px;
+  }
+  
+  .custom-pagination {
+    padding: 12px;
+    gap: 8px;
+  }
+  
+  .pagination-info, .page-info {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+  
+  .size-label {
+    font-size: 12px;
+  }
+  
+  .size-option {
+    width: 30px;
+    height: 28px;
+    font-size: 11px;
+  }
+  
+  .page-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+  
+  .page-number {
+    width: 28px;
+    height: 28px;
+    font-size: 11px;
+  }
+  
+  .skin-info {
+    gap: 8px;
+    padding: 6px 0;
+  }
+  
+  .skin-image {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .skin-name {
+    font-size: 12px;
+    line-height: 1.2;
+  }
+  
+  .skin-category {
+    font-size: 10px;
+  }
+  
+  .price-value, .diff-value {
+    font-size: 11px;
+    min-width: 55px;
+    padding: 4px 8px;
+    border-radius: 8px;
+  }
+  
+  .profit-tag {
+    font-size: 10px;
+    padding: 4px 8px;
+    min-width: 55px;
+    border-radius: 10px;
+  }
+  
+  .modern-table {
+    font-size: 11px;
+  }
+  
+  :deep(.el-table th) {
+    height: 40px;
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+  
+  :deep(.el-table td) {
+    height: 50px;
+    padding: 4px 8px;
+  }
+  
+  /* 移动端表格水平滚动优化 */
+  .table-container {
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  
+  .table-container::-webkit-scrollbar {
+    height: 6px;
+  }
+  
+  .table-container::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 3px;
+  }
+  
+  .table-container::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #1890ff, #40a9ff);
+    border-radius: 3px;
+  }
+  
+  /* 固定列在移动端的处理 */
+  :deep(.el-table__fixed) {
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* 表格列宽度优化 */
+  :deep(.el-table-column--selection) {
+    width: 50px !important;
+  }
+  
+  :deep(.index-column) {
+    width: 50px !important;
   }
 }
 </style>

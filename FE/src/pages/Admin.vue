@@ -86,4 +86,71 @@ const activeTab = ref('tokens')
   backdrop-filter: blur(10px);
   border-radius: 16px;
 }
+
+/* 移动端响应式样式 */
+@media (max-width: 1200px) {
+  .admin-page {
+    padding: 24px 32px;
+  }
+  
+  .tab-content {
+    padding: 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-page {
+    padding: 16px;
+  }
+  
+  :deep(.admin-tabs) {
+    border-radius: 12px;
+  }
+  
+  :deep(.admin-tabs > .el-tabs__header .el-tabs__nav-wrap) {
+    padding: 0 16px;
+  }
+  
+  :deep(.admin-tabs > .el-tabs__header .el-tabs__item) {
+    height: 50px;
+    line-height: 50px;
+    font-size: 14px;
+    margin-right: 16px;
+    padding: 0 16px;
+  }
+  
+  .tab-content {
+    padding: 20px 16px;
+    min-height: 500px;
+    border-radius: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-page {
+    padding: 12px;
+  }
+  
+  :deep(.admin-tabs) {
+    border-radius: 8px;
+  }
+  
+  :deep(.admin-tabs > .el-tabs__header .el-tabs__nav-wrap) {
+    padding: 0 12px;
+  }
+  
+  :deep(.admin-tabs > .el-tabs__header .el-tabs__item) {
+    height: 45px;
+    line-height: 45px;
+    font-size: 13px;
+    margin-right: 8px;
+    padding: 0 12px;
+  }
+  
+  .tab-content {
+    padding: 16px 12px;
+    min-height: 400px;
+    border-radius: 8px;
+  }
+}
 </style>

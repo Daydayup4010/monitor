@@ -352,6 +352,67 @@ onMounted(() => {
 .help-card {
   margin-top: 24px;
   border-radius: 16px;
+}
+
+/* 移动端响应式样式 */
+@media (max-width: 768px) {
+  :deep(.el-row) {
+    margin: 0 !important;
+  }
+  
+  :deep(.el-col) {
+    width: 100% !important;
+    margin-bottom: 16px;
+  }
+  
+  :deep(.el-form-item__label) {
+    width: 80px !important;
+    font-size: 13px;
+  }
+  
+  .card-header {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  
+  .header-info {
+    font-size: 14px;
+  }
+  
+  .submit-btn {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+  
+  :deep(.el-form-item__content) {
+    margin-left: 80px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  :deep(.el-form-item__label) {
+    width: 70px !important;
+    font-size: 12px;
+  }
+  
+  :deep(.el-form-item__content) {
+    margin-left: 70px !important;
+  }
+  
+  .header-info {
+    font-size: 13px;
+  }
+  
+  :deep(.el-input__wrapper) {
+    padding: 8px 12px;
+  }
+  
+  :deep(.el-textarea__inner) {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+}
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
