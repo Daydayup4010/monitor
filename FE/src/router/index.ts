@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Layout from '@/layouts/Layout.vue'
 
 const router = createRouter({
-  history: createWebHistory('/csgo/'), // 设置基础路径，匹配 nginx 配置
+  history: createWebHistory(import.meta.env.BASE_URL), // 使用Vite的BASE_URL环境变量
   routes: [
     {
       path: '/',
