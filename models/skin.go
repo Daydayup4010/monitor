@@ -39,7 +39,7 @@ func GetSkinItems(pageSize, pageNum int, isDesc bool, sortField string) ([]SkinI
 		order += " DESC"
 	}
 
-	err := config.DB.Limit(pageSize).Offset((pageNum - 1) * pageSize).Find(&skins).Error
+	err := config.DB.Order(order).Limit(pageSize).Offset((pageNum - 1) * pageSize).Find(&skins).Error
 	if err != nil {
 		config.Log.Errorf("Get skins error : %s", err)
 	}

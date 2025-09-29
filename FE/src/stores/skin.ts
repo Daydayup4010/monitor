@@ -12,6 +12,8 @@ export const useSkinStore = defineStore('skin', () => {
   const pagination = ref<PaginationParams>({
     page_size: 50,
     page_num: 1,
+    sort: '', // 排序字段
+    desc: false, // 是否降序
   })
 
   // 获取饰品数据

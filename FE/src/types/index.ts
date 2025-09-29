@@ -23,6 +23,8 @@ export interface SkinItem {
 export interface PaginationParams {
   page_num: number
   page_size: number
+  sort?: string  // 排序字段
+  desc?: boolean // 是否降序
 }
 
 // Token类型

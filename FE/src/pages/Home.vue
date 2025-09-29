@@ -86,6 +86,7 @@
       
       <div v-else class="table-container">
         <el-table
+          ref="tableRef"
           :data="displayData"
           style="width: 100%"
           stripe
@@ -94,6 +95,8 @@
           @sort-change="handleSortChange"
           :height="tableHeight"
           :max-height="tableHeight"
+          :default-sort="{ prop: sortConfig.prop || '', order: sortConfig.order || '' }"
+          :key="tableKey"
         >
         <el-table-column type="index" label="#" width="70" class-name="index-column" />
         
@@ -222,13 +225,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useSkinStore } from '@/stores/skin'
 import { formatTime, formatPrice, formatPercent, getProfitColor, debounce } from '@/utils'
 import dayjs from 'dayjs'
 import type { SkinItem } from '@/types'
 
 const skinStore = useSkinStore()
+
+// 表格ref
+const tableRef = ref()
 
 // 更新时间
 const lastUpdateTime = ref('')
@@ -238,11 +244,14 @@ const searchKeyword = ref('')
 const selectedCategory = ref('')
 const profitRateRange = ref([0, 100])
 
-// 排序
+// 排序配置 - 现在通过后端处理
 const sortConfig = ref<{ prop: string; order: string }>({ prop: '', order: '' })
 
 // 表格高度计算
 const tableHeight = ref(500)
+
+// 表格key，用于强制重新渲染
+const tableKey = ref(0)
 
 // 获取所有类别
 const categories = computed(() => {
@@ -250,60 +259,13 @@ const categories = computed(() => {
   return Array.from(cats).filter(Boolean)
 })
 
-// 筛选后的皮肤数据
-const filteredSkins = computed(() => {
-  let filtered = skinStore.skinItems
+// 注意：搜索和筛选功能现在需要在后端实现
+// 这里保留前端状态用于UI显示，但实际筛选逻辑应该通过API参数传递给后端
 
-  // 按关键词搜索
-  if (searchKeyword.value) {
-    const keyword = searchKeyword.value.toLowerCase()
-    filtered = filtered.filter(item =>
-      item.name.toLowerCase().includes(keyword)
-    )
-  }
-
-  // 按类别筛选
-  if (selectedCategory.value) {
-    filtered = filtered.filter(item => item.category === selectedCategory.value)
-  }
-
-  // 按利润率筛选
-  const [minRate, maxRate] = profitRateRange.value
-  filtered = filtered.filter(item => {
-    const rate = item.profit_rate * 100
-    return rate >= minRate && rate <= maxRate
-  })
-
-  return filtered
-})
-
-// 排序后的显示数据
+// 显示数据 - 排序现在由后端处理
 const displayData = computed(() => {
-  let data = [...filteredSkins.value]
-  
-  if (sortConfig.value.prop && sortConfig.value.order) {
-    const { prop, order } = sortConfig.value
-    data.sort((a: any, b: any) => {
-      let aVal = a[prop]
-      let bVal = b[prop]
-      
-      // 处理数字类型
-      if (typeof aVal === 'number' && typeof bVal === 'number') {
-        return order === 'ascending' ? aVal - bVal : bVal - aVal
-      }
-      
-      // 处理字符串类型
-      if (typeof aVal === 'string' && typeof bVal === 'string') {
-        return order === 'ascending' 
-          ? aVal.localeCompare(bVal) 
-          : bVal.localeCompare(aVal)
-      }
-      
-      return 0
-    })
-  }
-  
-  return data
+  // 直接使用store中的数据，排序已经在后端完成
+  return skinStore.skinItems
 })
 
 // 分页相关计算属性
@@ -362,11 +324,52 @@ const handleProfitRateChange = () => {
   // 筛选逻辑在computed中处理
 }
 
-// 处理排序
+// 监听数据变化，强制表格重新渲染以应用排序状态
+watch(() => skinStore.skinItems, () => {
+  tableKey.value++
+})
+
+// 处理排序 - 调用后端API
 const handleSortChange = ({ column, prop, order }: any) => {
+  if (!prop) return
+  
+  // 更新排序配置
   sortConfig.value = {
     prop: prop || '',
     order: order || ''
+  }
+  
+  // 将前端排序字段映射到后端字段
+  const fieldMap: Record<string, string> = {
+    'buff_price': 'buff_price',
+    'u_price': 'u_price', 
+    'price_diff': 'price_diff',
+    'profit_rate': 'profit_rate'
+  }
+  
+  const sortField = fieldMap[prop] || ''
+  let isDesc = false
+  
+  if (order === 'descending') {
+    isDesc = true
+  } else if (order === 'ascending') {
+    isDesc = false
+  }
+  
+  // 调用后端API进行排序
+  if (sortField && order) {
+    skinStore.getSkinItems({ 
+      sort: sortField, 
+      desc: isDesc,
+      page_num: 1 // 排序时重置到第一页
+    })
+  } else {
+    // 如果没有排序字段或order为null，清除排序
+    skinStore.getSkinItems({ 
+      sort: '', 
+      desc: false,
+      page_num: 1
+    })
   }
 }
 
