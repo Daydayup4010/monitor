@@ -23,8 +23,8 @@ export default defineConfig({
       }
     }
   },
-  // 根据环境设置base路径
-  base: process.env.NODE_ENV === 'production' ? '/csgo/' : '/',
+  // 生产环境使用base路径
+  base: '/csgo/',
   build: {
     // 生产构建优化
     outDir: 'dist',

@@ -75,7 +75,7 @@ const menuRoutes = computed(() => {
 
 // 跳转到管理中心
 const goToAdmin = () => {
-  router.push('/admin')
+  router.push({ name: 'Admin' })
 }
 
 // 初始化时验证Token状态
