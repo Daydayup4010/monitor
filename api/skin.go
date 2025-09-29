@@ -10,7 +10,9 @@ import (
 func GetSkinItem(c *gin.Context) {
 	pageSize, _ := strconv.Atoi(c.Query("page_size"))
 	pageNum, _ := strconv.Atoi(c.Query("page_num"))
-	s, total := models.GetSkinItems(pageSize, pageNum)
+	sort := c.Query("sort")
+	desc, _ := strconv.ParseBool(c.Query("desc"))
+	s, total := models.GetSkinItems(pageSize, pageNum, desc, sort)
 	c.JSON(http.StatusOK, gin.H{
 		"code":  1,
 		"data":  s,
