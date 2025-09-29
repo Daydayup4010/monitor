@@ -411,8 +411,6 @@ watch(
     padding: 8px 12px;
   }
 }
-  color: #262626;
-}
 
 .filter-description p {
   margin: 0;
