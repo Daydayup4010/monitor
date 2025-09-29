@@ -19,11 +19,10 @@ type SkinItem struct {
 	ProfitRate float64   `json:"profit_rate" gorm:"type:double"`
 }
 
-func GetSkinItems(pageSize, pageNum int, isDesc bool, sortField string) ([]SkinItem, int64) {
+func GetSkinItems(pageSize, pageNum int, isDesc bool, sortField, category string) ([]SkinItem, int64) {
 	var skins []SkinItem
 	var total int64
-	config.DB.Model(&SkinItem{}).Count(&total)
-
+	var err error
 	validFields := map[string]bool{
 		"buff_price":  true,
 		"u_price":     true,
@@ -39,7 +38,14 @@ func GetSkinItems(pageSize, pageNum int, isDesc bool, sortField string) ([]SkinI
 		order += " DESC"
 	}
 
-	err := config.DB.Order(order).Limit(pageSize).Offset((pageNum - 1) * pageSize).Find(&skins).Error
+	if category != "" {
+		config.DB.Model(&SkinItem{}).Where("category = ?", category).Count(&total)
+		err = config.DB.Order(order).Limit(pageSize).Offset((pageNum-1)*pageSize).Where("category = ?", category).Find(&skins).Error
+	} else {
+		config.DB.Model(&SkinItem{}).Count(&total)
+		err = config.DB.Order(order).Limit(pageSize).Offset((pageNum - 1) * pageSize).Find(&skins).Error
+	}
+
 	if err != nil {
 		config.Log.Errorf("Get skins error : %s", err)
 	}
