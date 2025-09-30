@@ -455,9 +455,8 @@ onUnmounted(() => {
 <style scoped>
 .home-page {
   padding: 20px 32px 20px 32px;
-  height: 100vh;
+  min-height: 100vh;
   position: relative;
-  overflow: hidden;
 }
 
 /* 筛选区域 */
@@ -636,7 +635,7 @@ onUnmounted(() => {
 
 /* 表格美化 */
 .table-card {
-  height: calc(100vh - 380px);
+  height: calc(100vh - 300px);
   border-radius: 16px;
   overflow: hidden;
   background: rgba(255, 255, 255, 0.98);
@@ -1043,8 +1042,7 @@ onUnmounted(() => {
 @media (max-width: 768px) {
   .home-page {
     padding: 12px;
-    height: 100vh;
-    overflow: hidden;
+    min-height: 100vh;
   }
   
   .filter-section {
@@ -1080,7 +1078,7 @@ onUnmounted(() => {
   }
   
   .table-card {
-    height: calc(100vh - 360px);
+    height: calc(100vh - 280px);
   }
   
   .custom-pagination {
@@ -1162,8 +1160,7 @@ onUnmounted(() => {
 @media (max-width: 480px) {
   .home-page {
     padding: 8px;
-    height: 100vh;
-    overflow: hidden;
+    min-height: 100vh;
   }
   
   .filter-section {
@@ -1220,7 +1217,7 @@ onUnmounted(() => {
   }
   
   .table-card {
-    height: calc(100vh - 340px);
+    height: calc(100vh - 260px);
     border-radius: 16px;
   }
   

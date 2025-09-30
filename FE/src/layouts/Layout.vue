@@ -181,14 +181,12 @@ onMounted(() => {
 }
 
 .main-content {
-  height: calc(100vh - 70px);
-  padding: 20px 40px 0 40px;
-  overflow: hidden;
+  min-height: calc(100vh - 70px);
+  padding: 20px 40px 20px 40px;
 }
 
 .content-wrapper {
   width: 100%;
-  height: 100%;
   background: rgba(255, 255, 255, 0.98);
   border-radius: 16px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
@@ -253,9 +251,8 @@ onMounted(() => {
   }
   
   .main-content {
-    padding: 12px 12px 0 12px;
-    height: calc(100vh - 60px);
-    overflow: hidden;
+    padding: 12px;
+    min-height: calc(100vh - 60px);
   }
   
   .content-wrapper {
@@ -284,9 +281,8 @@ onMounted(() => {
   }
   
   .main-content {
-    padding: 8px 8px 0 8px;
-    height: calc(100vh - 55px);
-    overflow: hidden;
+    padding: 8px;
+    min-height: calc(100vh - 55px);
   }
   
   .content-wrapper {
