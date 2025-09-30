@@ -181,12 +181,14 @@ onMounted(() => {
 }
 
 .main-content {
-  min-height: calc(100vh - 70px);
-  padding: 20px 40px 50px 40px;
+  height: calc(100vh - 70px);
+  padding: 20px 40px 0 40px;
+  overflow: hidden;
 }
 
 .content-wrapper {
   width: 100%;
+  height: 100%;
   background: rgba(255, 255, 255, 0.98);
   border-radius: 16px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
@@ -251,8 +253,9 @@ onMounted(() => {
   }
   
   .main-content {
-    padding: 12px 12px 30px 12px;
-    min-height: calc(100vh - 60px);
+    padding: 12px 12px 0 12px;
+    height: calc(100vh - 60px);
+    overflow: hidden;
   }
   
   .content-wrapper {
@@ -281,8 +284,9 @@ onMounted(() => {
   }
   
   .main-content {
-    padding: 8px 8px 24px 8px;
-    min-height: calc(100vh - 55px);
+    padding: 8px 8px 0 8px;
+    height: calc(100vh - 55px);
+    overflow: hidden;
   }
   
   .content-wrapper {
