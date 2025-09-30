@@ -300,18 +300,12 @@ watch(
   height: 48px;
   padding: 0 32px;
   font-weight: 600;
-  transition: all 0.3s ease;
-}
-
-.save-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
 }
 
 .preview-card {
   margin-top: 24px;
   border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .card-header {

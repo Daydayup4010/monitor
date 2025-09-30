@@ -88,50 +88,18 @@ onMounted(() => {
 .app-container {
   min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-  background-size: 300% 300%;
-  animation: gradientShift 15s ease infinite;
   position: relative;
   overflow-x: hidden;
 }
 
-@keyframes gradientShift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-.app-container::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: 
-    radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
-    radial-gradient(circle at 40% 40%, rgba(120, 200, 255, 0.2) 0%, transparent 50%);
-  pointer-events: none;
-}
-
 .top-header {
   background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
+  backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(24, 144, 255, 0.2);
-  box-shadow: 
-    0 4px 32px rgba(24, 144, 255, 0.1),
-    0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
   z-index: 1000;
-  transition: all 0.3s ease;
-}
-
-.top-header:hover {
-  background: rgba(255, 255, 255, 0.98);
-  box-shadow: 
-    0 6px 40px rgba(24, 144, 255, 0.15),
-    0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .header-content {
@@ -155,33 +123,9 @@ onMounted(() => {
   justify-content: center;
   width: 45px;
   height: 45px;
-  background: linear-gradient(135deg, #1890ff, #40a9ff, #1890ff);
+  background: linear-gradient(135deg, #1890ff, #40a9ff);
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.brand-icon::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  animation: brandSpin 4s linear infinite;
-}
-
-@keyframes brandSpin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.brand-icon:hover {
-  transform: scale(1.05) rotate(5deg);
-  box-shadow: 0 6px 20px rgba(24, 144, 255, 0.4);
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
 }
 
 .brand-title {
@@ -209,7 +153,6 @@ onMounted(() => {
 .nav-item {
   border-radius: 8px;
   margin: 0 4px;
-  transition: all 0.3s ease;
 }
 
 .nav-item:hover {
@@ -231,12 +174,10 @@ onMounted(() => {
   height: 40px;
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
 }
 
 .settings-btn:hover {
   background: rgba(24, 144, 255, 0.1);
-  transform: rotate(90deg);
 }
 
 .main-content {
@@ -247,67 +188,26 @@ onMounted(() => {
 .content-wrapper {
   width: 100%;
   background: rgba(255, 255, 255, 0.98);
-  border-radius: 24px;
-  box-shadow: 
-    0 12px 48px rgba(0, 0, 0, 0.12),
-    0 4px 16px rgba(24, 144, 255, 0.08);
-  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  position: relative;
-  transition: all 0.3s ease;
-}
-
-.content-wrapper::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: linear-gradient(90deg, #1890ff, #40a9ff, #1890ff);
-  background-size: 200% 100%;
-  animation: shimmer 3s ease-in-out infinite;
-}
-
-.content-wrapper:hover {
-  transform: translateY(-2px);
-  box-shadow: 
-    0 16px 60px rgba(0, 0, 0, 0.15),
-    0 8px 24px rgba(24, 144, 255, 0.12);
 }
 
 /* 全局美化 */
 :deep(.el-card) {
   border: none;
   border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
-}
-
-:deep(.el-card:hover) {
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
-  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 :deep(.el-button) {
   border-radius: 8px;
   font-weight: 500;
-  transition: all 0.3s ease;
-}
-
-:deep(.el-button:hover) {
-  transform: translateY(-1px);
 }
 
 :deep(.el-input__wrapper) {
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
-}
-
-:deep(.el-input__wrapper:hover) {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 :deep(.el-table) {

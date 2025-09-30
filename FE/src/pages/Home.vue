@@ -457,56 +457,17 @@ onUnmounted(() => {
   padding: 32px 48px;
   min-height: 100vh;
   position: relative;
-  animation: fadeInUp 0.6s ease-out;
-}
-
-.home-page::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: 
-    radial-gradient(circle at 10% 20%, rgba(24, 144, 255, 0.05) 0%, transparent 20%),
-    radial-gradient(circle at 90% 80%, rgba(114, 46, 209, 0.05) 0%, transparent 20%);
-  pointer-events: none;
-  border-radius: 24px;
 }
 
 /* 筛选区域 */
 .filter-section {
   margin-bottom: 40px;
   background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: 24px;
-  padding: 40px 48px;
-  box-shadow: 
-    0 8px 32px rgba(24, 144, 255, 0.08),
-    0 4px 16px rgba(0, 0, 0, 0.04);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 32px 40px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   border: 1px solid rgba(24, 144, 255, 0.1);
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s ease;
-  animation: slideInLeft 0.8s ease-out 0.1s both;
-}
-
-.filter-section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, rgba(24, 144, 255, 0.02) 0%, rgba(114, 46, 209, 0.02) 100%);
-  pointer-events: none;
-}
-
-.filter-section:hover {
-  transform: translateY(-3px);
-  box-shadow: 
-    0 12px 40px rgba(24, 144, 255, 0.12),
-    0 6px 20px rgba(0, 0, 0, 0.06);
 }
 
 .filter-content {
@@ -545,75 +506,43 @@ onUnmounted(() => {
 .filter-select {
   width: 100%;
   height: 48px;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(24, 144, 255, 0.1);
-  transition: all 0.3s ease;
-}
-
-.filter-input:hover,
-.filter-select:hover {
-  box-shadow: 0 6px 25px rgba(24, 144, 255, 0.15);
-  transform: translateY(-1px);
+  border-radius: 12px;
 }
 
 :deep(.filter-input .el-input__wrapper) {
   height: 48px;
   padding: 0 16px;
-  border: 2px solid rgba(24, 144, 255, 0.1);
+  border: 1px solid rgba(24, 144, 255, 0.2);
   background: rgba(255, 255, 255, 0.95);
-  border-radius: 16px;
-  transition: all 0.3s ease;
-  box-shadow: none;
-}
-
-:deep(.filter-input .el-input__wrapper:hover) {
-  border-color: rgba(24, 144, 255, 0.3);
-  background: rgba(255, 255, 255, 1);
+  border-radius: 12px;
 }
 
 :deep(.filter-input .el-input__wrapper.is-focus) {
   border-color: #1890ff;
-  box-shadow: 0 0 0 3px rgba(24, 144, 255, 0.1);
 }
 
 :deep(.filter-select .el-select__wrapper) {
   height: 48px;
-  border: 2px solid rgba(24, 144, 255, 0.1);
+  border: 1px solid rgba(24, 144, 255, 0.2);
   background: rgba(255, 255, 255, 0.95);
-  border-radius: 16px;
-  transition: all 0.3s ease;
-  box-shadow: none;
-}
-
-:deep(.filter-select .el-select__wrapper:hover) {
-  border-color: rgba(24, 144, 255, 0.3);
-  background: rgba(255, 255, 255, 1);
+  border-radius: 12px;
 }
 
 :deep(.filter-select .el-select__wrapper.is-focused) {
   border-color: #1890ff;
-  box-shadow: 0 0 0 3px rgba(24, 144, 255, 0.1);
 }
 
 .slider-container {
   background: rgba(255, 255, 255, 0.95);
-  border: 2px solid rgba(24, 144, 255, 0.1);
-  border-radius: 16px;
+  border: 1px solid rgba(24, 144, 255, 0.2);
+  border-radius: 12px;
   padding: 20px;
-  transition: all 0.3s ease;
   height: 48px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 20px;
   max-width: 500px;
-}
-
-.slider-container:hover {
-  border-color: rgba(24, 144, 255, 0.3);
-  background: rgba(255, 255, 255, 1);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 25px rgba(24, 144, 255, 0.15);
 }
 
 .filter-slider {
@@ -707,49 +636,15 @@ onUnmounted(() => {
 /* 表格美化 */
 .table-card {
   height: calc(100vh - 280px);
-  border-radius: 24px;
+  border-radius: 16px;
   overflow: hidden;
   background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(20px);
-  box-shadow: 
-    0 8px 32px rgba(24, 144, 255, 0.08),
-    0 4px 16px rgba(0, 0, 0, 0.04);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   border: 1px solid rgba(24, 144, 255, 0.1);
   position: relative;
-  transition: all 0.3s ease;
-  animation: slideInRight 0.8s ease-out 0.2s both;
   display: flex;
   flex-direction: column;
-}
-
-.table-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: linear-gradient(90deg, 
-    transparent 0%, 
-    #1890ff 25%, 
-    #40a9ff 50%, 
-    #1890ff 75%, 
-    transparent 100%
-  );
-  background-size: 200% 100%;
-  animation: tableShimmer 4s ease-in-out infinite;
-}
-
-@keyframes tableShimmer {
-  0%, 100% { background-position: -200% 0; }
-  50% { background-position: 200% 0; }
-}
-
-.table-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 
-    0 12px 40px rgba(24, 144, 255, 0.12),
-    0 6px 20px rgba(0, 0, 0, 0.06);
 }
 
 .table-container {
@@ -762,25 +657,8 @@ onUnmounted(() => {
 
 .modern-table {
   font-size: 16px;
-  border-radius: 20px;
+  border-radius: 12px;
   position: relative;
-}
-
-.modern-table::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, 
-    #1890ff 0%, 
-    #40a9ff 25%, 
-    #52c41a 50%, 
-    #faad14 75%, 
-    #722ed1 100%
-  );
-  z-index: 10;
 }
 
 .loading-container {
@@ -788,34 +666,8 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, 
-    rgba(24, 144, 255, 0.03) 0%, 
-    rgba(114, 46, 209, 0.02) 50%,
-    rgba(24, 144, 255, 0.03) 100%
-  );
-  border-radius: 20px;
-  position: relative;
-  overflow: hidden;
-}
-
-.loading-container::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, 
-    transparent, 
-    rgba(24, 144, 255, 0.1), 
-    transparent
-  );
-  animation: loadingShimmer 2s ease-in-out infinite;
-}
-
-@keyframes loadingShimmer {
-  0% { left: -100%; }
-  100% { left: 100%; }
+  background: rgba(248, 250, 252, 0.5);
+  border-radius: 12px;
 }
 
 /* 表格单元格样式 */
@@ -829,55 +681,18 @@ onUnmounted(() => {
 .skin-image {
   width: 60px;
   height: 60px;
-  border: 3px solid rgba(24, 144, 255, 0.2);
-  border-radius: 10px;
+  border: 2px solid rgba(24, 144, 255, 0.2);
+  border-radius: 8px;
   overflow: hidden;
-  box-shadow: 
-    0 6px 16px rgba(24, 144, 255, 0.15),
-    0 3px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-  position: relative;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   background: rgba(248, 250, 252, 0.8);
-}
-
-.skin-image:hover {
-  border-color: #1890ff;
-  transform: scale(1.08) rotate(1deg);
-  box-shadow: 
-    0 8px 24px rgba(24, 144, 255, 0.3),
-    0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .skin-avatar {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: all 0.3s ease;
   border-radius: 6px;
-}
-
-.skin-avatar:hover {
-  transform: scale(1.1);
-}
-
-.skin-image::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, 
-    transparent, 
-    rgba(255, 255, 255, 0.4), 
-    transparent
-  );
-  transition: left 0.5s ease;
-  z-index: 1;
-}
-
-.skin-info:hover .skin-image::before {
-  left: 100%;
 }
 
 .skin-details {
@@ -910,106 +725,34 @@ onUnmounted(() => {
   font-size: 16px;
   font-weight: 700;
   color: #1890ff;
-  background: linear-gradient(135deg, rgba(24, 144, 255, 0.12), rgba(64, 169, 255, 0.08));
+  background: rgba(24, 144, 255, 0.1);
   padding: 8px 16px;
-  border-radius: 12px;
+  border-radius: 8px;
   display: inline-block;
   min-width: 90px;
   text-align: center;
   border: 1px solid rgba(24, 144, 255, 0.2);
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.price-value::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  transition: left 0.5s ease;
-}
-
-.price-cell:hover .price-value::before {
-  left: 100%;
-}
-
-.price-cell:hover .price-value {
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.2);
 }
 
 .diff-value {
   font-size: 16px;
   font-weight: 700;
   padding: 8px 16px;
-  border-radius: 12px;
+  border-radius: 8px;
   display: inline-block;
   min-width: 90px;
   text-align: center;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.04));
+  background: rgba(0, 0, 0, 0.05);
   border: 1px solid rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.diff-value::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-  transition: left 0.5s ease;
-}
-
-.diff-cell:hover .diff-value::before {
-  left: 100%;
-}
-
-.diff-cell:hover .diff-value {
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .profit-tag {
   font-size: 15px;
   font-weight: 700;
-  padding: 10px 20px;
-  border-radius: 14px;
+  padding: 8px 16px;
+  border-radius: 8px;
   min-width: 80px;
   text-align: center;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-  border: 1px solid currentColor;
-  opacity: 0.9;
-}
-
-.profit-tag::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  transition: left 0.6s ease;
-}
-
-.profit-cell:hover .profit-tag::before {
-  left: 100%;
-}
-
-.profit-cell:hover .profit-tag {
-  transform: scale(1.08);
-  opacity: 1;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
 /* 表格列样式 */
@@ -1041,67 +784,25 @@ onUnmounted(() => {
 
 /* 表格头部样式 */
 :deep(.el-table th) {
-  background: linear-gradient(135deg, 
-    rgba(248, 250, 255, 0.95) 0%, 
-    rgba(230, 247, 255, 0.95) 50%,
-    rgba(240, 249, 255, 0.95) 100%
-  );
+  background: rgba(248, 250, 255, 0.95);
   font-weight: 700;
   font-size: 15px;
   color: #1890ff;
-  border-bottom: 3px solid #1890ff;
-  height: 65px;
-  position: relative;
-  transition: all 0.3s ease;
-}
-
-:deep(.el-table th::after) {
-  content: '';
-  position: absolute;
-  bottom: -3px;
-  left: 0;
-  width: 100%;
-  height: 3px;
-  background: linear-gradient(90deg, #1890ff, #40a9ff, #1890ff);
-  background-size: 200% 100%;
-  animation: headerShine 3s ease-in-out infinite;
-}
-
-@keyframes headerShine {
-  0%, 100% { background-position: -200% 0; }
-  50% { background-position: 200% 0; }
+  border-bottom: 2px solid #1890ff;
+  height: 60px;
 }
 
 :deep(.el-table td) {
   border-bottom: 1px solid rgba(24, 144, 255, 0.08);
-  height: 85px;
-  transition: all 0.2s ease;
-  position: relative;
+  height: 80px;
 }
 
 :deep(.el-table--striped .el-table__body tr.el-table__row--striped td) {
-  background: linear-gradient(135deg, 
-    rgba(24, 144, 255, 0.02) 0%, 
-    rgba(114, 46, 209, 0.01) 100%
-  );
+  background: rgba(248, 250, 252, 0.5);
 }
 
 :deep(.el-table__body tr:hover td) {
-  background: linear-gradient(135deg, 
-    rgba(24, 144, 255, 0.08) 0%, 
-    rgba(64, 169, 255, 0.06) 100%
-  ) !important;
-  transform: scale(1.002);
-  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.1);
-}
-
-:deep(.el-table__body tr) {
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-:deep(.el-table__body tr:hover) {
-  transform: translateY(-1px);
+  background: rgba(24, 144, 255, 0.05) !important;
 }
 
 /* 确保表格滚动 */
