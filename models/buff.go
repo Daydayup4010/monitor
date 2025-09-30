@@ -7,12 +7,12 @@ import (
 )
 
 type BuffItem struct {
-	MarketHashName string    `json:"market_hash_name" gorm:"type:varchar(255);uniqueIndex"`
-	Name           string    `json:"name" gorm:"type:varchar(255)"`
-	ID             int64     `json:"id" gorm:"primaryKey"`
-	SellMinPrice   string    `json:"sell_min_price" gorm:"type:decimal(10,2)"`
-	SellNum        int64     `json:"sell_num" gorm:"type:int"`
-	GoodsInfo      GoodsInfo `json:"goods_info" gorm:"foreignKey:BuffItemID;references:ID"`
+	MarketHashName string `json:"market_hash_name" gorm:"type:varchar(255);uniqueIndex"`
+	Name           string `json:"name" gorm:"type:varchar(255)"`
+	ID             int64  `json:"id" gorm:"primaryKey"`
+	SellMinPrice   string `json:"sell_min_price" gorm:"type:decimal(10,2)"`
+	SellNum        int64  `json:"sell_num" gorm:"type:int"`
+	//GoodsInfo      GoodsInfo `json:"goods_info" gorm:"foreignKey:BuffItemID;references:ID"`
 }
 
 type GoodsInfo struct {
