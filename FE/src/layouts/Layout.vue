@@ -182,7 +182,7 @@ onMounted(() => {
 
 .main-content {
   min-height: calc(100vh - 70px);
-  padding: 20px 40px;
+  padding: 20px 40px 40px 40px;
 }
 
 .content-wrapper {
@@ -251,7 +251,7 @@ onMounted(() => {
   }
   
   .main-content {
-    padding: 12px;
+    padding: 12px 12px 24px 12px;
     min-height: calc(100vh - 60px);
   }
   
@@ -281,7 +281,7 @@ onMounted(() => {
   }
   
   .main-content {
-    padding: 8px;
+    padding: 8px 8px 20px 8px;
     min-height: calc(100vh - 55px);
   }
   
