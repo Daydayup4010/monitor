@@ -13,11 +13,11 @@ import (
 
 var UUMaxPageSize = 100
 var BuffMaxPageSize = "80"
-var RequestDelay = time.Second * 5
+var RequestDelay = time.Second * 8
 var wg sync.WaitGroup
 var task sync.Mutex
 var uuLimiter = rate.NewLimiter(1, 1) // 速率: 3 tokens/s, 突发容量: 1
-var buffLimiter = rate.NewLimiter(rate.Every(2100*time.Millisecond), 1)
+var buffLimiter = rate.NewLimiter(rate.Every(2500*time.Millisecond), 1)
 
 func UpdateAllUUItems() {
 	defer wg.Done()
@@ -75,7 +75,7 @@ func UpdateAllBuffItems() {
 				i-- // 重试当前页
 				continue
 			}
-			//config.Log.Errorf("request buff %d page fail: %v", i, err)
+			config.Log.Errorf("request buff %d page fail: %v", i, err)
 			continue
 		}
 		//config.Log.Infof("Full Update buff item pageName: %d, success", i)

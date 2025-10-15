@@ -8,13 +8,10 @@ import (
 
 func Cors() gin.HandlerFunc {
 	return cors.New(cors.Config{
-		// 生产环境建议明确指定允许的域名（不要用 *）
 		AllowOrigins: []string{"*"},
 
-		// 明确声明允许的方法
 		AllowMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 
-		// 必须包含所有需要的自定义头
 		AllowHeaders: []string{
 			"Origin",
 			"Content-Type",

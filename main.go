@@ -13,6 +13,7 @@ func main() {
 	core.InitRedis()
 	go services.StartFullUpdateScheduler()
 	go services.StartVerifyToken()
+	go services.StartUpdateSkin()
 	r := core.InitRouter()
 	addr := config.CONFIG.Server.GetAddr()
 	err := r.Run(addr)
