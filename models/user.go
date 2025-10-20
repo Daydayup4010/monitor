@@ -1,9 +1,11 @@
 package models
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/redis/go-redis/v9"
 	"golang.org/x/crypto/scrypt"
 	"gorm.io/gorm"
 	"time"
@@ -18,7 +20,7 @@ const (
 
 type User struct {
 	ID        uuid.UUID      `gorm:"type:char(36);primaryKey"`
-	UserName  string         `json:"username" gorm:"type:varchar(255);uniqueIndex"`
+	UserName  string         `json:"username" gorm:"type:varchar(255);Index"`
 	Email     string         `json:"email" gorm:"type:varchar(255);uniqueIndex"`
 	Password  string         `gorm:"type:varchar(255)"`
 	Role      int64          `json:"role" gorm:"type:int;default:0"`
@@ -30,6 +32,7 @@ type User struct {
 }
 
 type UserResponse struct {
+	Id        string    `json:"id"`
 	UserName  string    `json:"user_name"`
 	Email     string    `json:"email"`
 	Role      int64     `json:"role"`
@@ -63,8 +66,7 @@ func IfExistUser(id uuid.UUID) bool {
 	return false
 }
 
-// UpdateUserInfo 提供给用户修改user name && email
-func UpdateUserInfo(user *User) error {
+func UpdateUserName(user *User) error {
 	if !IfExistUser(user.ID) {
 		return fmt.Errorf("user not exist")
 	}
@@ -132,4 +134,25 @@ func GetUserList(pageSize, pageNum int) ([]UserResponse, int64) {
 		config.Log.Errorf("Get user list error: %v", err)
 	}
 	return users, total
+}
+
+func SaveEmailCode(email, code string, c context.Context) error {
+	key := fmt.Sprintf("verify:%s", email)
+	err := config.RDB.SetEx(c, key, code, 10*time.Minute).Err()
+	return err
+}
+
+func VerifyEmailCode(email, code string, c context.Context) (bool, error) {
+	key := fmt.Sprintf("verify:%s", email)
+	saveCode, err := config.RDB.Get(c, key).Result()
+	if err == redis.Nil {
+		return false, fmt.Errorf("code not exist")
+	} else if err != nil {
+		return false, err
+	}
+	if saveCode != code {
+		return false, nil
+	}
+	config.RDB.Del(c, key)
+	return true, nil
 }

@@ -11,20 +11,30 @@ func InitRouter() *gin.Engine {
 	gin.SetMode(config.CONFIG.Server.Env)
 	r := gin.Default()
 	r.Use(gin.Recovery(), middleware.Cors(), middleware.Logger())
-	r.POST("api/register", api.Register)
-	r.POST("api/login", api.Login)
 	v1 := r.Group("api/v1")
-	{
 
+	user := v1.Group("user")
+	{
+		user.POST("register", api.Register)
+		user.POST("login", api.Login)
+		user.POST("send_email", api.SendEmailCode)
 	}
-	v1.Use(middleware.AuthMiddleware())
+
+	user.Use(middleware.AuthMiddleware())
+	{
+		v1.GET("self", api.GetSelfInfo)
+	}
+
 	vip := v1.Group("vip")
 	vip.Use(middleware.AuthVIPMiddleware())
 	{
 		vip.GET("data", api.GetSkinItem)
 	}
+
 	admin := v1.Group("admin")
 	admin.Use(middleware.AuthAdminMiddleware())
+	admin.POST("full_update", api.UpdateFull)
+
 	tokens := admin.Group("tokens")
 	{
 		tokens.POST("uu", api.UpdateUUToken)
@@ -33,11 +43,11 @@ func InitRouter() *gin.Engine {
 		tokens.GET("verify", api.GetVerify)
 
 	}
-	settings := admin.Group("settings")
+
+	settings := vip.Group("settings")
 	{
 		settings.GET("", api.GetSettings)
 		settings.PUT("", api.UpdateSetting)
-		settings.POST("full_update", api.UpdateFull)
 	}
 	users := admin.Group("users")
 	{
