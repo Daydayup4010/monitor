@@ -18,6 +18,12 @@ type RegisterRequest struct {
 	Code     string `json:"code" binding:"required"`
 }
 
+type ResetPassword struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,min=6"`
+	Code     string `json:"code" binding:"required"`
+}
+
 func Register(c *gin.Context) {
 	var reg RegisterRequest
 	if err := c.ShouldBindJSON(&reg); err != nil {
@@ -94,7 +100,6 @@ func SendEmailCode(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "generate verify code fail",
 		})
-		config.Log.Errorf("generate verify code fail: %v", err)
 		return
 	}
 	err = config.CONFIG.Email.SendVerificationCode(req.Email, code)
@@ -119,4 +124,54 @@ func GetSelfInfo(c *gin.Context) {
 			"user_name": username,
 		},
 	})
+}
+
+func UpdateUserName(c *gin.Context) {
+	userId := c.Query("id")
+	var req struct {
+		Name string `json:"name" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"error": "invalid parameter",
+		})
+		return
+	}
+	err := models.UpdateUserName(req.Name, userId)
+	if err != nil {
+		config.Log.Errorf("update user name error :%v", err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "update user name fail",
+		})
+	}
+}
+
+func ResetUserPassword(c *gin.Context) {
+	var req ResetPassword
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid parameter",
+		})
+		return
+	}
+	result, err := models.VerifyEmailCode(req.Email, req.Code, c.Request.Context())
+	if err != nil || !result {
+		c.JSON(http.StatusOK, gin.H{
+			"error": "verification code is incorrect",
+		})
+		return
+	}
+	password := models.ScryptPw(req.Password)
+	err = models.ResetPassword(req.Email, password)
+	if err != nil {
+		config.Log.Errorf("reset password fail: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "reset password fail",
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"msg": "success",
+	})
+
 }

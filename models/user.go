@@ -66,14 +66,16 @@ func IfExistUser(id uuid.UUID) bool {
 	return false
 }
 
-func UpdateUserName(user *User) error {
-	if !IfExistUser(user.ID) {
-		return fmt.Errorf("user not exist")
+func UpdateUserName(name, id string) error {
+	err := config.DB.Model(&User{}).Where("id = ?", id).Update("username", name).Error
+	return err
+}
+
+func ResetPassword(email, password string) error {
+	if !IfExistEmail(email) {
+		return fmt.Errorf("email not exist")
 	}
-	if IfExistEmail(user.Email) {
-		return fmt.Errorf("email registered")
-	}
-	err := config.DB.Model(&User{}).Where("id = ?", user.ID).Select("username", "email").Updates(user).Error
+	err := config.DB.Model(&User{}).Where("email = ?", email).Update("password", password).Error
 	return err
 }
 
