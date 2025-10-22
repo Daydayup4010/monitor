@@ -87,14 +87,12 @@ func DeleteUser(id string) error {
 	return result.Error
 }
 
-// IsValidVIP 检查VIP是否有效
-func (u *User) IsValidVIP() bool {
-	return u.Role == RoleVip && (u.VipExpiry.After(time.Now()))
+func IsValidVIP(role int64, expiry time.Time) bool {
+	return role == RoleVip && (expiry.After(time.Now()))
 }
 
-// CanAccessVIPContent 检查VIP访问权限
-func (u *User) CanAccessVIPContent() bool {
-	return u.IsValidVIP() || u.Role == RoleAdmin
+func CanAccessVIPContent(role int64, expiry time.Time) bool {
+	return IsValidVIP(role, expiry) || role == RoleAdmin
 }
 
 // ScryptPw 密码加密
@@ -157,4 +155,30 @@ func VerifyEmailCode(email, code string, c context.Context) (bool, error) {
 	}
 	config.RDB.Del(c, key)
 	return true, nil
+}
+
+func RenewVIP(userID string, days int) (time.Time, error) {
+	// 获取当前VIP过期时间
+	var user User
+	var newExpiry time.Time
+	if err := config.DB.First(&user, "id = ?", userID).Error; err != nil {
+		config.Log.Errorf("query user fail: %v", err)
+		return newExpiry, fmt.Errorf("query user fail")
+	}
+
+	// 计算新的过期时间
+	if user.VipExpiry.IsZero() || user.VipExpiry.Before(time.Now()) {
+		// 如果VIP已过期或未设置，从当前时间开始算
+		newExpiry = time.Now().AddDate(0, 0, days)
+	} else {
+		// 如果VIP未过期，在原有基础上续费
+		newExpiry = user.VipExpiry.AddDate(0, 0, days)
+	}
+
+	err := config.DB.Model(&user).Update("vip_expiry", newExpiry).Error
+	if err != nil {
+		config.Log.Errorf("update vip expiry fail: %v", err)
+		return newExpiry, fmt.Errorf("update vip expiry fail")
+	}
+	return newExpiry, nil
 }

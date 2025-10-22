@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
+	"time"
 	"uu/models"
 	"uu/utils"
 )
@@ -37,14 +38,16 @@ func AuthMiddleware() gin.HandlerFunc {
 		c.Set("userID", claims.UserID)
 		c.Set("username", claims.Username)
 		c.Set("role", claims.Role)
+		c.Set("vipExpiry", claims.VipExpiry)
 		c.Next()
 	}
 }
 
 func AuthVIPMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		role, exist := c.Get("role")
-		if role != models.RoleVip || !exist {
+		role := getRoleFromContext(c)
+		expiry := getExpiryFromContext(c)
+		if models.CanAccessVIPContent(role, expiry) {
 			c.JSON(http.StatusForbidden, gin.H{
 				"error": "vip access required",
 				"code":  "VIP_REQUIRED",
@@ -58,8 +61,8 @@ func AuthVIPMiddleware() gin.HandlerFunc {
 
 func AuthAdminMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		role, exist := c.Get("role")
-		if !exist || role != models.RoleAdmin {
+		role := getRoleFromContext(c)
+		if role != models.RoleAdmin {
 			c.JSON(http.StatusForbidden, gin.H{
 				"error": "Admin access required",
 			})
@@ -67,5 +70,42 @@ func AuthAdminMiddleware() gin.HandlerFunc {
 			return
 		}
 		c.Next()
+	}
+}
+
+func getRoleFromContext(c *gin.Context) int64 {
+	val, exists := c.Get("role")
+	if !exists {
+		return 0
+	}
+
+	switch v := val.(type) {
+	case int:
+		return int64(v)
+	case int64:
+		return v
+	case float64:
+		return int64(v)
+	default:
+		return 0
+	}
+}
+
+func getExpiryFromContext(c *gin.Context) time.Time {
+	val, exists := c.Get("vipExpiry")
+	if !exists {
+		return time.Time{}
+	}
+
+	switch v := val.(type) {
+	case time.Time:
+		return v
+	case string:
+		t, _ := time.Parse(time.RFC3339, v)
+		return t
+	case int64:
+		return time.Unix(v, 0)
+	default:
+		return time.Time{}
 	}
 }

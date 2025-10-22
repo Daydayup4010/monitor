@@ -205,3 +205,27 @@ func DeleteUser(c *gin.Context) {
 		"msg": "success",
 	})
 }
+
+func RenewVipExpiry(c *gin.Context) {
+	var req struct {
+		UserId string `json:"user_id"`
+		Days   int    `json:"days"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid parameter",
+		})
+		return
+	}
+	newExpiry, err := models.RenewVIP(req.UserId, req.Days)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err,
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"msg":  "success",
+		"date": newExpiry,
+	})
+}

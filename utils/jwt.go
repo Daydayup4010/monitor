@@ -10,18 +10,20 @@ var JWTSecret = []byte("asdfghjkzxcvbnm") // 生产环境应从环境变量获�
 
 // Claims 自定义JWT声明
 type Claims struct {
-	UserID   uuid.UUID `json:"user_id"`
-	Username string    `json:"username"`
-	Role     int64     `json:"role"`
+	UserID    uuid.UUID `json:"user_id"`
+	Username  string    `json:"username"`
+	Role      int64     `json:"role"`
+	VipExpiry time.Time `json:"vip_expiry"`
 	jwt.RegisteredClaims
 }
 
 // GenerateJWT 生成JWT令牌
-func GenerateJWT(userID uuid.UUID, username string, role int64) (string, error) {
+func GenerateJWT(userID uuid.UUID, username string, role int64, vipExpiry time.Time) (string, error) {
 	claims := &Claims{
-		UserID:   userID,
-		Username: username,
-		Role:     role,
+		UserID:    userID,
+		Username:  username,
+		Role:      role,
+		VipExpiry: vipExpiry,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(240 * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

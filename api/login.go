@@ -37,7 +37,7 @@ func Login(c *gin.Context) {
 	}
 	user.LastLogin = time.Now()
 	models.UpdateUserLastLogin(user)
-	token, err := utils.GenerateJWT(user.ID, user.UserName, user.Role)
+	token, err := utils.GenerateJWT(user.ID, user.UserName, user.Role, user.VipExpiry)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"error": "generate token fail",
