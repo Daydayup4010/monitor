@@ -25,7 +25,7 @@ func InitGorm() {
 	if err != nil {
 		config.Log.Panicf("DB connect fail: %s", err)
 	}
-	err = db.AutoMigrate(&models.SkinItem{}, &models.UItem{}, &models.BuffItem{}, &models.UItemsInfo{}, &models.BuffInventory{}, &models.Inventory{}, &models.User{}) // migrate schema
+	err = db.AutoMigrate(&models.UItem{}, &models.BuffItem{}, &models.UItemsInfo{}, &models.BuffInventory{}, &models.Inventory{}, &models.User{}, &models.Settings{}) // migrate schema
 	if err != nil {
 		config.Log.Panicf("migrate schema fail: %s", err)
 	}

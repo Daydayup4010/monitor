@@ -2,7 +2,6 @@ package services
 
 import (
 	"time"
-	"uu/models"
 )
 
 func StartFullUpdateScheduler() {
@@ -24,10 +23,11 @@ func StartVerifyToken() {
 	}
 }
 
-func StartUpdateSkin() {
-	ticker := time.NewTicker(1 * time.Minute)
-	defer ticker.Stop()
-	for range ticker.C {
-		go models.UpdateSkinItems()
-	}
-}
+//
+//func StartUpdateSkin() {
+//	ticker := time.NewTicker(1 * time.Minute)
+//	defer ticker.Stop()
+//	for range ticker.C {
+//		go models.UpdateSkinItems()
+//	}
+//}

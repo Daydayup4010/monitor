@@ -9,21 +9,21 @@ import (
 )
 
 func UpdateUUToken(c *gin.Context) {
-	var yp models.UUToken
-	_ = c.ShouldBindJSON(&yp)
-	err := yp.SetUUToken(c.Request.Context())
+	var uu models.UUToken
+	_ = c.ShouldBindJSON(&uu)
+	err := uu.SetUUToken(c.Request.Context())
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    0,
-			"message": "update youpin token error",
+			"message": "update uu token error",
 		})
 		config.Log.Errorf("update youpin token error: %s", err)
-	} else {
-		c.JSON(http.StatusOK, gin.H{
-			"code":    1,
-			"message": "success",
-		})
+		return
 	}
+	c.JSON(http.StatusOK, gin.H{
+		"code":    1,
+		"message": "success",
+	})
 }
 
 func UpdateBuffToken(c *gin.Context) {
@@ -36,12 +36,12 @@ func UpdateBuffToken(c *gin.Context) {
 			"message": "update buff token error",
 		})
 		config.Log.Errorf("update buff token error: %s", err)
-	} else {
-		c.JSON(http.StatusOK, gin.H{
-			"code":    1,
-			"message": "success",
-		})
+		return
 	}
+	c.JSON(http.StatusOK, gin.H{
+		"code":    1,
+		"message": "success",
+	})
 
 }
 
@@ -61,15 +61,15 @@ func GetVerify(c *gin.Context) {
 			"data": expired,
 			"msg":  "Get token expired error",
 		})
-	} else {
-		expired["uu"] = uu.Expired
-		expired["buff"] = buff.Expired
-		c.JSON(http.StatusOK, gin.H{
-			"code": 1,
-			"data": expired,
-			"msg":  "success",
-		})
+		return
 	}
+	expired["uu"] = uu.Expired
+	expired["buff"] = buff.Expired
+	c.JSON(http.StatusOK, gin.H{
+		"code": 1,
+		"data": expired,
+		"msg":  "success",
+	})
 }
 
 func VerifyToken(c *gin.Context) {
@@ -90,13 +90,13 @@ func VerifyToken(c *gin.Context) {
 			"data": expired,
 			"msg":  "Get token expired error",
 		})
-	} else {
-		expired["uu"] = uu.Expired
-		expired["buff"] = buff.Expired
-		c.JSON(http.StatusOK, gin.H{
-			"code": 1,
-			"data": expired,
-			"msg":  "success",
-		})
+		return
 	}
+	expired["uu"] = uu.Expired
+	expired["buff"] = buff.Expired
+	c.JSON(http.StatusOK, gin.H{
+		"code": 1,
+		"data": expired,
+		"msg":  "success",
+	})
 }

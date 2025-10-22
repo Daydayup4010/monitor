@@ -34,14 +34,20 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	result, err := models.VerifyEmailCode(reg.Email, reg.Code, c.Request.Context())
-	if err != nil || !result {
-		config.Log.Errorf("The verification code is incorrect: %s", err)
+	if models.IfExistUser(reg.Username) {
 		c.JSON(http.StatusOK, gin.H{
-			"error": "verification code is incorrect",
+			"error": "UserName Registered",
 		})
 		return
 	}
+
+	//result, err := models.VerifyEmailCode(reg.Email, reg.Code, c.Request.Context())
+	//if err != nil || !result {
+	//	c.JSON(http.StatusOK, gin.H{
+	//		"error": "verification code is incorrect",
+	//	})
+	//	return
+	//}
 
 	if models.IfExistEmail(reg.Email) {
 		c.JSON(http.StatusOK, gin.H{
@@ -55,6 +61,15 @@ func Register(c *gin.Context) {
 		UserName: reg.Username,
 		Email:    reg.Email,
 		Password: models.ScryptPw(reg.Password),
+	}
+
+	err := models.CreateDefaultSetting(uid.String())
+	if err != nil {
+		config.Log.Errorf("create default setting error: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "create default setting error",
+		})
+		return
 	}
 	err = models.CreateUser(&user)
 	if err != nil {
@@ -174,4 +189,19 @@ func ResetUserPassword(c *gin.Context) {
 		"msg": "success",
 	})
 
+}
+
+func DeleteUser(c *gin.Context) {
+	userId := c.Query("user_id")
+	err := models.DeleteUser(userId)
+	if err != nil {
+		config.Log.Errorf("delete user error: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "delete user error",
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"msg": "success",
+	})
 }

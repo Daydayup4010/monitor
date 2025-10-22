@@ -19,16 +19,16 @@ const (
 )
 
 type User struct {
-	ID        uuid.UUID      `gorm:"type:char(36);primaryKey"`
+	ID        uuid.UUID      `json:"id" gorm:"type:char(36);primaryKey"`
 	UserName  string         `json:"username" gorm:"type:varchar(255);Index"`
-	Email     string         `json:"email" gorm:"type:varchar(255);uniqueIndex"`
+	Email     string         `json:"email" gorm:"type:varchar(255);uniqueIndex:idx_user_email_deleted"`
 	Password  string         `gorm:"type:varchar(255)"`
 	Role      int64          `json:"role" gorm:"type:int;default:0"`
 	VipExpiry time.Time      `json:"vip_expiry" gorm:"type:datetime;default:CURRENT_TIMESTAMP"`
 	LastLogin time.Time      `json:"last_login" gorm:"type:datetime;default:CURRENT_TIMESTAMP"`
 	CreatedAt time.Time      `gorm:"type:datetime;default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt time.Time      `gorm:"type:datetime;default:CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" json:"updated_at"`
-	DeletedAt gorm.DeletedAt `gorm:"type:datetime;index" json:"deleted_at,omitempty"`
+	DeletedAt gorm.DeletedAt `gorm:"type:datetime;index;uniqueIndex:idx_user_email_deleted" json:"deleted_at,omitempty"`
 }
 
 type UserResponse struct {
@@ -57,9 +57,9 @@ func IfExistEmail(email string) bool {
 	return false
 }
 
-func IfExistUser(id uuid.UUID) bool {
+func IfExistUser(name string) bool {
 	var count int64
-	config.DB.Model(&User{}).Where("id = ?", id).Count(&count)
+	config.DB.Model(&User{}).Where("user_name = ?", name).Count(&count)
 	if count > 0 {
 		return true
 	}
@@ -67,7 +67,7 @@ func IfExistUser(id uuid.UUID) bool {
 }
 
 func UpdateUserName(name, id string) error {
-	err := config.DB.Model(&User{}).Where("id = ?", id).Update("username", name).Error
+	err := config.DB.Model(&User{}).Where("id = ?", id).Update("user_name", name).Error
 	return err
 }
 
@@ -131,7 +131,7 @@ func GetUserList(pageSize, pageNum int) ([]UserResponse, int64) {
 	var users []UserResponse
 	var total int64
 	config.DB.Model(&User{}).Count(&total)
-	err := config.DB.Model(&User{}).Select("user_name,email,role,vip_expiry,last_login").Limit(pageSize).Offset((pageNum - 1) * pageSize).Find(&users).Error
+	err := config.DB.Model(&User{}).Select("id, user_name,email,role,vip_expiry,last_login").Limit(pageSize).Offset((pageNum - 1) * pageSize).Find(&users).Error
 	if err != nil {
 		config.Log.Errorf("Get user list error: %v", err)
 	}

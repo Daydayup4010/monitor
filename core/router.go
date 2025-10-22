@@ -21,7 +21,7 @@ func InitRouter() *gin.Engine {
 		user.POST("reset-password", api.ResetUserPassword)
 	}
 
-	user.Use(middleware.AuthMiddleware())
+	v1.Use(middleware.AuthMiddleware())
 	{
 		user.GET("self", api.GetSelfInfo)
 		user.PUT("name", api.UpdateUserName)
@@ -30,12 +30,16 @@ func InitRouter() *gin.Engine {
 	vip := v1.Group("vip")
 	vip.Use(middleware.AuthVIPMiddleware())
 	{
-		vip.GET("data", api.GetSkinItem)
+		vip.GET("data", api.GetGoods)
 	}
 
 	admin := v1.Group("admin")
 	admin.Use(middleware.AuthAdminMiddleware())
-	admin.POST("full-update", api.UpdateFull)
+	{
+		admin.GET("users", api.GetUserList)
+		admin.DELETE("user", api.DeleteUser)
+		admin.POST("full-update", api.UpdateFull)
+	}
 
 	tokens := admin.Group("tokens")
 	{
@@ -50,10 +54,6 @@ func InitRouter() *gin.Engine {
 	{
 		settings.GET("", api.GetSettings)
 		settings.PUT("", api.UpdateSetting)
-	}
-	users := admin.Group("users")
-	{
-		users.GET("", api.GetUserList)
 	}
 	return r
 }
