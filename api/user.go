@@ -27,31 +27,34 @@ type ResetPassword struct {
 func Register(c *gin.Context) {
 	var reg RegisterRequest
 	if err := c.ShouldBindJSON(&reg); err != nil {
-		config.Log.Errorf("register user error: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid parameter",
+			"code": utils.InvalidParameter,
+			"msg":  utils.ErrorMessage(utils.InvalidParameter),
 		})
 		return
 	}
 
 	if models.IfExistUser(reg.Username) {
 		c.JSON(http.StatusOK, gin.H{
-			"error": "UserName Registered",
+			"code": utils.ErrCodeUsernameTaken,
+			"msg":  utils.ErrorMessage(utils.ErrCodeUsernameTaken),
 		})
 		return
 	}
 
-	//result, err := models.VerifyEmailCode(reg.Email, reg.Code, c.Request.Context())
-	//if err != nil || !result {
-	//	c.JSON(http.StatusOK, gin.H{
-	//		"error": "verification code is incorrect",
-	//	})
-	//	return
-	//}
+	result, code := models.VerifyEmailCode(reg.Email, reg.Code, c.Request.Context())
+	if !result {
+		c.JSON(http.StatusOK, gin.H{
+			"code": code,
+			"msg":  utils.ErrorMessage(code),
+		})
+		return
+	}
 
 	if models.IfExistEmail(reg.Email) {
 		c.JSON(http.StatusOK, gin.H{
-			"error": "Email Registered",
+			"code": utils.ErrCodeEmailTaken,
+			"msg":  utils.ErrorMessage(utils.ErrCodeEmailTaken),
 		})
 		return
 	}
@@ -63,34 +66,30 @@ func Register(c *gin.Context) {
 		Password: models.ScryptPw(reg.Password),
 	}
 
-	err := models.CreateDefaultSetting(uid.String())
-	if err != nil {
-		config.Log.Errorf("create default setting error: %v", err)
+	code = models.CreateDefaultSetting(uid.String())
+	if code != utils.SUCCESS {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "create default setting error",
+			"code": code,
+			"msg":  utils.ErrorMessage(code),
 		})
 		return
 	}
-	err = models.CreateUser(&user)
-	if err != nil {
-		config.Log.Errorf("Create User error: %v", err)
-		c.JSON(http.StatusOK, gin.H{
-			"error": "Create User error",
-		})
-		return
-	}
+	code = models.CreateUser(&user)
 	c.JSON(http.StatusOK, gin.H{
+		"code":     code,
 		"username": user.UserName,
 		"email":    user.Email,
-		"msg":      "success",
+		"msg":      utils.ErrorMessage(code),
 	})
 }
 
 func GetUserList(c *gin.Context) {
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
 	pageNum, _ := strconv.Atoi(c.DefaultQuery("page_num", "1"))
-	users, total := models.GetUserList(pageSize, pageNum)
+	search := c.Query("search")
+	users, total, code := models.GetUserList(pageSize, pageNum, search)
 	c.JSON(http.StatusOK, gin.H{
+		"code":      code,
 		"data":      users,
 		"total":     total,
 		"page_size": pageSize,
@@ -102,41 +101,44 @@ func SendEmailCode(c *gin.Context) {
 	var req struct {
 		Email string `json:"email" binding:"required,email"`
 	}
-	err := c.ShouldBindJSON(&req)
-	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"error": "invalid parameter",
-		})
-		return
-	}
-	code := utils.GenerateVerificationCode(6)
-	err = models.SaveEmailCode(req.Email, code, c.Request.Context())
-	if err != nil {
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "generate verify code fail",
+			"code": utils.InvalidParameter,
+			"msg":  utils.ErrorMessage(utils.InvalidParameter),
 		})
 		return
 	}
-	err = config.CONFIG.Email.SendVerificationCode(req.Email, code)
-	if err != nil {
+	verifyCode := utils.GenerateVerificationCode(6)
+	code := models.SaveEmailCode(req.Email, verifyCode, c.Request.Context())
+	if code != utils.SUCCESS {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "send code fail",
+			"code": code,
+			"msg":  utils.ErrorMessage(code),
 		})
-		config.Log.Errorf("send code fail: %v", err)
 		return
 	}
+	code = config.CONFIG.Email.SendVerificationCode(req.Email, verifyCode)
 	c.JSON(http.StatusOK, gin.H{
-		"msg": "success",
+		"code": code,
+		"msg":  utils.ErrorMessage(code),
 	})
 }
 
 func GetSelfInfo(c *gin.Context) {
 	userId, _ := c.Get("userID")
 	username, _ := c.Get("username")
+	role, _ := c.Get("role")
+	vipExpiry, _ := c.Get("vipExpiry")
+	email, _ := c.Get("email")
 	c.JSON(http.StatusOK, gin.H{
-		"data": map[string]interface{}{
-			"id":        userId,
-			"user_name": username,
+		"code": 1,
+		"msg":  "success",
+		"data": gin.H{
+			"id":         userId,
+			"username":   username,
+			"email":      email,
+			"role":       role,
+			"vip_expiry": vipExpiry,
 		},
 	})
 }
@@ -147,62 +149,52 @@ func UpdateUserName(c *gin.Context) {
 		Name string `json:"name" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"error": "invalid parameter",
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code": utils.InvalidParameter,
+			"msg":  utils.ErrorMessage(utils.InvalidParameter),
 		})
 		return
 	}
-	err := models.UpdateUserName(req.Name, userId)
-	if err != nil {
-		config.Log.Errorf("update user name error :%v", err)
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "update user name fail",
-		})
-	}
+	code := models.UpdateUserName(req.Name, userId)
+	c.JSON(http.StatusOK, gin.H{
+		"code": code,
+		"msg":  utils.ErrorMessage(code),
+	})
+
 }
 
 func ResetUserPassword(c *gin.Context) {
 	var req ResetPassword
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid parameter",
+			"code": utils.InvalidParameter,
+			"msg":  utils.ErrorMessage(utils.InvalidParameter),
 		})
 		return
 	}
-	result, err := models.VerifyEmailCode(req.Email, req.Code, c.Request.Context())
-	if err != nil || !result {
+	result, code := models.VerifyEmailCode(req.Email, req.Code, c.Request.Context())
+	if !result {
 		c.JSON(http.StatusOK, gin.H{
-			"error": "verification code is incorrect",
+			"code": code,
+			"msg":  utils.ErrorMessage(code),
 		})
 		return
 	}
 	password := models.ScryptPw(req.Password)
-	err = models.ResetPassword(req.Email, password)
-	if err != nil {
-		config.Log.Errorf("reset password fail: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "reset password fail",
-		})
-		return
-	}
+	code = models.ResetPassword(req.Email, password)
 	c.JSON(http.StatusOK, gin.H{
-		"msg": "success",
+		"code": code,
+		"msg":  utils.ErrorMessage(code),
 	})
 
 }
 
 func DeleteUser(c *gin.Context) {
 	userId := c.Query("user_id")
-	err := models.DeleteUser(userId)
-	if err != nil {
-		config.Log.Errorf("delete user error: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "delete user error",
-		})
-		return
-	}
+	code := models.DeleteUser(userId)
 	c.JSON(http.StatusOK, gin.H{
-		"msg": "success",
+		"code": code,
+		"msg":  utils.ErrorMessage(code),
 	})
 }
 
@@ -213,18 +205,14 @@ func RenewVipExpiry(c *gin.Context) {
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid parameter",
+			"code": utils.InvalidParameter,
+			"msg":  utils.ErrorMessage(utils.InvalidParameter),
 		})
 		return
 	}
-	newExpiry, err := models.RenewVIP(req.UserId, req.Days)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err,
-		})
-		return
-	}
+	newExpiry, code := models.RenewVIP(req.UserId, req.Days)
 	c.JSON(http.StatusOK, gin.H{
+		"code": code,
 		"msg":  "success",
 		"date": newExpiry,
 	})

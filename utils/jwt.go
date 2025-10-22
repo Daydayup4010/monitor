@@ -14,16 +14,18 @@ type Claims struct {
 	Username  string    `json:"username"`
 	Role      int64     `json:"role"`
 	VipExpiry time.Time `json:"vip_expiry"`
+	Email     string    `json:"email"`
 	jwt.RegisteredClaims
 }
 
 // GenerateJWT 生成JWT令牌
-func GenerateJWT(userID uuid.UUID, username string, role int64, vipExpiry time.Time) (string, error) {
+func GenerateJWT(userID uuid.UUID, username string, role int64, vipExpiry time.Time, email string) (string, error) {
 	claims := &Claims{
 		UserID:    userID,
 		Username:  username,
 		Role:      role,
 		VipExpiry: vipExpiry,
+		Email:     email,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(240 * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

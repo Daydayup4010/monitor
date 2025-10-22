@@ -12,29 +12,29 @@ func InitRouter() *gin.Engine {
 	r := gin.Default()
 	r.Use(gin.Recovery(), middleware.Cors(), middleware.Logger())
 	v1 := r.Group("api/v1")
-
 	user := v1.Group("user")
 	{
 		user.POST("register", api.Register)
 		user.POST("login", api.Login)
+		user.POST("email-login", api.LoginByEmail)
 		user.POST("send-email", api.SendEmailCode)
 		user.POST("reset-password", api.ResetUserPassword)
 	}
-
-	v1.Use(middleware.AuthMiddleware())
+	authUser := user.Group("")
+	authUser.Use(middleware.AuthMiddleware())
 	{
 		user.GET("self", api.GetSelfInfo)
 		user.PUT("name", api.UpdateUserName)
 	}
 
 	vip := v1.Group("vip")
-	vip.Use(middleware.AuthVIPMiddleware())
+	vip.Use(middleware.AuthMiddleware(), middleware.AuthVIPMiddleware())
 	{
 		vip.GET("data", api.GetGoods)
 	}
 
 	admin := v1.Group("admin")
-	admin.Use(middleware.AuthAdminMiddleware())
+	admin.Use(middleware.AuthMiddleware(), middleware.AuthAdminMiddleware())
 	{
 		admin.GET("users", api.GetUserList)
 		admin.DELETE("user", api.DeleteUser)

@@ -3,6 +3,7 @@ package models
 import (
 	"context"
 	"uu/config"
+	"uu/utils"
 )
 
 type UUToken struct {
@@ -17,9 +18,13 @@ type BuffToken struct {
 	Expired   string `json:"expired"`
 }
 
-func (uu *UUToken) SetUUToken(ctx context.Context) error {
+func (uu *UUToken) SetUUToken(ctx context.Context) int {
 	err := config.RDB.HSet(ctx, "uu_token", "authorization", uu.Authorization, "uk", uu.Uk).Err()
-	return err
+	if err != nil {
+		config.Log.Errorf("update youpin token error: %s", err)
+		return utils.ErrCodeUpdateUUToken
+	}
+	return utils.SUCCESS
 }
 
 func (uu *UUToken) GetUUToken(ctx context.Context) error {
@@ -38,17 +43,25 @@ func (uu *UUToken) UpdateUUExpired() error {
 	return err
 }
 
-func (uu *UUToken) GetUUExpired() error {
+func (uu *UUToken) GetUUExpired() int {
 	ex, err := config.RDB.HGet(context.Background(), "uu_token", "expired").Result()
 	if err == nil {
 		uu.Expired = ex
 	}
-	return err
+	if err != nil {
+		config.Log.Errorf("Get token expired error : %v", err)
+		return utils.ErrCodeGetTokenExpired
+	}
+	return utils.SUCCESS
 }
 
-func (buff *BuffToken) SetBuffToken(ctx context.Context) error {
+func (buff *BuffToken) SetBuffToken(ctx context.Context) int {
 	err := config.RDB.HSet(ctx, "buff_token", "session", buff.Session, "csrf_token", buff.CsrfToken).Err()
-	return err
+	if err != nil {
+		config.Log.Errorf("update buff token error: %s", err)
+		return utils.ErrCodeUpdateBuffToken
+	}
+	return utils.SUCCESS
 }
 
 func (buff *BuffToken) GetBuffToken(ctx context.Context) error {
@@ -66,10 +79,14 @@ func (buff *BuffToken) UpdateBuffExpired() error {
 	return err
 }
 
-func (buff *BuffToken) GetBuffExpired() error {
+func (buff *BuffToken) GetBuffExpired() int {
 	ex, err := config.RDB.HGet(context.Background(), "buff_token", "expired").Result()
 	if err == nil {
 		buff.Expired = ex
 	}
-	return err
+	if err != nil {
+		config.Log.Errorf("Get token expired error : %v", err)
+		return utils.ErrCodeGetTokenExpired
+	}
+	return utils.SUCCESS
 }

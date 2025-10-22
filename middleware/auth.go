@@ -47,7 +47,7 @@ func AuthVIPMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		role := getRoleFromContext(c)
 		expiry := getExpiryFromContext(c)
-		if models.CanAccessVIPContent(role, expiry) {
+		if !models.CanAccessVIPContent(role, expiry) {
 			c.JSON(http.StatusForbidden, gin.H{
 				"error": "vip access required",
 				"code":  "VIP_REQUIRED",

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"gopkg.in/gomail.v2"
 	"math/big"
+	"uu/config"
 )
 
 func GenerateVerificationCode(length int) string {
@@ -29,7 +30,7 @@ type EmailService struct {
 	FromPassword string `yaml:"password"`
 }
 
-func (es *EmailService) SendVerificationCode(toEmail, code string) error {
+func (es *EmailService) SendVerificationCode(toEmail, code string) int {
 	m := gomail.NewMessage()
 	m.SetHeader("From", es.FromEmail)
 	m.SetHeader("To", toEmail)
@@ -43,5 +44,9 @@ func (es *EmailService) SendVerificationCode(toEmail, code string) error {
 	d := gomail.NewDialer(es.SMTPHost, es.SMTPPort, es.FromEmail, es.FromPassword)
 
 	err := d.DialAndSend(m)
-	return err
+	if err != nil {
+		config.Log.Errorf("send code fail: %v", err)
+		return ErrCodeSendEmailCode
+	}
+	return SUCCESS
 }

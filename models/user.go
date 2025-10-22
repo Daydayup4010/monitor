@@ -10,6 +10,7 @@ import (
 	"gorm.io/gorm"
 	"time"
 	"uu/config"
+	"uu/utils"
 )
 
 const (
@@ -40,12 +41,16 @@ type UserResponse struct {
 	LastLogin time.Time `json:"last_login,omitempty"`
 }
 
-func CreateUser(user *User) error {
+func CreateUser(user *User) int {
 	if IfExistEmail(user.Email) {
-		return fmt.Errorf("email registered")
+		return utils.ErrCodeEmailTaken
 	}
 	err := config.DB.Create(user).Error
-	return err
+	if err != nil {
+		config.Log.Errorf("Create User error: %v", err)
+		return utils.ErrCodeCreateUser
+	}
+	return utils.SUCCESS
 }
 
 func IfExistEmail(email string) bool {
@@ -66,25 +71,37 @@ func IfExistUser(name string) bool {
 	return false
 }
 
-func UpdateUserName(name, id string) error {
+func UpdateUserName(name, id string) int {
 	err := config.DB.Model(&User{}).Where("id = ?", id).Update("user_name", name).Error
-	return err
+	if err != nil {
+		config.Log.Errorf("update user name error :%v", err)
+		return utils.ErrCodeUpdateUser
+	}
+	return utils.SUCCESS
 }
 
-func ResetPassword(email, password string) error {
+func ResetPassword(email, password string) int {
 	if !IfExistEmail(email) {
-		return fmt.Errorf("email not exist")
+		return utils.ErrCodeUserNotFound
 	}
 	err := config.DB.Model(&User{}).Where("email = ?", email).Update("password", password).Error
-	return err
+	if err != nil {
+		config.Log.Errorf("reset password fail: %v", err)
+		return utils.ErrCodeUpdateUser
+	}
+	return utils.SUCCESS
 }
 
-func DeleteUser(id string) error {
+func DeleteUser(id string) int {
 	result := config.DB.Where("id = ?", id).Delete(&User{})
 	if result.RowsAffected == 0 {
-		return fmt.Errorf("user not exist")
+		return utils.ErrCodeUserNotFound
 	}
-	return result.Error
+	if result.Error != nil {
+		config.Log.Errorf("delete user fail: %v", result.Error)
+		return utils.ErrCodeDeleteUser
+	}
+	return utils.SUCCESS
 }
 
 func IsValidVIP(role int64, expiry time.Time) bool {
@@ -125,45 +142,62 @@ func UpdateUserLastLogin(user *User) {
 	}
 }
 
-func GetUserList(pageSize, pageNum int) ([]UserResponse, int64) {
+func GetUserList(pageSize, pageNum int, search string) ([]UserResponse, int64, int) {
 	var users []UserResponse
 	var total int64
-	config.DB.Model(&User{}).Count(&total)
-	err := config.DB.Model(&User{}).Select("id, user_name,email,role,vip_expiry,last_login").Limit(pageSize).Offset((pageNum - 1) * pageSize).Find(&users).Error
+
+	query := config.DB.Model(&User{})
+
+	// 添加搜索条件
+	if search != "" {
+		query = query.Where("user_name LIKE ? OR email LIKE ?", "%"+search+"%", "%"+search+"%")
+	}
+
+	query.Count(&total)
+	err := query.Select("id, user_name, email, role, vip_expiry, last_login").
+		Limit(pageSize).
+		Offset((pageNum - 1) * pageSize).
+		Find(&users).Error
+
 	if err != nil {
 		config.Log.Errorf("Get user list error: %v", err)
+		return users, total, utils.ErrCodeGetUserList
 	}
-	return users, total
+	return users, total, utils.SUCCESS
 }
 
-func SaveEmailCode(email, code string, c context.Context) error {
+func SaveEmailCode(email, code string, c context.Context) int {
 	key := fmt.Sprintf("verify:%s", email)
 	err := config.RDB.SetEx(c, key, code, 10*time.Minute).Err()
-	return err
+	if err != nil {
+		config.Log.Errorf("generate verify code fail: %v", err)
+		return utils.ErrCodeEmailCodeGenerate
+	}
+	return utils.SUCCESS
 }
 
-func VerifyEmailCode(email, code string, c context.Context) (bool, error) {
+func VerifyEmailCode(email, code string, c context.Context) (bool, int) {
 	key := fmt.Sprintf("verify:%s", email)
 	saveCode, err := config.RDB.Get(c, key).Result()
 	if err == redis.Nil {
-		return false, fmt.Errorf("code not exist")
+		return false, utils.ErrCodeInvalidEmailCode
 	} else if err != nil {
-		return false, err
+		return false, utils.ErrCodeInvalidEmailCode
 	}
 	if saveCode != code {
-		return false, nil
+		return false, utils.ErrCodeInvalidEmailCode
 	}
 	config.RDB.Del(c, key)
-	return true, nil
+	return true, utils.SUCCESS
 }
 
-func RenewVIP(userID string, days int) (time.Time, error) {
+func RenewVIP(userID string, days int) (time.Time, int) {
 	// 获取当前VIP过期时间
 	var user User
 	var newExpiry time.Time
 	if err := config.DB.First(&user, "id = ?", userID).Error; err != nil {
 		config.Log.Errorf("query user fail: %v", err)
-		return newExpiry, fmt.Errorf("query user fail")
+		return newExpiry, utils.ErrCodeUserNotFound
 	}
 
 	// 计算新的过期时间
@@ -178,7 +212,7 @@ func RenewVIP(userID string, days int) (time.Time, error) {
 	err := config.DB.Model(&user).Update("vip_expiry", newExpiry).Error
 	if err != nil {
 		config.Log.Errorf("update vip expiry fail: %v", err)
-		return newExpiry, fmt.Errorf("update vip expiry fail")
+		return newExpiry, utils.ErrCodeUpdateUser
 	}
-	return newExpiry, nil
+	return newExpiry, utils.SUCCESS
 }

@@ -9,6 +9,7 @@ import (
 	"time"
 	"uu/config"
 	"uu/models"
+	"uu/utils"
 )
 
 var UUMaxPageSize = 100
@@ -83,10 +84,10 @@ func UpdateAllBuffItems() {
 	}
 }
 
-func UpdateFullData() {
+func UpdateFullData() int {
 	if !task.TryLock() {
-		config.Log.Info("update full data running")
-		return
+		config.Log.Info("full update running")
+		return utils.ErrCodeFullUpdateRunning
 	}
 	defer task.Unlock()
 	config.Log.Info("Start full update")
@@ -95,6 +96,7 @@ func UpdateFullData() {
 	go UpdateAllBuffItems()
 	wg.Wait()
 	config.Log.Info("Full update completed")
+	return utils.SUCCESS
 }
 
 func UpdateInventory() {

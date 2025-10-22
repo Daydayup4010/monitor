@@ -3,49 +3,54 @@ package api
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"uu/config"
 	"uu/models"
+	"uu/utils"
 )
 
 func UpdateSetting(c *gin.Context) {
-	userId := c.Query("user_id")
+	userId := getUserIdFromContext(c)
 	var s models.Settings
-	_ = c.ShouldBindJSON(&s)
-	err := models.UpdateSetting(userId, s)
-	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"code": 0,
-			"msg":  "update setting err",
+	if err := c.ShouldBindJSON(&s); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code": utils.InvalidParameter,
+			"msg":  utils.ErrorMessage(utils.InvalidParameter),
 		})
-		config.Log.Errorf("update setting err: %s", err)
 		return
 	}
+	code := models.UpdateSetting(userId, s)
 	c.JSON(http.StatusOK, gin.H{
-		"code": 1,
-		"msg":  "success",
+		"code": code,
+		"msg":  utils.ErrorMessage(code),
 	})
 }
 
 func GetSettings(c *gin.Context) {
-	userId := c.Query("user_id")
+	userId := getUserIdFromContext(c)
 	if userId == "" {
-		c.JSON(http.StatusOK, gin.H{
-			"error": "invalid parameter",
-		})
-		return
-	}
-	setting, err := models.GetUserSetting(userId)
-	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"code": 0,
-			"msg":  "get settings err",
+			"code": utils.InvalidParameter,
+			"msg":  utils.ErrorMessage(utils.InvalidParameter),
 		})
-		config.Log.Errorf("get settings err: %s", err)
 		return
 	}
+	setting, code := models.GetUserSetting(userId)
 	c.JSON(http.StatusOK, gin.H{
-		"code": 1,
+		"code": code,
 		"data": setting,
-		"msg":  "success",
+		"msg":  utils.ErrorMessage(code),
 	})
+}
+
+func getUserIdFromContext(c *gin.Context) string {
+	val, exists := c.Get("userID")
+	if !exists {
+		return ""
+	}
+
+	switch v := val.(type) {
+	case string:
+		return v
+	default:
+		return ""
+	}
 }

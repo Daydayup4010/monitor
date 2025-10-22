@@ -3,6 +3,7 @@ package models
 import (
 	"gorm.io/gorm"
 	"uu/config"
+	"uu/utils"
 )
 
 //type Settings struct {
@@ -68,20 +69,35 @@ type SettingsResponse struct {
 	MinSellPrice float64 `json:"min_sell_price"`
 }
 
-func CreateDefaultSetting(id string) error {
+func CreateDefaultSetting(id string) int {
 	var setting Settings
 	setting.UserId = id
 	err := config.DB.Create(&setting).Error
-	return err
+	if err != nil {
+		config.Log.Errorf("create default setting error: %v", err)
+		return utils.ErrCodeCreateDefaultSetting
+	}
+	return utils.SUCCESS
 }
 
-func GetUserSetting(id string) (*SettingsResponse, error) {
+func GetUserSetting(id string) (*SettingsResponse, int) {
 	var setting SettingsResponse
+	var code int
 	err := config.DB.Model(&Settings{}).Where("user_id = ?", id).First(&setting).Error
-	return &setting, err
+	config.Log.Errorf("get settings user: %s err: %s", id, err)
+	if err != nil {
+		code = utils.SUCCESS
+	} else {
+		code = utils.ErrCodeGetSettings
+	}
+	return &setting, code
 }
 
-func UpdateSetting(id string, setting Settings) error {
+func UpdateSetting(id string, setting Settings) int {
 	err := config.DB.Where("user_id = ?", id).Updates(&setting).Error
-	return err
+	if err != nil {
+		config.Log.Errorf("update setting err: %s", err)
+		return utils.ErrCodeUpdateSetting
+	}
+	return utils.SUCCESS
 }

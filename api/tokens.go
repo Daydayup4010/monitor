@@ -3,44 +3,28 @@ package api
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"uu/config"
 	"uu/models"
 	"uu/services"
+	"uu/utils"
 )
 
 func UpdateUUToken(c *gin.Context) {
 	var uu models.UUToken
 	_ = c.ShouldBindJSON(&uu)
-	err := uu.SetUUToken(c.Request.Context())
-	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"code":    0,
-			"message": "update uu token error",
-		})
-		config.Log.Errorf("update youpin token error: %s", err)
-		return
-	}
+	code := uu.SetUUToken(c.Request.Context())
 	c.JSON(http.StatusOK, gin.H{
-		"code":    1,
-		"message": "success",
+		"code": code,
+		"msg":  utils.ErrorMessage(code),
 	})
 }
 
 func UpdateBuffToken(c *gin.Context) {
 	var buff models.BuffToken
 	_ = c.ShouldBindJSON(&buff)
-	err := buff.SetBuffToken(c.Request.Context())
-	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"code":    0,
-			"message": "update buff token error",
-		})
-		config.Log.Errorf("update buff token error: %s", err)
-		return
-	}
+	code := buff.SetBuffToken(c.Request.Context())
 	c.JSON(http.StatusOK, gin.H{
-		"code":    1,
-		"message": "success",
+		"code": code,
+		"msg":  utils.ErrorMessage(code),
 	})
 
 }
@@ -52,23 +36,14 @@ func GetVerify(c *gin.Context) {
 		"uu":   "yes",
 		"buff": "yes",
 	}
-	err := uu.GetUUExpired()
-	err = buff.GetBuffExpired()
-	if err != nil {
-		config.Log.Errorf("Get token expired error : %v", err)
-		c.JSON(http.StatusOK, gin.H{
-			"code": 0,
-			"data": expired,
-			"msg":  "Get token expired error",
-		})
-		return
-	}
+	code := uu.GetUUExpired()
+	code = buff.GetBuffExpired()
 	expired["uu"] = uu.Expired
 	expired["buff"] = buff.Expired
 	c.JSON(http.StatusOK, gin.H{
-		"code": 1,
+		"code": code,
 		"data": expired,
-		"msg":  "success",
+		"msg":  utils.ErrorMessage(code),
 	})
 }
 
@@ -81,22 +56,13 @@ func VerifyToken(c *gin.Context) {
 	}
 	services.VerifyUUToken()
 	services.VerifyBuffToken()
-	err := uu.GetUUExpired()
-	err = buff.GetBuffExpired()
-	if err != nil {
-		config.Log.Errorf("Get token expired error : %v", err)
-		c.JSON(http.StatusOK, gin.H{
-			"code": 0,
-			"data": expired,
-			"msg":  "Get token expired error",
-		})
-		return
-	}
+	code := uu.GetUUExpired()
+	code = buff.GetBuffExpired()
 	expired["uu"] = uu.Expired
 	expired["buff"] = buff.Expired
 	c.JSON(http.StatusOK, gin.H{
-		"code": 1,
+		"code": code,
 		"data": expired,
-		"msg":  "success",
+		"msg":  utils.ErrorMessage(code),
 	})
 }

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"uu/models"
+	"uu/utils"
 )
 
 func GetGoods(c *gin.Context) {
@@ -14,17 +15,11 @@ func GetGoods(c *gin.Context) {
 	sort := c.Query("sort")
 	desc, _ := strconv.ParseBool(c.Query("desc"))
 	category := c.Query("category")
-	s, total, err := models.GetGoods(userId, pageSize, pageNum, desc, sort, category)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err,
-		})
-		return
-	}
+	s, total, code := models.GetGoods(userId, pageSize, pageNum, desc, sort, category)
 	c.JSON(http.StatusOK, gin.H{
-		"code":  1,
+		"code":  code,
 		"data":  s,
 		"total": total,
-		"msg":   "success",
+		"msg":   utils.ErrorMessage(code),
 	})
 }
