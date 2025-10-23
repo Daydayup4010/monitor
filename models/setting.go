@@ -84,11 +84,11 @@ func GetUserSetting(id string) (*SettingsResponse, int) {
 	var setting SettingsResponse
 	var code int
 	err := config.DB.Model(&Settings{}).Where("user_id = ?", id).First(&setting).Error
-	config.Log.Errorf("get settings user: %s err: %s", id, err)
 	if err != nil {
-		code = utils.SUCCESS
-	} else {
+		config.Log.Errorf("get settings user: %s err: %s", id, err)
 		code = utils.ErrCodeGetSettings
+	} else {
+		code = utils.SUCCESS
 	}
 	return &setting, code
 }

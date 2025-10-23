@@ -34,3 +34,9 @@ export const debounce = (fn: Function, delay: number) => {
     timeoutId = setTimeout(() => fn.apply(null, args), delay)
   }
 }
+
+// 导出错误码相关工具
+export { getErrorMessage, translateErrorMessage, ERROR_CODE_MAP, ERROR_MSG_MAP } from './errorCode'
+
+// 导出美化的消息提示
+export { showMessage } from './message'

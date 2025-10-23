@@ -1,15 +1,17 @@
 <template>
   <div class="admin-page">
     <el-tabs v-model="activeTab" type="border-card" class="admin-tabs">
-      <el-tab-pane label="Token管理" name="tokens">
+      <!-- 用户管理 -->
+      <el-tab-pane label="用户管理" name="users">
         <div class="tab-content">
-          <TokenManager />
+          <UserManager />
         </div>
       </el-tab-pane>
       
-      <el-tab-pane label="系统设置" name="settings">
+      <!-- Token管理 -->
+      <el-tab-pane label="Token管理" name="tokens">
         <div class="tab-content">
-          <SystemSettings />
+          <TokenManager />
         </div>
       </el-tab-pane>
     </el-tabs>
@@ -18,17 +20,16 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import UserManager from '@/components/UserManager.vue'
 import TokenManager from '@/components/TokenManager.vue'
-import SystemSettings from '@/components/SystemSettings.vue'
 
-const activeTab = ref('tokens')
+const activeTab = ref('users')
 </script>
 
 <style scoped>
 .admin-page {
-  padding: 32px 48px;
-  min-height: 100vh;
-  animation: fadeInUp 0.6s ease-out;
+  padding: 20px;
+  min-height: 100%;
 }
 
 :deep(.admin-tabs) {
@@ -87,70 +88,21 @@ const activeTab = ref('tokens')
   border-radius: 16px;
 }
 
-/* 移动端响应式样式 */
-@media (max-width: 1200px) {
-  .admin-page {
-    padding: 24px 32px;
-  }
-  
-  .tab-content {
-    padding: 24px;
-  }
-}
-
+/* 响应式 */
 @media (max-width: 768px) {
-  .admin-page {
-    padding: 16px;
-  }
-  
-  :deep(.admin-tabs) {
-    border-radius: 12px;
-  }
-  
-  :deep(.admin-tabs > .el-tabs__header .el-tabs__nav-wrap) {
-    padding: 0 16px;
-  }
-  
-  :deep(.admin-tabs > .el-tabs__header .el-tabs__item) {
-    height: 50px;
-    line-height: 50px;
-    font-size: 14px;
-    margin-right: 16px;
-    padding: 0 16px;
-  }
-  
-  .tab-content {
-    padding: 20px 16px;
-    min-height: 500px;
-    border-radius: 12px;
-  }
-}
-
-@media (max-width: 480px) {
   .admin-page {
     padding: 12px;
   }
-  
-  :deep(.admin-tabs) {
-    border-radius: 8px;
-  }
-  
-  :deep(.admin-tabs > .el-tabs__header .el-tabs__nav-wrap) {
-    padding: 0 12px;
-  }
-  
-  :deep(.admin-tabs > .el-tabs__header .el-tabs__item) {
-    height: 45px;
-    line-height: 45px;
-    font-size: 13px;
-    margin-right: 8px;
-    padding: 0 12px;
-  }
-  
+
   .tab-content {
-    padding: 16px 12px;
-    min-height: 400px;
-    border-radius: 8px;
+    padding: 20px 16px;
+    min-height: 500px;
+  }
+
+  :deep(.admin-tabs > .el-tabs__header .el-tabs__item) {
+    font-size: 14px;
+    padding: 0 16px;
+    margin-right: 16px;
   }
 }
 </style>

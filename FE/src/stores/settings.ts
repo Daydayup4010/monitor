@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { ElMessage } from 'element-plus'
 import { settingsApi } from '@/api'
+import { showMessage } from '@/utils/message'
 import type { Settings } from '@/types'
 
 export const useSettingsStore = defineStore('settings', () => {
@@ -33,7 +33,7 @@ export const useSettingsStore = defineStore('settings', () => {
     try {
       await settingsApi.updateSettings(data)
       settings.value = data
-      ElMessage.success('设置更新成功')
+      showMessage.success('设置更新成功')
     } catch (error) {
       console.error('Update settings failed:', error)
     } finally {

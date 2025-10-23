@@ -4,6 +4,68 @@ export interface ApiResponse<T = any> {
   msg: string
   data: T
   total?: number
+  token?: string
+  user?: UserInfo
+}
+
+// 用户相关类型
+export interface UserInfo {
+  id: string
+  username: string
+  email: string
+  role: number  // 0: 普通用户, 1: VIP, 2: 管理员
+  vip_expiry?: string
+  last_login?: string
+  created_at?: string
+}
+
+export interface LoginForm {
+  email: string
+  password: string
+}
+
+export interface EmailLoginForm {
+  email: string
+  code: string
+}
+
+export interface RegisterForm {
+  username: string
+  email: string
+  password: string
+  confirmPassword: string
+  code: string
+}
+
+export interface SendEmailCodeRequest {
+  email: string
+}
+
+export interface ResetPasswordForm {
+  email: string
+  password: string
+  code: string
+}
+
+// 用户列表相关
+export interface UserListParams {
+  page_num: number
+  page_size: number
+  search?: string
+}
+
+export interface UserListItem {
+  id: string
+  user_name: string
+  email: string
+  role: number
+  vip_expiry?: string
+  last_login?: string
+}
+
+export interface RenewVipRequest {
+  user_id: string
+  days: number
 }
 
 // 饰品数据类型
@@ -25,9 +87,11 @@ export interface PaginationParams {
   page_size: number
   sort?: string  // 排序字段
   desc?: boolean // 是否降序
+  user_id?: string
+  category?: string
 }
 
-// Token类型
+// Platform Token类型
 export interface UUToken {
   authorization: string
   uk: string
@@ -45,6 +109,7 @@ export interface TokenStatus {
 
 // 设置类型
 export interface Settings {
+  user_id?: string
   min_sell_num: number
   min_diff: number
   max_sell_price: number

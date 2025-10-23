@@ -31,15 +31,35 @@
         
         <div class="header-actions">
           <el-space size="large">
-            <TokenStatus />
-            <el-button 
-              circle
-              type="text"
-              class="settings-btn"
-              @click="goToAdmin"
-            >
-              <el-icon size="18"><Setting /></el-icon>
-            </el-button>
+            <!-- 用户信息下拉菜单 -->
+            <el-dropdown trigger="click" @command="handleCommand">
+              <div class="user-dropdown">
+                <div class="user-avatar">
+                  {{ userStore.userInfo?.username?.charAt(0).toUpperCase() || 'U' }}
+                </div>
+                <div class="user-info">
+                  <div class="user-name">{{ userStore.userInfo?.username }}</div>
+                  <div class="user-type">{{ userStore.userTypeLabel }}</div>
+                </div>
+                <el-icon><ArrowDown /></el-icon>
+              </div>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="settings">
+                    <el-icon><User /></el-icon>
+                    <span>个人设置</span>
+                  </el-dropdown-item>
+                  <el-dropdown-item v-if="userStore.isAdmin" command="admin">
+                    <el-icon><Setting /></el-icon>
+                    <span>管理中心</span>
+                  </el-dropdown-item>
+                  <el-dropdown-item divided command="logout">
+                    <el-icon><SwitchButton /></el-icon>
+                    <span>退出登录</span>
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </el-space>
         </div>
       </div>
@@ -56,31 +76,60 @@
 
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import TokenStatus from '@/components/TokenStatus.vue'
-import { useTokenStore } from '@/stores/token'
+import { useRouter, useRoute } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
-const tokenStore = useTokenStore()
+const route = useRoute()
+const userStore = useUserStore()
 
-// 菜单路由
+// 菜单路由 - 根据权限过滤
 const menuRoutes = computed(() => {
   return router.getRoutes()
-    .filter(route => route.meta?.title && route.path !== '/')
+    .filter(route => {
+      if (!route.meta?.title || route.path === '/') return false
+      
+      // 过滤掉登录注册页
+      if (route.path === '/login' || route.path === '/register') return false
+      
+      // 过滤掉hideInMenu的路由
+      if (route.meta.hideInMenu) return false
+      
+      // 检查VIP权限
+      if (route.meta.requiresVip && !userStore.isVip) return false
+      
+      // 检查管理员权限
+      if (route.meta.requiresAdmin && !userStore.isAdmin) return false
+      
+      return true
+    })
     .map(route => ({
       path: route.path,
       meta: route.meta
     }))
 })
 
-// 跳转到管理中心
-const goToAdmin = () => {
-  router.push({ name: 'Admin' })
+// 处理下拉菜单命令
+const handleCommand = (command: string) => {
+  switch (command) {
+    case 'settings':
+      router.push('/settings')
+      break
+    case 'admin':
+      router.push('/admin')
+      break
+    case 'logout':
+      userStore.logout()
+      break
+  }
 }
 
-// 初始化时验证Token状态
+// 初始化时加载用户信息
 onMounted(() => {
-  tokenStore.verifyTokens()
+  userStore.loadFromStorage()
+  if (userStore.isLoggedIn) {
+    userStore.getUserInfo()
+  }
 })
 </script>
 
@@ -148,6 +197,37 @@ onMounted(() => {
 .header-menu {
   border-bottom: none;
   background: transparent;
+  flex: 1;
+}
+
+:deep(.el-menu--horizontal) {
+  border-bottom: none;
+}
+
+:deep(.el-menu--horizontal .el-menu-item) {
+  height: 60px;
+  line-height: 60px;
+  padding: 0 20px;
+  border-radius: 8px;
+  margin: 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+:deep(.el-menu--horizontal .el-menu-item:hover) {
+  background: rgba(24, 144, 255, 0.1);
+}
+
+:deep(.el-menu--horizontal .el-menu-item.is-active) {
+  background: rgba(24, 144, 255, 0.15);
+  color: #1890ff;
+  border-bottom: 2px solid #1890ff;
+}
+
+:deep(.el-menu--horizontal .el-menu-item span) {
+  font-size: 15px;
+  font-weight: 600;
 }
 
 .nav-item {
@@ -169,15 +249,50 @@ onMounted(() => {
   align-items: center;
 }
 
-.settings-btn {
+.user-dropdown {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.user-dropdown:hover {
+  background: rgba(24, 144, 255, 0.1);
+}
+
+.user-avatar {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.05);
+  background: linear-gradient(135deg, #1890ff, #40a9ff);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: bold;
 }
 
-.settings-btn:hover {
-  background: rgba(24, 144, 255, 0.1);
+.user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.user-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  line-height: 1.2;
+}
+
+.user-type {
+  font-size: 12px;
+  color: #999;
+  line-height: 1.2;
 }
 
 .main-content {

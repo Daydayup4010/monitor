@@ -10,8 +10,8 @@
                 <el-icon size="20" color="#1890ff"><Key /></el-icon>
                 <span>UU平台Token</span>
               </div>
-              <el-tag :type="tokenStore.isTokenValid('uu') ? 'success' : 'danger'">
-                {{ tokenStore.tokenStatus.uu === 'no' ? '有效' : '无效' }}
+              <el-tag :type="isTokenValid('uu') ? 'success' : 'danger'">
+                {{ tokenStatus.uu === 'no' ? '有效' : '无效' }}
               </el-tag>
             </div>
           </template>
@@ -46,7 +46,7 @@
             <el-form-item>
               <el-button
                 type="primary"
-                :loading="tokenStore.loading"
+                :loading="loading"
                 @click="submitUUToken"
                 class="submit-btn"
               >
@@ -57,7 +57,7 @@
           </el-form>
           
           <el-alert
-            v-if="tokenStore.tokenStatus.uu !== 'no'"
+            v-if="tokenStatus.uu !== 'no'"
             title="Token无效提醒"
             type="warning"
             description="当前UU Token可能已过期或无效，请更新Token以确保数据正常获取。"
@@ -76,8 +76,8 @@
                 <el-icon size="20" color="#52c41a"><Key /></el-icon>
                 <span>Buff平台Token</span>
               </div>
-              <el-tag :type="tokenStore.isTokenValid('buff') ? 'success' : 'danger'">
-                {{ tokenStore.tokenStatus.buff === 'no' ? '有效' : '无效' }}
+              <el-tag :type="isTokenValid('buff') ? 'success' : 'danger'">
+                {{ tokenStatus.buff === 'no' ? '有效' : '无效' }}
               </el-tag>
             </div>
           </template>
@@ -112,7 +112,7 @@
             <el-form-item>
               <el-button
                 type="primary"
-                :loading="tokenStore.loading"
+                :loading="loading"
                 @click="submitBuffToken"
                 class="submit-btn"
               >
@@ -123,7 +123,7 @@
           </el-form>
           
           <el-alert
-            v-if="tokenStore.tokenStatus.buff !== 'no'"
+            v-if="tokenStatus.buff !== 'no'"
             title="Token无效提醒"
             type="warning"
             description="当前Buff Token可能已过期或无效，请更新Token以确保数据正常获取。"
@@ -192,7 +192,7 @@
       <el-button
         type="primary"
         size="large"
-        :loading="tokenStore.loading"
+        :loading="loading"
         @click="verifyAllTokens"
         class="verify-btn"
       >
@@ -205,11 +205,16 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
-import { useTokenStore } from '@/stores/token'
-import type { UUToken, BuffToken } from '@/types'
+import { platformTokenApi } from '@/api'
+import { showMessage } from '@/utils/message'
+import type { UUToken, BuffToken, TokenStatus } from '@/types'
 
-const tokenStore = useTokenStore()
+// Token状态
+const tokenStatus = ref<TokenStatus>({
+  uu: 'yes',
+  buff: 'yes'
+})
+const loading = ref(false)
 
 // 表单引用
 const uuFormRef = ref()
@@ -257,10 +262,17 @@ const submitUUToken = async () => {
   
   try {
     await uuFormRef.value.validate()
-    await tokenStore.updateUUToken(uuForm)
-    resetUUForm()
+    loading.value = true
+    const response = await platformTokenApi.updateUUToken(uuForm)
+    if (response.code === 1) {
+      showMessage.success('UU Token更新成功')
+      resetUUForm()
+      await loadTokenStatus()
+    }
   } catch (error) {
-    console.error('UU token validation failed:', error)
+    console.error('UU token update failed:', error)
+  } finally {
+    loading.value = false
   }
 }
 
@@ -270,10 +282,17 @@ const submitBuffToken = async () => {
   
   try {
     await buffFormRef.value.validate()
-    await tokenStore.updateBuffToken(buffForm)
-    resetBuffForm()
+    loading.value = true
+    const response = await platformTokenApi.updateBuffToken(buffForm)
+    if (response.code === 1) {
+      showMessage.success('Buff Token更新成功')
+      resetBuffForm()
+      await loadTokenStatus()
+    }
   } catch (error) {
-    console.error('Buff token validation failed:', error)
+    console.error('Buff token update failed:', error)
+  } finally {
+    loading.value = false
   }
 }
 
@@ -291,15 +310,44 @@ const resetBuffForm = () => {
   buffFormRef.value?.clearValidate()
 }
 
-// 验证所有Token
-const verifyAllTokens = async () => {
-  await tokenStore.manualVerifyTokens()
-  ElMessage.success('Token验证完成')
+// 加载Token状态
+const loadTokenStatus = async () => {
+  try {
+    const response = await platformTokenApi.verifyTokens()
+    if (response.code === 1 && response.data) {
+      tokenStatus.value = response.data
+    }
+  } catch (error) {
+    console.error('获取Token状态失败:', error)
+  }
 }
 
-// 页面挂载时验证Token
+// 验证所有Token
+const verifyAllTokens = async () => {
+  loading.value = true
+  try {
+    const response = await platformTokenApi.manualVerifyTokens()
+    if (response.code === 1) {
+      showMessage.success('Token验证完成')
+      if (response.data) {
+        tokenStatus.value = response.data
+      }
+    }
+  } catch (error) {
+    console.error('验证Token失败:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+// Token是否有效
+const isTokenValid = (platform: 'uu' | 'buff'): boolean => {
+  return tokenStatus.value[platform] === 'no'
+}
+
+// 页面挂载时加载Token状态
 onMounted(() => {
-  tokenStore.verifyTokens()
+  loadTokenStatus()
 })
 </script>
 

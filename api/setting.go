@@ -1,10 +1,12 @@
 package api
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"uu/models"
 	"uu/utils"
+
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 func UpdateSetting(c *gin.Context) {
@@ -42,6 +44,7 @@ func GetSettings(c *gin.Context) {
 }
 
 func getUserIdFromContext(c *gin.Context) string {
+
 	val, exists := c.Get("userID")
 	if !exists {
 		return ""
@@ -50,6 +53,8 @@ func getUserIdFromContext(c *gin.Context) string {
 	switch v := val.(type) {
 	case string:
 		return v
+	case uuid.UUID:
+		return v.String()
 	default:
 		return ""
 	}

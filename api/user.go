@@ -1,13 +1,14 @@
 package api
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"net/http"
 	"strconv"
 	"uu/config"
 	"uu/models"
 	"uu/utils"
+
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 // RegisterRequest 注册请求体
@@ -215,5 +216,47 @@ func RenewVipExpiry(c *gin.Context) {
 		"code": code,
 		"msg":  "success",
 		"date": newExpiry,
+	})
+}
+
+// RefreshToken 刷新Token
+func RefreshToken(c *gin.Context) {
+	// 从context获取当前用户信息（已通过AuthMiddleware验证）
+	userID, _ := c.Get("userID")
+	username, _ := c.Get("username")
+	email, _ := c.Get("email")
+
+	// 从数据库获取最新的用户信息（确保role和vipExpiry是最新的）
+	userIdStr := userID.(uuid.UUID).String()
+	user, code := models.GetUserById(userIdStr)
+	if code != utils.SUCCESS {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code": code,
+			"msg":  utils.ErrorMessage(code),
+		})
+		return
+	}
+
+	// 生成新的token（使用最新的用户信息）
+	newToken, err := utils.GenerateJWT(user.ID, user.UserName, user.Role, user.VipExpiry, user.Email)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code": utils.ErrCodeTokenGenerate,
+			"msg":  utils.ErrorMessage(utils.ErrCodeTokenGenerate),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":  utils.SUCCESS,
+		"msg":   utils.ErrorMessage(utils.SUCCESS),
+		"token": newToken,
+		"data": gin.H{
+			"id":         user.ID,
+			"username":   username,
+			"email":      email,
+			"role":       user.Role,
+			"vip_expiry": user.VipExpiry,
+		},
 	})
 }

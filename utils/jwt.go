@@ -1,9 +1,10 @@
 package utils
 
 import (
+	"time"
+
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
-	"time"
 )
 
 var JWTSecret = []byte("asdfghjkzxcvbnm") // 生产环境应从环境变量获取
@@ -27,7 +28,7 @@ func GenerateJWT(userID uuid.UUID, username string, role int64, vipExpiry time.T
 		VipExpiry: vipExpiry,
 		Email:     email,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(240 * time.Hour)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)), // 24小时有效期
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			Issuer:    "monitor",
 		},
@@ -52,16 +53,4 @@ func ParseJWT(tokenString string) (*Claims, error) {
 	}
 
 	return nil, err
-}
-
-// RefreshJWT 刷新JWT令牌
-func RefreshJWT(tokenString string) (string, error) {
-	claims, err := ParseJWT(tokenString)
-	if err != nil {
-		return "", err
-	}
-
-	claims.ExpiresAt = jwt.NewNumericDate(time.Now().Add(24 * time.Hour))
-	newToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return newToken.SignedString(JWTSecret)
 }

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"gopkg.in/gomail.v2"
 	"math/big"
-	"uu/config"
 )
 
 func GenerateVerificationCode(length int) string {
@@ -45,7 +44,6 @@ func (es *EmailService) SendVerificationCode(toEmail, code string) int {
 
 	err := d.DialAndSend(m)
 	if err != nil {
-		config.Log.Errorf("send code fail: %v", err)
 		return ErrCodeSendEmailCode
 	}
 	return SUCCESS

@@ -1,10 +1,11 @@
 package core
 
 import (
-	"github.com/gin-gonic/gin"
 	"uu/api"
 	"uu/config"
 	"uu/middleware"
+
+	"github.com/gin-gonic/gin"
 )
 
 func InitRouter() *gin.Engine {
@@ -23,8 +24,9 @@ func InitRouter() *gin.Engine {
 	authUser := user.Group("")
 	authUser.Use(middleware.AuthMiddleware())
 	{
-		user.GET("self", api.GetSelfInfo)
-		user.PUT("name", api.UpdateUserName)
+		authUser.GET("self", api.GetSelfInfo)
+		authUser.PUT("name", api.UpdateUserName)
+		authUser.POST("refresh", api.RefreshToken)
 	}
 
 	vip := v1.Group("vip")

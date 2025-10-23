@@ -11,7 +11,7 @@ import (
 func GetGoods(c *gin.Context) {
 	pageSize, _ := strconv.Atoi(c.Query("page_size"))
 	pageNum, _ := strconv.Atoi(c.Query("page_num"))
-	userId := c.Query("user_id")
+	userId := getUserIdFromContext(c)
 	sort := c.Query("sort")
 	desc, _ := strconv.ParseBool(c.Query("desc"))
 	category := c.Query("category")

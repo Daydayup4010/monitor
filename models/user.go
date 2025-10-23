@@ -4,13 +4,14 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"time"
+	"uu/config"
+	"uu/utils"
+
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 	"golang.org/x/crypto/scrypt"
 	"gorm.io/gorm"
-	"time"
-	"uu/config"
-	"uu/utils"
 )
 
 const (
@@ -133,6 +134,16 @@ func QueryUser(email string) *User {
 		return nil
 	}
 	return &user
+}
+
+func GetUserById(id string) (*User, int) {
+	var user User
+	err := config.DB.Where("id = ?", id).First(&user).Error
+	if err != nil {
+		config.Log.Errorf("query user by id error: %v", err)
+		return nil, utils.ErrCodeUserNotFound
+	}
+	return &user, utils.SUCCESS
 }
 
 func UpdateUserLastLogin(user *User) {

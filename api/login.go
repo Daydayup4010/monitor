@@ -1,11 +1,12 @@
 package api
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"time"
 	"uu/models"
 	"uu/utils"
+
+	"github.com/gin-gonic/gin"
 )
 
 // LoginRequest 登录请求体
@@ -51,10 +52,12 @@ func Login(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"code":  utils.SUCCESS,
 		"token": token,
-		"user": gin.H{
-			"id":       user.ID,
-			"username": user.UserName,
-			"email":    user.Email,
+		"data": gin.H{
+			"id":         user.ID,
+			"username":   user.UserName,
+			"email":      user.Email,
+			"role":       user.Role,
+			"vip_expiry": user.VipExpiry,
 		},
 		"msg": utils.ErrorMessage(utils.SUCCESS),
 	})
@@ -108,10 +111,12 @@ func LoginByEmail(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"code":  utils.SUCCESS,
 		"token": token,
-		"user": gin.H{
-			"id":       user.ID,
-			"username": user.UserName,
-			"email":    user.Email,
+		"data": gin.H{
+			"id":         user.ID,
+			"username":   user.UserName,
+			"email":      user.Email,
+			"role":       user.Role,
+			"vip_expiry": user.VipExpiry,
 		},
 		"msg": utils.ErrorMessage(utils.SUCCESS),
 	})
