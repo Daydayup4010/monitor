@@ -364,7 +364,7 @@ tr:hover {
     display: inline-block;
     padding: 4px 12px;
     border-radius: 4px;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 500;
 }
 
@@ -875,6 +875,15 @@ tr:hover {
     min-height: 96px !important;
     display: flex !important;
     align-items: center !important;
+}
+
+/* 价格列 - 往左移动一点 */
+.el-table td.price-column-left {
+    padding-left: 6px !important;
+}
+
+.el-table th.price-column-left {
+    padding-left: 6px !important;
 }
 
 .el-table .skin-info {

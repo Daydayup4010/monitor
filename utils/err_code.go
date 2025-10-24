@@ -34,6 +34,7 @@ const (
 	ErrCodeUpdateBuffToken      = 2006
 	ErrCodeGetTokenExpired      = 2007
 	ErrCodeCreateDefaultSetting = 2008
+	ErrCodeGetGoodsCategory     = 2009
 )
 
 // 错误码与消息映射
@@ -48,6 +49,7 @@ var errorCodeToMessage = map[int]string{
 	ErrCodeUpdateUUToken:     "Update UU token error",
 	ErrCodeUpdateBuffToken:   "Update buff token error",
 	ErrCodeGetTokenExpired:   "Get token expired error",
+	ErrCodeGetGoodsCategory:  "Get goods category error",
 	// 用户模块
 	ErrCodeInvalidEmailCode:   "The provided email code is incorrect",
 	ErrCodeUsernameTaken:      "The requested username is already in use",

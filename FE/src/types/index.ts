@@ -88,7 +88,8 @@ export interface PaginationParams {
   sort?: string  // 排序字段
   desc?: boolean // 是否降序
   user_id?: string
-  category?: string
+  category?: string  // 分类筛选
+  search?: string    // 搜索关键词
 }
 
 // Platform Token类型

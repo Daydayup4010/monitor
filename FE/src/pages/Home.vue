@@ -24,20 +24,21 @@
           
         <div class="filter-item">
           <label class="filter-label">类别</label>
-            <el-select
-              v-model="selectedCategory"
+          <el-select
+            v-model="selectedCategory"
             placeholder="全部"
-              clearable
+            clearable
             style="width: 150px;"
-            >
-              <el-option
-                v-for="category in categories"
-                :key="category"
-                :label="category"
-                :value="category"
-              />
-            </el-select>
-          </div>
+            @change="handleCategoryChange"
+          >
+            <el-option
+              v-for="category in categories"
+              :key="category"
+              :label="category"
+              :value="category"
+            />
+          </el-select>
+        </div>
           
         <div class="filter-item">
           <label class="filter-label">排序</label>
@@ -87,31 +88,31 @@
           </template>
         </el-table-column>
         
-          <el-table-column label="UU价格" width="120">
-          <template #default="{ row }">
-              <span style="color: #1890ff; font-weight: 600;">¥{{ formatPrice(row.u_price) }}</span>
-          </template>
-        </el-table-column>
-        
-          <el-table-column label="Buff价格" width="120">
-          <template #default="{ row }">
-              <span style="color: #52c41a; font-weight: 600;">¥{{ formatPrice(row.buff_price) }}</span>
-          </template>
-        </el-table-column>
-        
-          <el-table-column label="价格差" width="100">
-          <template #default="{ row }">
-              <span style="color: #faad14; font-weight: 600;">¥{{ formatPrice(row.price_diff) }}</span>
-          </template>
-        </el-table-column>
-        
-          <el-table-column label="利润率" width="100">
-          <template #default="{ row }">
-              <span :class="getProfitTagClass(row.profit_rate)">
+          <el-table-column label="UU价格" width="120" class-name="price-column-left">
+            <template #default="{ row }">
+              <span style="color: #1890ff; font-weight: 600; font-size: 15px;">¥{{ formatPrice(row.u_price) }}</span>
+            </template>
+          </el-table-column>
+          
+          <el-table-column label="Buff价格" width="120" class-name="price-column-left">
+            <template #default="{ row }">
+              <span style="color: #52c41a; font-weight: 600; font-size: 15px;">¥{{ formatPrice(row.buff_price) }}</span>
+            </template>
+          </el-table-column>
+          
+          <el-table-column label="价格差" width="100" class-name="price-column-left">
+            <template #default="{ row }">
+              <span style="color: #faad14; font-weight: 600; font-size: 15px;">¥{{ formatPrice(row.price_diff) }}</span>
+            </template>
+          </el-table-column>
+          
+          <el-table-column label="利润率" width="100" class-name="price-column-left">
+            <template #default="{ row }">
+              <span :class="getProfitTagClass(row.profit_rate)" style="font-size: 15px !important;">
                 {{ formatPercent(row.profit_rate) }}
               </span>
-          </template>
-        </el-table-column>
+            </template>
+          </el-table-column>
         </el-table>
       </div>
 
@@ -152,6 +153,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useSkinStore } from '@/stores/skin'
+import { dataApi } from '@/api'
 import { formatPrice, formatPercent, debounce } from '@/utils'
 
 const skinStore = useSkinStore()
@@ -159,11 +161,7 @@ const skinStore = useSkinStore()
 const searchKeyword = ref('')
 const selectedCategory = ref('')
 const sortOption = ref('default')
-
-const categories = computed(() => {
-  const cats = new Set(skinStore.skinItems.map(item => item.category))
-  return Array.from(cats).filter(Boolean)
-})
+const categories = ref<string[]>([])
 
 const totalPages = computed(() => {
   return Math.ceil(skinStore.total / skinStore.pagination.page_size)
@@ -206,7 +204,11 @@ const visiblePages = computed(() => {
 })
 
 const handleSearch = debounce(() => {
-  // 搜索逻辑
+  skinStore.getSkinItems({
+    search: searchKeyword.value,
+    category: selectedCategory.value,
+    page_num: 1
+  })
 }, 300)
 
 const handleSortChange = () => {
@@ -226,8 +228,45 @@ const handleSortChange = () => {
     })
   }
 
+const handleCategoryChange = () => {
+  skinStore.getSkinItems({
+    search: searchKeyword.value,
+    category: selectedCategory.value,
+    page_num: 1
+  })
+}
+
 const refreshData = async () => {
+  // 清除分类缓存，重新获取最新数据
+  sessionStorage.removeItem('skinCategories')
+  await loadCategories()
   await skinStore.getSkinItems()
+}
+
+const loadCategories = async () => {
+  // 先尝试从sessionStorage读取缓存
+  const cached = sessionStorage.getItem('skinCategories')
+  if (cached) {
+    try {
+      categories.value = JSON.parse(cached)
+      return
+    } catch (e) {
+      // 缓存解析失败，清除缓存
+      sessionStorage.removeItem('skinCategories')
+    }
+  }
+  
+  // 缓存不存在或失效，从API获取
+  try {
+    const response = await dataApi.getCategories()
+    if (response.code === 1 && response.data) {
+      categories.value = response.data
+      // 缓存到sessionStorage（会话级缓存，关闭浏览器自动清除）
+      sessionStorage.setItem('skinCategories', JSON.stringify(response.data))
+    }
+  } catch (error) {
+    console.error('加载分类列表失败:', error)
+  }
 }
 
 const handleSizeChange = () => {
@@ -246,13 +285,18 @@ const handleImageError = (e: Event) => {
 }
 
 const getProfitTagClass = (rate: number) => {
-  if (rate > 0.05) return 'tag tag-success'
-  if (rate > 0.03) return 'tag tag-warning'
-  return 'tag tag-primary'
+  // 将小数转换为百分比（rate是0-1的小数）
+  const percent = rate * 100
+  
+  if (percent >= 60) return 'tag tag-danger'    // 红色：>= 60%
+  if (percent >= 40) return 'tag tag-warning'   // 橙色：40% - 60%
+  if (percent >= 20) return 'tag tag-success'   // 绿色：20% - 40%
+  return 'tag tag-primary'                       // 蓝色：< 20%
 }
 
 onMounted(() => {
   skinStore.getSkinItems()
+  loadCategories()
 })
 </script>
 

@@ -269,7 +269,11 @@ export const settingsApi = {
 export const dataApi = {
   // 获取饰品数据
   getSkinItems: (params: PaginationParams): Promise<ApiResponse<SkinItem[]>> => 
-    api.get('/vip/data', { params }),
+    api.get('/vip/goods/data', { params }),
+  
+  // 获取分类列表
+  getCategories: (): Promise<ApiResponse<string[]>> => 
+    api.get('/vip/goods/category'),
 }
 
 export default api

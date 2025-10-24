@@ -32,8 +32,10 @@ func InitRouter() *gin.Engine {
 
 	vip := v1.Group("vip")
 	vip.Use(middleware.AuthMiddleware(), middleware.AuthVIPMiddleware())
+	goods := vip.Group("goods")
 	{
-		vip.GET("data", api.GetGoods)
+		goods.GET("data", api.GetGoods)
+		goods.GET("category", api.GetGoodsCategory)
 	}
 
 	admin := v1.Group("admin")

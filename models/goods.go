@@ -86,7 +86,7 @@ func GetSkinItems(pageSize, pageNum int, isDesc bool, sortField, category string
 //	}
 //}
 
-func GetGoods(userId string, pageSize, pageNum int, isDesc bool, sortField, category string) (*[]Goods, int64, int) {
+func GetGoods(userId string, pageSize, pageNum int, isDesc bool, sortField, category, search string) (*[]Goods, int64, int) {
 	var goods []Goods
 	var total int64
 	validFields := map[string]bool{
@@ -107,24 +107,51 @@ func GetGoods(userId string, pageSize, pageNum int, isDesc bool, sortField, cate
 
 	settings, code := GetUserSetting(userId)
 
-	err := config.DB.Model(&UItem{}).
+	query1 := config.DB.Model(&UItem{}).
+		Select("uitem.id as id, uitem.commodity_name as name, uitem.icon_url as image_url, uitem.type_name as category, uitem.price as u_price, buff_item.sell_min_price as buff_price, (uitem.price - buff_item.sell_min_price) as price_diff, ROUND((uitem.price - buff_item.sell_min_price)/buff_item.sell_min_price,4) as profit_rate").
+		Joins("join buff_item ON uitem.commodity_hash_name = buff_item.market_hash_name").
+		Where("(uitem.price - buff_item.sell_min_price) > ? and buff_item.sell_num > ? and buff_item.sell_min_price < ? and buff_item.sell_min_price > ?",
+			settings.MinDiff, settings.MinSellNum, settings.MaxSellPrice, settings.MinSellPrice)
+	query2 := config.DB.Model(&UItem{}).
 		Joins("JOIN buff_item ON uitem.commodity_hash_name = buff_item.market_hash_name").
 		Where("(uitem.price - buff_item.sell_min_price) > ?", settings.MinDiff).
 		Where("buff_item.sell_num > ?", settings.MinSellNum).
 		Where("buff_item.sell_min_price < ?", settings.MaxSellPrice).
-		Where("buff_item.sell_min_price > ?", settings.MinSellPrice).
-		Count(&total).Error
+		Where("buff_item.sell_min_price > ?", settings.MinSellPrice)
+	if category != "" {
+		query1 = query1.Where("uitem.type_name = ?", category)
+		query2 = query2.Where("uitem.type_name = ?", category)
+	}
+
+	if search != "" {
+		query1 = query1.Where("name LIKE ?", "%"+search+"%")
+		query2 = query2.Where("name LIKE ?", "%"+search+"%")
+	}
+
+	err := query2.Count(&total).Error
 	if err != nil {
 		config.Log.Errorf("get goods total fail: %v", err)
 		return &goods, 0, utils.ErrCodeGetGoodsTotal
 	}
-
-	err = config.DB.Model(&UItem{}).Select("uitem.id as id, uitem.commodity_name as name, uitem.icon_url as image_url, uitem.type_name as category, uitem.price as u_price, buff_item.sell_min_price as buff_price, (uitem.price - buff_item.sell_min_price) as price_diff, ROUND((uitem.price - buff_item.sell_min_price)/buff_item.sell_min_price,2) as profit_rate").
-		Joins("join buff_item ON uitem.commodity_hash_name = buff_item.market_hash_name").
-		Where("(uitem.price - buff_item.sell_min_price) > ? and buff_item.sell_num > ? and buff_item.sell_min_price < ? and buff_item.sell_min_price > ?", settings.MinDiff, settings.MinSellNum, settings.MaxSellPrice, settings.MinSellPrice).Order(order).Limit(pageSize).Offset((pageNum - 1) * pageSize).Scan(&goods).Error
+	err = query1.
+		Order(order).
+		Limit(pageSize).
+		Offset((pageNum - 1) * pageSize).
+		Scan(&goods).
+		Error
 	if err != nil {
 		config.Log.Errorf("get price diff data fail: %s", err)
 		return &goods, 0, utils.ErrCodeGetGoods
 	}
 	return &goods, total, code
+}
+
+func GetCategory() (*[]string, int) {
+	var category []string
+	err := config.DB.Model(UItem{}).Select("DISTINCT(type_name)").Scan(&category).Error
+	if err != nil {
+		config.Log.Errorf("Get category error: %v", err)
+		return &category, utils.ErrCodeGetGoodsCategory
+	}
+	return &category, utils.SUCCESS
 }

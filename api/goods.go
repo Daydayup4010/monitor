@@ -15,11 +15,21 @@ func GetGoods(c *gin.Context) {
 	sort := c.Query("sort")
 	desc, _ := strconv.ParseBool(c.Query("desc"))
 	category := c.Query("category")
-	s, total, code := models.GetGoods(userId, pageSize, pageNum, desc, sort, category)
+	search := c.Query("search")
+	s, total, code := models.GetGoods(userId, pageSize, pageNum, desc, sort, category, search)
 	c.JSON(http.StatusOK, gin.H{
 		"code":  code,
 		"data":  s,
 		"total": total,
 		"msg":   utils.ErrorMessage(code),
+	})
+}
+
+func GetGoodsCategory(c *gin.Context) {
+	category, code := models.GetCategory()
+	c.JSON(http.StatusOK, gin.H{
+		"code": code,
+		"data": category,
+		"msg":  utils.ErrorMessage(code),
 	})
 }
