@@ -4,7 +4,7 @@ import { useUserStore } from '@/stores/user'
 import { showMessage } from '@/utils/message'
 
 const router = createRouter({
-  history: createWebHistory('/csgo/'), // 设置基础路径，匹配 nginx 配置
+  history: createWebHistory('/'), // 去掉csgo前缀
   routes: [
     {
       path: '/login',
@@ -22,7 +22,7 @@ const router = createRouter({
       path: '/reset-password',
       name: 'ResetPassword',
       component: () => import('@/pages/ResetPassword.vue'),
-      meta: { title: '重置密码', requiresAuth: false }
+      meta: { title: '重置密码', requiresAuth: false, hideInMenu: true }
     },
     {
       path: '/',
@@ -38,7 +38,8 @@ const router = createRouter({
             title: '饰品数据', 
             icon: 'DataAnalysis',
             requiresAuth: true,
-            requiresVip: true  // 需要VIP权限
+            requiresVip: true,  // 需要VIP权限
+            hideInMenu: true  // 不在导航菜单中显示
           }
         },
         {

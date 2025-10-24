@@ -1,107 +1,104 @@
 <template>
-  <div class="reset-password-page">
-    <div class="reset-password-container">
-      <div class="reset-password-card">
-        <div class="reset-password-header">
-          <h1 class="reset-password-title">🔑 重置密码</h1>
-          <p class="reset-password-subtitle">通过邮箱验证码重置您的密码</p>
-        </div>
+  <div class="auth-page">
+    <div class="auth-card">
+      <div class="auth-header">
+        <h2 class="auth-title">
+          <img src="@/assets/icons/register.png" style="height: 36px; width: auto; vertical-align: middle; margin-right: 8px; object-fit: contain;" alt="重置密码" />
+          重置密码
+        </h2>
+        <p class="auth-subtitle">通过邮箱验证码重置密码</p>
+      </div>
 
-        <el-form
-          ref="formRef"
-          :model="form"
-          :rules="rules"
-          class="reset-password-form"
-          @submit.prevent="handleResetPassword"
-        >
+      <el-form
+        ref="formRef"
+        :model="form"
+        :rules="rules"
+        class="auth-form"
+        @submit.prevent="handleResetPassword"
+      >
+        <div class="form-item">
+          <label class="form-label">邮箱地址</label>
           <el-form-item prop="email">
             <el-input
               v-model="form.email"
-              placeholder="请输入注册时的邮箱地址"
-              size="large"
-              prefix-icon="Message"
-            />
+              type="email"
+              placeholder="请输入注册时的邮箱"
+              @blur="checkEmailExist"
+            >
+              <template #suffix>
+                <span v-if="emailChecking" style="color: #1890ff; font-size: 12px; padding-right: 8px;">检查中...</span>
+                <span v-else-if="emailCheckResult === 'exist'" style="color: #52c41a; font-size: 12px; padding-right: 8px;">✓</span>
+                <span v-else-if="emailCheckResult === 'notexist'" style="color: #ff4d4f; font-size: 12px; padding-right: 8px;">不存在</span>
+              </template>
+            </el-input>
           </el-form-item>
+        </div>
 
+        <div class="form-item">
+          <label class="form-label">邮箱验证码</label>
           <el-form-item prop="code">
-            <div class="code-input-group">
+            <div style="display: flex; gap: 12px;">
               <el-input
                 v-model="form.code"
                 placeholder="请输入验证码"
-                size="large"
-                prefix-icon="Key"
+                style="flex: 1;"
               />
-              <el-button
-                type="primary"
-                size="large"
-                :disabled="countdown > 0"
-                :loading="sendingCode"
+              <button
+                type="button"
+                class="btn btn-success"
+                style="white-space: nowrap;"
+                :disabled="countdown > 0 || sendingCode"
                 @click="handleSendCode"
-                class="code-btn"
               >
                 {{ countdown > 0 ? `${countdown}秒后重试` : '发送验证码' }}
-              </el-button>
+              </button>
             </div>
           </el-form-item>
+        </div>
 
+        <div class="form-item">
+          <label class="form-label">新密码</label>
           <el-form-item prop="password">
             <el-input
               v-model="form.password"
               type="password"
-              placeholder="设置新密码"
-              size="large"
-              prefix-icon="Lock"
+              placeholder="至少6个字符"
               show-password
-            >
-              <template #append>
-                <span class="input-hint">至少6个字符</span>
-              </template>
-            </el-input>
+            />
           </el-form-item>
+        </div>
 
+        <div class="form-item">
+          <label class="form-label">确认新密码</label>
           <el-form-item prop="confirmPassword">
             <el-input
               v-model="form.confirmPassword"
               type="password"
               placeholder="再次输入新密码"
-              size="large"
-              prefix-icon="Lock"
               show-password
               @keyup.enter="handleResetPassword"
             />
           </el-form-item>
-
-          <el-form-item>
-            <el-button
-              type="primary"
-              size="large"
-              :loading="loading"
-              @click="handleResetPassword"
-              class="reset-btn"
-            >
-              重置密码
-            </el-button>
-          </el-form-item>
-        </el-form>
-
-        <div class="reset-password-footer">
-          想起密码了？
-          <router-link to="/login" class="login-link">
-            返回登录
-          </router-link>
         </div>
+
+        <button type="submit" class="btn btn-primary" :disabled="loading">
+          {{ loading ? '重置中...' : '重置密码' }}
+        </button>
+      </el-form>
+
+      <div class="auth-footer">
+        想起密码了？<router-link to="/login">返回登录</router-link>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onUnmounted } from 'vue'
+import { ref, reactive, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { authApi } from '@/api'
-import { showMessage } from '@/utils/message'
+import { showMessage, debounce } from '@/utils'
 import type { FormInstance, FormRules } from 'element-plus'
-import type { ResetPasswordForm } from '@/types'
 
 const router = useRouter()
 const formRef = ref<FormInstance>()
@@ -114,7 +111,46 @@ const form = reactive({
   confirmPassword: '',
 })
 
-// 自定义验证器
+const emailChecking = ref(false)
+const emailCheckResult = ref<'exist' | 'notexist' | ''>('')
+const lastCheckedEmail = ref('')
+
+const checkEmailExist = async () => {
+  if (!form.email) {
+    emailCheckResult.value = ''
+    lastCheckedEmail.value = ''
+    return
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(form.email)) {
+    emailCheckResult.value = ''
+    return
+  }
+
+  if (form.email === lastCheckedEmail.value && emailCheckResult.value) {
+    return
+  }
+
+  emailChecking.value = true
+  emailCheckResult.value = ''
+  
+  try {
+    const response = await authApi.checkEmailExist({ email: form.email })
+    if (response.code === 1) {
+      emailCheckResult.value = 'notexist'
+      lastCheckedEmail.value = form.email
+    } else if (response.code === 1011) {
+      emailCheckResult.value = 'exist'
+      lastCheckedEmail.value = form.email
+    }
+  } catch (error: any) {
+    emailCheckResult.value = ''
+  } finally {
+    emailChecking.value = false
+  }
+}
+
 const validateConfirmPassword = (rule: any, value: any, callback: any) => {
   if (!value) {
     callback(new Error('请再次输入密码'))
@@ -143,23 +179,32 @@ const rules: FormRules = {
   ],
 }
 
-// 验证码相关
 const sendingCode = ref(false)
 const countdown = ref(0)
 let countdownTimer: number | null = null
 
-// 发送验证码
 const handleSendCode = async () => {
   if (!form.email) {
     showMessage.warning('请先输入邮箱地址')
     return
   }
 
-  // 验证邮箱格式
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   if (!emailRegex.test(form.email)) {
     showMessage.warning('请输入正确的邮箱格式')
     return
+  }
+
+  if (emailCheckResult.value === 'notexist') {
+    showMessage.warning('该邮箱未注册，无法重置密码')
+    return
+  }
+
+  if (emailCheckResult.value !== 'exist') {
+    await checkEmailExist()
+    if (emailCheckResult.value !== 'exist') {
+      return
+    }
   }
 
   sendingCode.value = true
@@ -167,7 +212,6 @@ const handleSendCode = async () => {
     const response = await authApi.sendEmailCode({ email: form.email })
     if (response.code === 1) {
       showMessage.success('验证码已发送，请查收邮件')
-      // 开始倒计时
       countdown.value = 60
       countdownTimer = window.setInterval(() => {
         countdown.value--
@@ -184,12 +228,30 @@ const handleSendCode = async () => {
   }
 }
 
-// 重置密码
 const handleResetPassword = async () => {
   if (!formRef.value) return
 
+  // 检查两次密码是否一致
+  if (form.password !== form.confirmPassword) {
+    showMessage.error('两次输入的密码不一致')
+    return
+  }
+
   try {
     await formRef.value.validate()
+    
+    if (emailCheckResult.value === 'notexist') {
+      showMessage.warning('该邮箱未注册，无法重置密码')
+      return
+    }
+    
+    if (emailCheckResult.value !== 'exist') {
+      await checkEmailExist()
+      if (emailCheckResult.value !== 'exist') {
+        return
+      }
+    }
+    
     loading.value = true
     
     const { confirmPassword, ...resetData } = form
@@ -208,7 +270,20 @@ const handleResetPassword = async () => {
   }
 }
 
-// 组件卸载时清除定时器
+const debouncedCheckEmail = debounce(checkEmailExist, 800)
+watch(() => form.email, (newEmail, oldEmail) => {
+  if (newEmail !== oldEmail) {
+    emailCheckResult.value = ''
+    if (newEmail !== lastCheckedEmail.value) {
+      lastCheckedEmail.value = ''
+    }
+  }
+  
+  if (newEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
+    debouncedCheckEmail()
+  }
+})
+
 onUnmounted(() => {
   if (countdownTimer) {
     clearInterval(countdownTimer)
@@ -217,123 +292,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.reset-password-page {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 20px;
-}
-
-.reset-password-container {
-  width: 100%;
-  max-width: 500px;
-}
-
-.reset-password-card {
-  background: rgba(255, 255, 255, 0.98);
-  border-radius: 20px;
-  padding: 40px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(10px);
-}
-
-.reset-password-header {
-  text-align: center;
-  margin-bottom: 32px;
-}
-
-.reset-password-title {
-  font-size: 32px;
-  color: #1890ff;
-  margin-bottom: 8px;
-  font-weight: bold;
-}
-
-.reset-password-subtitle {
-  font-size: 16px;
-  color: #666;
-}
-
-.reset-password-form {
-  margin-top: 20px;
-}
-
-.input-hint {
-  font-size: 12px;
-  color: #999;
-  white-space: nowrap;
-}
-
-.code-input-group {
-  display: flex;
-  gap: 12px;
-  width: 100%;
-}
-
-.code-input-group :deep(.el-input) {
-  flex: 1;
-}
-
-.code-btn {
-  white-space: nowrap;
-  min-width: 120px;
-}
-
-.reset-btn {
-  width: 100%;
-  height: 48px;
-  font-size: 16px;
-  font-weight: 600;
-  background: linear-gradient(135deg, #1890ff, #40a9ff);
-  border: none;
-  border-radius: 10px;
-  box-shadow: 0 4px 15px rgba(24, 144, 255, 0.3);
-  transition: all 0.3s ease;
-  margin-top: 8px;
-}
-
-.reset-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(24, 144, 255, 0.4);
-}
-
-.reset-password-footer {
-  text-align: center;
-  margin-top: 24px;
-  color: #666;
-  font-size: 14px;
-}
-
-.login-link {
-  color: #1890ff;
-  text-decoration: none;
-  font-weight: 600;
-  margin-left: 4px;
-}
-
-.login-link:hover {
-  text-decoration: underline;
-}
-
-/* 响应式 */
-@media (max-width: 768px) {
-  .reset-password-card {
-    padding: 24px;
-  }
-
-  .reset-password-title {
-    font-size: 24px;
-  }
-
-  .code-input-group {
-    flex-direction: column;
-  }
-
-  .code-btn {
-    width: 100%;
-  }
-}
+/* 所有样式在unified.css中 */
 </style>
 

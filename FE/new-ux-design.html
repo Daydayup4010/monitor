@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSGO饰品系统 - 统一UX设计方案</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: #f5f7fa;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            color: #262626;
+            padding: 30px 40px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .header p {
+            font-size: 14px;
+            color: #8c8c8c;
+        }
+
+        .nav {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .nav-btn {
+            padding: 10px 20px;
+            border: 1px solid #d9d9d9;
+            border-radius: 8px;
+            background: white;
+            color: #595959;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .nav-btn:hover {
+            border-color: #1890ff;
+            color: #1890ff;
+        }
+
+        .nav-btn.active {
+            background: #1890ff;
+            color: white;
+            border-color: #1890ff;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* 卡片统一样式 */
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #262626;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        /* 表单统一样式 */
+        .form-item {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            color: #595959;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #d9d9d9;
+            border-radius: 8px;
+            font-size: 14px;
+            background: #fafafa;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:hover {
+            border-color: #40a9ff;
+            background: white;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #1890ff;
+            background: white;
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+        }
+
+        /* 按钮统一样式 */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #1890ff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #40a9ff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+        }
+
+        .btn-success {
+            background: #52c41a;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #73d13d;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(82, 196, 26, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #595959;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        /* 表格样式 */
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid #f0f0f0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        thead {
+            background: #fafafa;
+        }
+
+        th {
+            padding: 14px 16px;
+            text-align: left;
+            font-size: 14px;
+            font-weight: 600;
+            color: #262626;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        td {
+            padding: 14px 16px;
+            font-size: 14px;
+            color: #595959;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        tr:hover {
+            background: #fafafa;
+        }
+
+        /* 标签 */
+        .tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .tag-primary { background: #e6f7ff; color: #1890ff; }
+        .tag-success { background: #f6ffed; color: #52c41a; }
+        .tag-warning { background: #fffbe6; color: #faad14; }
+        .tag-danger { background: #fff1f0; color: #ff4d4f; }
+        .tag-info { background: #f0f0f0; color: #595959; }
+
+        /* 分页样式 - 极简风格 */
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 24px;
+            padding: 20px 0;
+        }
+
+        .pagination-info {
+            font-size: 14px;
+            color: #595959;
+        }
+
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .page-size {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-right: 16px;
+            font-size: 14px;
+            color: #8c8c8c;
+        }
+
+        .page-size select {
+            padding: 6px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            background: white;
+        }
+
+        .page-size select:hover {
+            border-color: #1890ff;
+        }
+
+        .page-btn {
+            width: 32px;
+            height: 32px;
+            border: 1px solid #d9d9d9;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #595959;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            border-color: #1890ff;
+            color: #1890ff;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .page-btn.active {
+            background: #1890ff;
+            color: white;
+            border-color: #1890ff;
+        }
+
+        /* 统计卡片 */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .stat-icon.blue { background: #e6f7ff; color: #1890ff; }
+        .stat-icon.green { background: #f6ffed; color: #52c41a; }
+        .stat-icon.orange { background: #fff7e6; color: #faad14; }
+
+        .stat-info {
+            flex: 1;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 600;
+            color: #262626;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #8c8c8c;
+        }
+
+        /* 搜索框 */
+        .search-box {
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            width: 320px;
+            padding: 10px 16px;
+            border: 1px solid #d9d9d9;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        /* 用户信息横幅 */
+        .user-banner {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 32px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            margin-bottom: 20px;
+        }
+
+        .user-avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: white;
+            color: #667eea;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .user-details h3 {
+            font-size: 24px;
+            margin-bottom: 6px;
+        }
+
+        .user-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(255, 215, 0, 0.3);
+            border: 1px solid gold;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        /* 登录/注册页面 */
+        .auth-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f5f7fa;
+        }
+
+        .auth-card {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            width: 420px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .auth-title {
+            font-size: 26px;
+            font-weight: 600;
+            color: #262626;
+            margin-bottom: 8px;
+        }
+
+        .auth-subtitle {
+            font-size: 14px;
+            color: #8c8c8c;
+        }
+
+        .auth-form .form-item {
+            margin-bottom: 20px;
+        }
+
+        .auth-form .btn-primary {
+            width: 100%;
+            padding: 12px;
+            font-size: 15px;
+            margin-top: 8px;
+        }
+
+        .auth-footer {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 14px;
+            color: #595959;
+        }
+
+        .auth-footer a {
+            color: #1890ff;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .auth-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Tab切换 */
+        .tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #d9d9d9;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #595959;
+            transition: all 0.3s ease;
+        }
+
+        .tab:hover {
+            border-color: #1890ff;
+            color: #1890ff;
+        }
+
+        .tab.active {
+            background: #1890ff;
+            color: white;
+            border-color: #1890ff;
+        }
+
+        /* 筛选栏 */
+        .filter-bar {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            display: flex;
+            gap: 16px;
+            align-items: flex-end;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .filter-label {
+            font-size: 13px;
+            color: #8c8c8c;
+            font-weight: 500;
+        }
+
+        /* 两列布局 */
+        .two-cols {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        /* 饰品图片 */
+        .skin-img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid #f0f0f0;
+            background: #fafafa;
+        }
+
+        .skin-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .skin-name {
+            font-weight: 500;
+            color: #262626;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .two-cols {
+                grid-template-columns: 1fr;
+            }
+            
+            .auth-card {
+                width: 100%;
+                max-width: 420px;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .user-banner {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎮 CSGO饰品差价监控系统</h1>
+            <p>统一UX设计方案 - 简洁 · 现代 · 一致</p>
+        </div>
+
+        <div class="nav">
+            <button class="nav-btn active" onclick="showPage('login')">登录</button>
+            <button class="nav-btn" onclick="showPage('register')">注册</button>
+            <button class="nav-btn" onclick="showPage('reset')">重置密码</button>
+            <button class="nav-btn" onclick="showPage('home')">饰品数据</button>
+            <button class="nav-btn" onclick="showPage('settings')">个人设置</button>
+            <button class="nav-btn" onclick="showPage('admin')">管理后台</button>
+        </div>
+
+        <!-- 登录页面 -->
+        <div id="login" class="page active">
+            <div class="auth-page" style="background: transparent; min-height: auto;">
+                <div class="auth-card">
+                    <div class="auth-header">
+                        <h2 class="auth-title">🔐 登录</h2>
+                        <p class="auth-subtitle">选择登录方式进入系统</p>
+                    </div>
+
+                    <!-- Tab切换 -->
+                    <div class="tabs">
+                        <div class="tab active" onclick="switchTab('password')">密码登录</div>
+                        <div class="tab" onclick="switchTab('email')">验证码登录</div>
+                    </div>
+
+                    <!-- 密码登录 -->
+                    <form class="auth-form" id="password-form">
+                        <div class="form-item">
+                            <label class="form-label">邮箱地址</label>
+                            <input type="email" class="form-input" placeholder="请输入邮箱地址">
+                        </div>
+
+                        <div class="form-item">
+                            <label class="form-label">密码</label>
+                            <input type="password" class="form-input" placeholder="请输入密码">
+                        </div>
+
+                        <div style="text-align: right; margin-bottom: 12px;">
+                            <a href="#" onclick="showPage('reset'); return false;" style="color: #1890ff; font-size: 13px; text-decoration: none;">忘记密码？</a>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">立即登录</button>
+                    </form>
+
+                    <!-- 验证码登录 -->
+                    <form class="auth-form" id="email-form" style="display: none;">
+                        <div class="form-item">
+                            <label class="form-label">邮箱地址</label>
+                            <input type="email" class="form-input" placeholder="请输入邮箱地址">
+                        </div>
+
+                        <div class="form-item">
+                            <label class="form-label">邮箱验证码</label>
+                            <div style="display: flex; gap: 12px;">
+                                <input type="text" class="form-input" placeholder="请输入验证码" style="flex: 1;">
+                                <button type="button" class="btn btn-success" style="white-space: nowrap;">发送验证码</button>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">立即登录</button>
+                    </form>
+
+                    <div class="auth-footer">
+                        还没有账户？<a href="#" onclick="showPage('register'); return false;">立即注册</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 注册页面 -->
+        <div id="register" class="page">
+            <div class="auth-page" style="background: transparent; min-height: auto;">
+                <div class="auth-card">
+                    <div class="auth-header">
+                        <h2 class="auth-title">✨ 注册</h2>
+                        <p class="auth-subtitle">创建新账户，开始使用系统</p>
+                    </div>
+
+                    <form class="auth-form">
+                        <div class="form-item">
+                            <label class="form-label">用户名</label>
+                            <input type="text" class="form-input" placeholder="3-20个字符">
+                        </div>
+
+                        <div class="form-item">
+                            <label class="form-label">邮箱地址</label>
+                            <input type="email" class="form-input" placeholder="用于接收验证码">
+                        </div>
+
+                        <div class="form-item">
+                            <label class="form-label">邮箱验证码</label>
+                            <div style="display: flex; gap: 12px;">
+                                <input type="text" class="form-input" placeholder="请输入验证码" style="flex: 1;">
+                                <button type="button" class="btn btn-success" style="white-space: nowrap;">发送验证码</button>
+                            </div>
+                        </div>
+
+                        <div class="form-item">
+                            <label class="form-label">设置密码</label>
+                            <input type="password" class="form-input" placeholder="至少6个字符">
+                        </div>
+
+                        <div class="form-item">
+                            <label class="form-label">确认密码</label>
+                            <input type="password" class="form-input" placeholder="再次输入密码">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">立即注册</button>
+                    </form>
+
+                    <div class="auth-footer">
+                        已有账户？<a href="#" onclick="showPage('login'); return false;">立即登录</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 重置密码页面 -->
+        <div id="reset" class="page">
+            <div class="auth-page" style="background: transparent; min-height: auto;">
+                <div class="auth-card">
+                    <div class="auth-header">
+                        <h2 class="auth-title">🔑 重置密码</h2>
+                        <p class="auth-subtitle">通过邮箱验证码重置密码</p>
+                    </div>
+
+                    <form class="auth-form">
+                        <div class="form-item">
+                            <label class="form-label">邮箱地址</label>
+                            <input type="email" class="form-input" placeholder="请输入注册时的邮箱">
+                        </div>
+
+                        <div class="form-item">
+                            <label class="form-label">邮箱验证码</label>
+                            <div style="display: flex; gap: 12px;">
+                                <input type="text" class="form-input" placeholder="请输入验证码" style="flex: 1;">
+                                <button type="button" class="btn btn-success" style="white-space: nowrap;">发送验证码</button>
+                            </div>
+                        </div>
+
+                        <div class="form-item">
+                            <label class="form-label">新密码</label>
+                            <input type="password" class="form-input" placeholder="至少6个字符">
+                        </div>
+
+                        <div class="form-item">
+                            <label class="form-label">确认新密码</label>
+                            <input type="password" class="form-input" placeholder="再次输入新密码">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">重置密码</button>
+                    </form>
+
+                    <div class="auth-footer">
+                        想起密码了？<a href="#" onclick="showPage('login'); return false;">返回登录</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 饰品数据页面 -->
+        <div id="home" class="page">
+            <div class="card">
+                <div class="card-title">📊 饰品数据</div>
+
+                <!-- 筛选栏 -->
+                <div class="filter-bar">
+                    <div class="filter-item" style="flex: 1;">
+                        <label class="filter-label">搜索</label>
+                        <input type="text" class="form-input" placeholder="搜索饰品名称...">
+                    </div>
+
+                    <div class="filter-item">
+                        <label class="filter-label">类别</label>
+                        <select class="form-input" style="width: 150px;">
+                            <option>全部</option>
+                            <option>手套</option>
+                            <option>刀具</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-item">
+                        <label class="filter-label">排序</label>
+                        <select class="form-input" style="width: 160px;">
+                            <option>默认</option>
+                            <option>价格差 ↑</option>
+                            <option>价格差 ↓</option>
+                            <option>利润率 ↑</option>
+                            <option>利润率 ↓</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-item" style="padding-top: 20px;">
+                        <button class="btn btn-primary" style="padding: 10px 24px; display: flex; align-items: center; gap: 6px;">
+                            <span style="font-size: 16px;">🔄</span>
+                            <span>刷新数据</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 数据表格 -->
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">#</th>
+                                <th>饰品名称</th>
+                                <th style="width: 120px;">UU价格</th>
+                                <th style="width: 120px;">Buff价格</th>
+                                <th style="width: 100px;">价格差</th>
+                                <th style="width: 100px;">利润率</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>
+                                    <div class="skin-info">
+                                        <img src="https://via.placeholder.com/60" alt="饰品" class="skin-img">
+                                        <div>
+                                            <div class="skin-name">★ 爪子刀 | 渐变大理石</div>
+                                            <div style="font-size: 12px; color: #8c8c8c;">Karambit | Marble Fade</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="color: #1890ff; font-weight: 600;">¥12,350</td>
+                                <td style="color: #52c41a; font-weight: 600;">¥11,800</td>
+                                <td style="color: #faad14; font-weight: 600;">¥550</td>
+                                <td><span class="tag tag-success">4.66%</span></td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>
+                                    <div class="skin-info">
+                                        <img src="https://via.placeholder.com/60" alt="饰品" class="skin-img">
+                                        <div>
+                                            <div class="skin-name">AK-47 | 火蛇</div>
+                                            <div style="font-size: 12px; color: #8c8c8c;">Fire Serpent</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="color: #1890ff; font-weight: 600;">¥8,960</td>
+                                <td style="color: #52c41a; font-weight: 600;">¥8,650</td>
+                                <td style="color: #faad14; font-weight: 600;">¥310</td>
+                                <td><span class="tag tag-success">3.58%</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 分页 -->
+                <div class="pagination">
+                    <div class="pagination-info">共 1,234 条数据</div>
+                    
+                    <div class="pagination-controls">
+                        <div class="page-size">
+                            <span>每页</span>
+                            <select>
+                                <option>20</option>
+                                <option selected>50</option>
+                                <option>100</option>
+                            </select>
+                            <span>条</span>
+                        </div>
+
+                        <button class="page-btn" disabled>‹</button>
+                        <button class="page-btn active">1</button>
+                        <button class="page-btn">2</button>
+                        <button class="page-btn">3</button>
+                        <span style="padding: 0 8px; color: #8c8c8c;">...</span>
+                        <button class="page-btn">25</button>
+                        <button class="page-btn">›</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 个人设置页面 -->
+        <div id="settings" class="page">
+            <!-- 用户信息横幅 -->
+            <div class="user-banner">
+                <div class="user-avatar">V</div>
+                <div class="user-details">
+                    <div class="user-badge">👑 VIP会员</div>
+                    <h3>demo_user</h3>
+                    <p style="opacity: 0.9;">demo@example.com</p>
+                    <p style="opacity: 0.8; font-size: 13px; margin-top: 4px;">VIP到期：2025-12-31</p>
+                </div>
+            </div>
+
+            <!-- 筛选参数设置 -->
+            <div class="card">
+                <div class="card-title">⚙️ 筛选参数配置</div>
+
+                <div class="two-cols">
+                    <div class="form-item">
+                        <label class="form-label">最小销售量</label>
+                        <input type="number" class="form-input" value="200" placeholder="低于此值将被过滤">
+                    </div>
+
+                    <div class="form-item">
+                        <label class="form-label">最小价格差（元）</label>
+                        <input type="number" class="form-input" value="5.00" placeholder="UU与Buff的价格差">
+                    </div>
+
+                    <div class="form-item">
+                        <label class="form-label">最低价格（元）</label>
+                        <input type="number" class="form-input" value="10.00">
+                    </div>
+
+                    <div class="form-item">
+                        <label class="form-label">最高价格（元）</label>
+                        <input type="number" class="form-input" value="10000.00">
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 24px;">
+                    <button class="btn btn-primary" style="min-width: 160px;">保存设置</button>
+                    <button class="btn btn-secondary" style="min-width: 120px; margin-left: 12px;">重置</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 管理后台 -->
+        <div id="admin" class="page">
+            <!-- 统计卡片 -->
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-icon blue">👥</div>
+                    <div class="stat-info">
+                        <div class="stat-value">248</div>
+                        <div class="stat-label">总用户数</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon green">👑</div>
+                    <div class="stat-info">
+                        <div class="stat-value">68</div>
+                        <div class="stat-label">VIP用户</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon orange">🔑</div>
+                    <div class="stat-info">
+                        <div class="stat-value">正常</div>
+                        <div class="stat-label">Token状态</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 用户管理 -->
+            <div class="card">
+                <div class="card-title">👥 用户管理</div>
+
+                <div class="search-box">
+                    <input type="text" class="search-input" placeholder="🔍 搜索用户名或邮箱...">
+                </div>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 60px;">#</th>
+                                <th>用户名</th>
+                                <th>邮箱</th>
+                                <th style="width: 100px;">类型</th>
+                                <th style="width: 150px;">VIP到期</th>
+                                <th style="width: 180px;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td><strong>admin_user</strong></td>
+                                <td>admin@example.com</td>
+                                <td><span class="tag tag-danger">管理员</span></td>
+                                <td>-</td>
+                                <td>
+                                    <button class="btn btn-primary" style="font-size: 13px; padding: 6px 12px;">续费VIP</button>
+                                    <button class="btn btn-secondary" style="font-size: 13px; padding: 6px 12px; margin-left: 8px;">删除</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td><strong>vip_user</strong></td>
+                                <td>vip@example.com</td>
+                                <td><span class="tag tag-success">VIP会员</span></td>
+                                <td>2025-12-31</td>
+                                <td>
+                                    <button class="btn btn-primary" style="font-size: 13px; padding: 6px 12px;">续费VIP</button>
+                                    <button class="btn btn-secondary" style="font-size: 13px; padding: 6px 12px; margin-left: 8px;">删除</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 分页 -->
+                <div class="pagination">
+                    <div class="pagination-info">共 248 条用户</div>
+                    
+                    <div class="pagination-controls">
+                        <div class="page-size">
+                            <span>每页</span>
+                            <select>
+                                <option selected>10</option>
+                                <option>20</option>
+                                <option>50</option>
+                            </select>
+                            <span>条</span>
+                        </div>
+
+                        <button class="page-btn" disabled>‹</button>
+                        <button class="page-btn active">1</button>
+                        <button class="page-btn">2</button>
+                        <button class="page-btn">3</button>
+                        <button class="page-btn">›</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
+        }
+
+        function switchTab(type) {
+            const passwordForm = document.getElementById('password-form');
+            const emailForm = document.getElementById('email-form');
+            const tabs = document.querySelectorAll('.tab');
+            
+            if (type === 'password') {
+                passwordForm.style.display = 'block';
+                emailForm.style.display = 'none';
+                tabs[0].classList.add('active');
+                tabs[1].classList.remove('active');
+            } else {
+                passwordForm.style.display = 'none';
+                emailForm.style.display = 'block';
+                tabs[0].classList.remove('active');
+                tabs[1].classList.add('active');
+            }
+        }
+    </script>
+</body>
+</html>
+

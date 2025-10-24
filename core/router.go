@@ -20,6 +20,7 @@ func InitRouter() *gin.Engine {
 		user.POST("email-login", api.LoginByEmail)
 		user.POST("send-email", api.SendEmailCode)
 		user.POST("reset-password", api.ResetUserPassword)
+		user.POST("email-exist", api.JudgeEmail)
 	}
 	authUser := user.Group("")
 	authUser.Use(middleware.AuthMiddleware())

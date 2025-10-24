@@ -7,6 +7,7 @@ import App from './App.vue'
 import router from './router'
 import './styles/global.css'
 import './styles/message.css'
+import './styles/unified.css'
 import { useUserStore } from '@/stores/user'
 
 const app = createApp(App)

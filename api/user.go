@@ -35,14 +35,6 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	if models.IfExistUser(reg.Username) {
-		c.JSON(http.StatusOK, gin.H{
-			"code": utils.ErrCodeUsernameTaken,
-			"msg":  utils.ErrorMessage(utils.ErrCodeUsernameTaken),
-		})
-		return
-	}
-
 	result, code := models.VerifyEmailCode(reg.Email, reg.Code, c.Request.Context())
 	if !result {
 		c.JSON(http.StatusOK, gin.H{
@@ -259,4 +251,32 @@ func RefreshToken(c *gin.Context) {
 			"vip_expiry": user.VipExpiry,
 		},
 	})
+}
+
+func JudgeEmail(c *gin.Context) {
+	var req struct {
+		Email string `json:"email" binding:"required,email"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code": utils.InvalidParameter,
+			"msg":  utils.ErrorMessage(utils.InvalidParameter),
+		})
+		return
+	}
+	exist := models.IfExistEmail(req.Email)
+	if exist {
+		c.JSON(http.StatusOK, gin.H{
+			"code": utils.ErrCodeEmailTaken,
+			"msg":  utils.ErrorMessage(utils.ErrCodeEmailTaken),
+		})
+		return
+	} else {
+		c.JSON(http.StatusOK, gin.H{
+			"code": utils.SUCCESS,
+			"msg":  utils.ErrorMessage(utils.SUCCESS),
+		})
+		return
+	}
+
 }

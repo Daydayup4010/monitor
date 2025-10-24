@@ -83,7 +83,6 @@ export const useUserStore = defineStore('user', () => {
       const response = await authApi.login(form)
       if (response.code === 1 && response.token && response.data) {
         saveToStorage(response.token, response.data)
-        showMessage.success('登录成功')
         return true
       }
       return false
@@ -102,7 +101,6 @@ export const useUserStore = defineStore('user', () => {
       const response = await authApi.emailLogin(form)
       if (response.code === 1 && response.token && response.data) {
         saveToStorage(response.token, response.data)
-        showMessage.success('登录成功')
         return true
       }
       return false

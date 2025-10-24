@@ -1,20 +1,24 @@
 <template>
   <div class="admin-page">
-    <el-tabs v-model="activeTab" type="border-card" class="admin-tabs">
-      <!-- 用户管理 -->
-      <el-tab-pane label="用户管理" name="users">
-        <div class="tab-content">
-          <UserManager />
+    <div class="admin-layout">
+      <!-- 左侧菜单栏 -->
+      <div class="admin-sidebar">
+        <div class="menu-item" :class="{ active: activeTab === 'users' }" @click="activeTab = 'users'">
+          <div class="menu-icon">👥</div>
+          <div class="menu-text">用户管理</div>
         </div>
-      </el-tab-pane>
-      
-      <!-- Token管理 -->
-      <el-tab-pane label="Token管理" name="tokens">
-        <div class="tab-content">
-          <TokenManager />
+        <div class="menu-item" :class="{ active: activeTab === 'tokens' }" @click="activeTab = 'tokens'">
+          <div class="menu-icon">🔑</div>
+          <div class="menu-text">Token管理</div>
         </div>
-      </el-tab-pane>
-    </el-tabs>
+      </div>
+
+      <!-- 右侧内容区 -->
+      <div class="admin-content">
+        <UserManager v-if="activeTab === 'users'" />
+        <TokenManager v-if="activeTab === 'tokens'" />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -29,80 +33,94 @@ const activeTab = ref('users')
 <style scoped>
 .admin-page {
   padding: 20px;
-  min-height: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
 }
 
-:deep(.admin-tabs) {
-  border: none;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border-radius: 16px;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
+.admin-layout {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
 }
 
-:deep(.admin-tabs > .el-tabs__header) {
-  background: linear-gradient(135deg, #f8faff 0%, #e6f7ff 100%);
-  border-bottom: 2px solid #1890ff;
-  margin: 0;
+/* 左侧菜单栏 */
+.admin-sidebar {
+  width: 200px;
+  background: white;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  flex-shrink: 0;
 }
 
-:deep(.admin-tabs > .el-tabs__header .el-tabs__nav-wrap) {
-  padding: 0 24px;
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 8px;
 }
 
-:deep(.admin-tabs > .el-tabs__header .el-tabs__item) {
-  border: none;
-  height: 60px;
-  line-height: 60px;
-  font-size: 16px;
+.menu-item:last-child {
+  margin-bottom: 0;
+}
+
+.menu-item:hover {
+  background: #f5f7fa;
+}
+
+.menu-item.active {
+  background: #e6f7ff;
+  color: #1890ff;
+}
+
+.menu-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.menu-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: #262626;
+}
+
+.menu-item.active .menu-text {
+  color: #1890ff;
   font-weight: 600;
-  color: #666;
-  margin-right: 32px;
-  padding: 0 24px;
-  border-radius: 12px 12px 0 0;
-  transition: all 0.3s ease;
 }
 
-:deep(.admin-tabs > .el-tabs__header .el-tabs__item:hover) {
-  background: rgba(24, 144, 255, 0.1);
-  color: #1890ff;
-}
-
-:deep(.admin-tabs > .el-tabs__header .el-tabs__item.is-active) {
-  background: rgba(24, 144, 255, 0.15);
-  color: #1890ff;
-  border-bottom-color: transparent;
-}
-
-:deep(.admin-tabs > .el-tabs__content) {
-  padding: 0;
-  background: transparent;
-}
-
-.tab-content {
-  padding: 32px;
-  min-height: 600px;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
+/* 右侧内容区 */
+.admin-content {
+  flex: 1;
+  min-width: 0;
 }
 
 /* 响应式 */
 @media (max-width: 768px) {
-  .admin-page {
-    padding: 12px;
+  .admin-layout {
+    flex-direction: column;
   }
 
-  .tab-content {
-    padding: 20px 16px;
-    min-height: 500px;
+  .admin-sidebar {
+    width: 100%;
+    display: flex;
+    overflow-x: auto;
   }
 
-  :deep(.admin-tabs > .el-tabs__header .el-tabs__item) {
-    font-size: 14px;
-    padding: 0 16px;
-    margin-right: 16px;
+  .menu-item {
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 0;
+    margin-right: 8px;
+    min-width: 80px;
+  }
+
+  .menu-text {
+    font-size: 12px;
   }
 }
 </style>

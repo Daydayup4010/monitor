@@ -1,159 +1,144 @@
 <template>
-  <div class="login-page">
-    <div class="login-container">
-      <div class="login-card">
-        <div class="login-header">
-          <h1 class="login-title">🎮 CSGO饰品系统</h1>
-          <p class="login-subtitle">登录以访问完整功能</p>
-        </div>
+  <div class="auth-page">
+    <div class="auth-card">
+      <div class="auth-header">
+        <h2 class="auth-title">
+          <img src="@/assets/icons/login.png" style="height: 36px; width: auto; vertical-align: middle; margin-right: 8px; object-fit: contain;" alt="登录" />
+          登录
+        </h2>
+        <p class="auth-subtitle">选择登录方式进入系统</p>
+      </div>
 
-        <!-- 登录方式切换 -->
-        <div class="login-tabs">
-          <div 
-            class="tab-item" 
-            :class="{ active: loginType === 'password' }"
-            @click="loginType = 'password'"
-          >
-            账户密码登录
-          </div>
-          <div 
-            class="tab-item" 
-            :class="{ active: loginType === 'email' }"
-            @click="loginType = 'email'"
-          >
-            邮箱验证码登录
-          </div>
+      <!-- Tab切换 -->
+      <div class="tabs">
+        <div class="tab" :class="{ active: loginType === 'password' }" @click="loginType = 'password'">
+          密码登录
         </div>
+        <div class="tab" :class="{ active: loginType === 'email' }" @click="loginType = 'email'">
+          验证码登录
+        </div>
+      </div>
 
-        <!-- 账户密码登录表单 -->
-        <el-form
-          v-if="loginType === 'password'"
-          ref="passwordFormRef"
-          :model="passwordForm"
-          :rules="passwordRules"
-          class="login-form"
-          @submit.prevent="handlePasswordLogin"
-        >
+      <!-- 密码登录表单 -->
+      <el-form
+        v-show="loginType === 'password'"
+        ref="passwordFormRef"
+        :model="passwordForm"
+        :rules="passwordRules"
+        class="auth-form"
+        @submit.prevent="handlePasswordLogin"
+      >
+        <div class="form-item">
+          <label class="form-label">邮箱地址</label>
           <el-form-item prop="email">
             <el-input
               v-model="passwordForm.email"
+              type="email"
               placeholder="请输入邮箱地址"
-              size="large"
-              prefix-icon="Message"
             />
           </el-form-item>
+        </div>
 
+        <div class="form-item">
+          <label class="form-label">密码</label>
           <el-form-item prop="password">
             <el-input
               v-model="passwordForm.password"
               type="password"
               placeholder="请输入密码"
-              size="large"
-              prefix-icon="Lock"
               show-password
               @keyup.enter="handlePasswordLogin"
             />
           </el-form-item>
+        </div>
 
-          <div class="form-actions">
-            <router-link to="/reset-password" class="forgot-link">
-              忘记密码？
-            </router-link>
-          </div>
+        <div style="text-align: right; margin-bottom: 12px;">
+          <router-link to="/reset-password" style="color: #1890ff; font-size: 13px; text-decoration: none;">
+            忘记密码？
+          </router-link>
+        </div>
 
-          <el-form-item>
-            <el-button
-              type="primary"
-              size="large"
-              :loading="userStore.loading"
-              @click="handlePasswordLogin"
-              class="login-btn"
-            >
-              立即登录
-            </el-button>
-          </el-form-item>
-        </el-form>
+        <button type="submit" class="btn btn-primary" :disabled="userStore.loading">
+          {{ userStore.loading ? '登录中...' : '立即登录' }}
+        </button>
+      </el-form>
 
-        <!-- 邮箱验证码登录表单 -->
-        <el-form
-          v-else
-          ref="emailFormRef"
-          :model="emailForm"
-          :rules="emailRules"
-          class="login-form"
-          @submit.prevent="handleEmailLogin"
-        >
+      <!-- 验证码登录表单 -->
+      <el-form
+        v-show="loginType === 'email'"
+        ref="emailFormRef"
+        :model="emailForm"
+        :rules="emailRules"
+        class="auth-form"
+        @submit.prevent="handleEmailLogin"
+      >
+        <div class="form-item">
+          <label class="form-label">邮箱地址</label>
           <el-form-item prop="email">
             <el-input
               v-model="emailForm.email"
+              type="email"
               placeholder="请输入邮箱地址"
-              size="large"
-              prefix-icon="Message"
-            />
+              @blur="checkEmailExist"
+            >
+              <template #suffix>
+                <span v-if="emailChecking" style="color: #1890ff; font-size: 12px; padding-right: 8px;">检查中...</span>
+                <span v-else-if="emailCheckResult === 'exist'" style="color: #52c41a; font-size: 12px; padding-right: 8px;">✓</span>
+                <span v-else-if="emailCheckResult === 'notexist'" style="color: #ff4d4f; font-size: 12px; padding-right: 8px;">不存在</span>
+              </template>
+            </el-input>
           </el-form-item>
+        </div>
 
+        <div class="form-item">
+          <label class="form-label">邮箱验证码</label>
           <el-form-item prop="code">
-            <div class="code-input-group">
+            <div style="display: flex; gap: 12px;">
               <el-input
                 v-model="emailForm.code"
                 placeholder="请输入验证码"
-                size="large"
-                prefix-icon="Key"
+                style="flex: 1;"
                 @keyup.enter="handleEmailLogin"
               />
-              <el-button
-                type="primary"
-                size="large"
-                :disabled="countdown > 0"
-                :loading="sendingCode"
+              <button
+                type="button"
+                class="btn btn-success"
+                style="white-space: nowrap;"
+                :disabled="countdown > 0 || sendingCode"
                 @click="handleSendCode"
-                class="code-btn"
               >
                 {{ countdown > 0 ? `${countdown}秒后重试` : '发送验证码' }}
-              </el-button>
+              </button>
             </div>
           </el-form-item>
-
-          <el-form-item>
-            <el-button
-              type="primary"
-              size="large"
-              :loading="userStore.loading"
-              @click="handleEmailLogin"
-              class="login-btn"
-            >
-              立即登录
-            </el-button>
-          </el-form-item>
-        </el-form>
-
-        <div class="login-footer">
-          还没有账户？
-          <router-link to="/register" class="register-link">
-            立即注册
-          </router-link>
         </div>
+
+        <button type="submit" class="btn btn-primary" :disabled="userStore.loading">
+          {{ userStore.loading ? '登录中...' : '立即登录' }}
+        </button>
+      </el-form>
+
+      <div class="auth-footer">
+        还没有账户？<router-link to="/register">立即注册</router-link>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, watch, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { authApi } from '@/api'
-import { showMessage } from '@/utils/message'
+import { showMessage, debounce } from '@/utils'
 import type { FormInstance, FormRules } from 'element-plus'
 import type { LoginForm, EmailLoginForm } from '@/types'
 
 const router = useRouter()
 const userStore = useUserStore()
 
-// 登录方式
 const loginType = ref<'password' | 'email'>('password')
 
-// 账户密码登录表单
 const passwordFormRef = ref<FormInstance>()
 const passwordForm = reactive<LoginForm>({
   email: '',
@@ -171,7 +156,6 @@ const passwordRules: FormRules = {
   ],
 }
 
-// 邮箱验证码登录表单
 const emailFormRef = ref<FormInstance>()
 const emailForm = reactive<EmailLoginForm>({
   email: '',
@@ -189,23 +173,72 @@ const emailRules: FormRules = {
   ],
 }
 
-// 验证码相关
 const sendingCode = ref(false)
 const countdown = ref(0)
 let countdownTimer: number | null = null
 
-// 发送验证码
+const emailChecking = ref(false)
+const emailCheckResult = ref<'exist' | 'notexist' | ''>('')
+const lastCheckedEmail = ref('')
+
+const checkEmailExist = async () => {
+  if (!emailForm.email) {
+    emailCheckResult.value = ''
+    lastCheckedEmail.value = ''
+    return
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(emailForm.email)) {
+    emailCheckResult.value = ''
+    return
+  }
+
+  if (emailForm.email === lastCheckedEmail.value && emailCheckResult.value) {
+    return
+  }
+
+  emailChecking.value = true
+  emailCheckResult.value = ''
+  
+  try {
+    const response = await authApi.checkEmailExist({ email: emailForm.email })
+    if (response.code === 1) {
+      emailCheckResult.value = 'notexist'
+      lastCheckedEmail.value = emailForm.email
+    } else if (response.code === 1011) {
+      emailCheckResult.value = 'exist'
+      lastCheckedEmail.value = emailForm.email
+    }
+  } catch (error: any) {
+    emailCheckResult.value = ''
+  } finally {
+    emailChecking.value = false
+  }
+}
+
 const handleSendCode = async () => {
   if (!emailForm.email) {
     showMessage.warning('请先输入邮箱地址')
     return
   }
 
-  // 验证邮箱格式
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   if (!emailRegex.test(emailForm.email)) {
     showMessage.warning('请输入正确的邮箱格式')
     return
+  }
+
+  if (emailCheckResult.value === 'notexist') {
+    showMessage.warning('该邮箱未注册，无法登录')
+    return
+  }
+
+  if (emailCheckResult.value !== 'exist') {
+    await checkEmailExist()
+    if (emailCheckResult.value !== 'exist') {
+      return
+    }
   }
 
   sendingCode.value = true
@@ -213,7 +246,6 @@ const handleSendCode = async () => {
     const response = await authApi.sendEmailCode({ email: emailForm.email })
     if (response.code === 1) {
       showMessage.success('验证码已发送，请查收邮件')
-      // 开始倒计时
       countdown.value = 60
       countdownTimer = window.setInterval(() => {
         countdown.value--
@@ -230,7 +262,6 @@ const handleSendCode = async () => {
   }
 }
 
-// 账户密码登录
 const handlePasswordLogin = async () => {
   if (!passwordFormRef.value) return
 
@@ -238,9 +269,7 @@ const handlePasswordLogin = async () => {
     await passwordFormRef.value.validate()
     const success = await userStore.login(passwordForm)
     if (success) {
-      // 登录成功后，等待一下让状态更新
       await new Promise(resolve => setTimeout(resolve, 100))
-      // 根据用户权限跳转
       if (userStore.isVip || userStore.isAdmin) {
         router.push('/home')
       } else {
@@ -252,7 +281,6 @@ const handlePasswordLogin = async () => {
   }
 }
 
-// 邮箱验证码登录
 const handleEmailLogin = async () => {
   if (!emailFormRef.value) return
 
@@ -260,9 +288,7 @@ const handleEmailLogin = async () => {
     await emailFormRef.value.validate()
     const success = await userStore.emailLogin(emailForm)
     if (success) {
-      // 登录成功后，等待一下让状态更新
       await new Promise(resolve => setTimeout(resolve, 100))
-      // 根据用户权限跳转
       if (userStore.isVip || userStore.isAdmin) {
         router.push('/home')
       } else {
@@ -274,8 +300,20 @@ const handleEmailLogin = async () => {
   }
 }
 
-// 组件卸载时清除定时器
-import { onUnmounted } from 'vue'
+const debouncedCheckEmail = debounce(checkEmailExist, 800)
+watch(() => emailForm.email, (newEmail, oldEmail) => {
+  if (newEmail !== oldEmail) {
+    emailCheckResult.value = ''
+    if (newEmail !== lastCheckedEmail.value) {
+      lastCheckedEmail.value = ''
+    }
+  }
+  
+  if (newEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
+    debouncedCheckEmail()
+  }
+})
+
 onUnmounted(() => {
   if (countdownTimer) {
     clearInterval(countdownTimer)
@@ -284,158 +322,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.login-page {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 20px;
-}
-
-.login-container {
-  width: 100%;
-  max-width: 450px;
-}
-
-.login-card {
-  background: rgba(255, 255, 255, 0.98);
-  border-radius: 20px;
-  padding: 40px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(10px);
-}
-
-.login-header {
-  text-align: center;
-  margin-bottom: 32px;
-}
-
-.login-title {
-  font-size: 32px;
-  color: #1890ff;
-  margin-bottom: 8px;
-  font-weight: bold;
-}
-
-.login-subtitle {
-  font-size: 16px;
-  color: #666;
-}
-
-.login-tabs {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 24px;
-}
-
-.tab-item {
-  flex: 1;
-  padding: 12px;
-  text-align: center;
-  border: 2px solid #e0e0e0;
-  border-radius: 10px;
-  background: white;
-  cursor: pointer;
-  font-weight: 600;
-  color: #666;
-  transition: all 0.3s ease;
-}
-
-.tab-item:hover {
-  border-color: #1890ff;
-  color: #1890ff;
-}
-
-.tab-item.active {
-  background: linear-gradient(135deg, #1890ff, #40a9ff);
-  color: white;
-  border-color: #1890ff;
-}
-
-.login-form {
-  margin-top: 20px;
-}
-
-.form-actions {
-  text-align: right;
-  margin-bottom: 16px;
-}
-
-.forgot-link {
-  color: #1890ff;
-  text-decoration: none;
-  font-size: 14px;
-}
-
-.forgot-link:hover {
-  text-decoration: underline;
-}
-
-.code-input-group {
-  display: flex;
-  gap: 12px;
-  width: 100%;
-}
-
-.code-input-group :deep(.el-input) {
-  flex: 1;
-}
-
-.code-btn {
-  white-space: nowrap;
-  min-width: 120px;
-}
-
-.login-btn {
-  width: 100%;
-  height: 48px;
-  font-size: 16px;
-  font-weight: 600;
-  background: linear-gradient(135deg, #1890ff, #40a9ff);
-  border: none;
-  border-radius: 10px;
-  box-shadow: 0 4px 15px rgba(24, 144, 255, 0.3);
-  transition: all 0.3s ease;
-}
-
-.login-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(24, 144, 255, 0.4);
-}
-
-.login-footer {
-  text-align: center;
-  margin-top: 24px;
-  color: #666;
-  font-size: 14px;
-}
-
-.register-link {
-  color: #1890ff;
-  text-decoration: none;
-  font-weight: 600;
-  margin-left: 4px;
-}
-
-.register-link:hover {
-  text-decoration: underline;
-}
-
-/* 响应式 */
-@media (max-width: 768px) {
-  .login-card {
-    padding: 24px;
-  }
-
-  .login-title {
-    font-size: 24px;
-  }
-
-  .tab-item {
-    font-size: 14px;
-    padding: 10px;
-  }
-}
+/* 所有样式在unified.css中 */
 </style>
 

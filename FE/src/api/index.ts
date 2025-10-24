@@ -60,10 +60,22 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => {
     const { data } = response
+    const config = response.config
+    
+    // 邮箱校验接口的错误不显示消息，且不reject（通过UI状态显示）
+    const isEmailCheckEndpoint = config.url?.includes('/user/email-exist')
+    
     // 如果code不是1（成功），根据错误码或消息显示中文错误
     if (data.code !== 1 && data.code !== undefined) {
       const errorMsg = getErrorMessage(data.code, data.msg)
       const translatedMsg = translateErrorMessage(errorMsg)
+      
+      // 邮箱校验接口特殊处理：不显示错误，不reject，直接返回数据
+      if (isEmailCheckEndpoint) {
+        return data
+      }
+      
+      // 其他接口显示错误并reject
       showMessage.error(translatedMsg)
       return Promise.reject(new Error(translatedMsg))
     }
@@ -194,6 +206,10 @@ export const authApi = {
   // 重置密码
   resetPassword: (data: ResetPasswordForm): Promise<ApiResponse> => 
     api.post('/user/reset-password', data),
+  
+  // 检查邮箱是否存在
+  checkEmailExist: (data: SendEmailCodeRequest): Promise<ApiResponse> => 
+    api.post('/user/email-exist', data),
   
   // 获取当前用户信息
   getSelfInfo: (): Promise<ApiResponse<UserInfo>> => 

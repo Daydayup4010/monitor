@@ -1,123 +1,114 @@
 <template>
-  <div class="register-page">
-    <div class="register-container">
-      <div class="register-card">
-        <div class="register-header">
-          <h1 class="register-title">✨ 用户注册</h1>
-          <p class="register-subtitle">通过邮箱验证码注册新账户</p>
-        </div>
+  <div class="auth-page">
+    <div class="auth-card">
+      <div class="auth-header">
+        <h2 class="auth-title">
+          <img src="@/assets/icons/register.png" style="height: 36px; width: auto; vertical-align: middle; margin-right: 8px; object-fit: contain;" alt="注册" />
+          注册
+        </h2>
+        <p class="auth-subtitle">创建新账户，开始使用系统</p>
+      </div>
 
-        <el-form
-          ref="formRef"
-          :model="form"
-          :rules="rules"
-          class="register-form"
-          @submit.prevent="handleRegister"
-        >
+      <el-form
+        ref="formRef"
+        :model="form"
+        :rules="rules"
+        class="auth-form"
+        @submit.prevent="handleRegister"
+      >
+        <div class="form-item">
+          <label class="form-label">用户名</label>
           <el-form-item prop="username">
             <el-input
               v-model="form.username"
-              placeholder="设置用户名（唯一，不可重复）"
-              size="large"
-              prefix-icon="User"
-            >
-              <template #append>
-                <span class="input-hint">3-20个字符</span>
-              </template>
-            </el-input>
+              placeholder="3-20个字符"
+            />
           </el-form-item>
+        </div>
 
+        <div class="form-item">
+          <label class="form-label">邮箱地址</label>
           <el-form-item prop="email">
             <el-input
               v-model="form.email"
-              placeholder="请输入邮箱地址（唯一，不可重复）"
-              size="large"
-              prefix-icon="Message"
+              type="email"
+              placeholder="用于接收验证码"
+              @blur="checkEmailAvailability"
             >
-              <template #append>
-                <span class="input-hint">用于接收验证码</span>
+              <template #suffix>
+                <span v-if="emailChecking" style="color: #1890ff; font-size: 12px; padding-right: 8px;">检查中...</span>
+                <span v-else-if="emailCheckResult === 'available'" style="color: #52c41a; font-size: 12px; padding-right: 8px;">✓ 可用</span>
+                <span v-else-if="emailCheckResult === 'taken'" style="color: #ff4d4f; font-size: 12px; padding-right: 8px;">已注册</span>
               </template>
             </el-input>
           </el-form-item>
+        </div>
 
+        <div class="form-item">
+          <label class="form-label">邮箱验证码</label>
           <el-form-item prop="code">
-            <div class="code-input-group">
+            <div style="display: flex; gap: 12px;">
               <el-input
                 v-model="form.code"
                 placeholder="请输入验证码"
-                size="large"
-                prefix-icon="Key"
+                style="flex: 1;"
               />
-              <el-button
-                type="primary"
-                size="large"
-                :disabled="countdown > 0"
-                :loading="sendingCode"
+              <button
+                type="button"
+                class="btn btn-success"
+                style="white-space: nowrap;"
+                :disabled="countdown > 0 || sendingCode"
                 @click="handleSendCode"
-                class="code-btn"
               >
                 {{ countdown > 0 ? `${countdown}秒后重试` : '发送验证码' }}
-              </el-button>
+              </button>
             </div>
           </el-form-item>
+        </div>
 
+        <div class="form-item">
+          <label class="form-label">设置密码</label>
           <el-form-item prop="password">
             <el-input
               v-model="form.password"
               type="password"
-              placeholder="设置登录密码"
-              size="large"
-              prefix-icon="Lock"
+              placeholder="至少6个字符"
               show-password
-            >
-              <template #append>
-                <span class="input-hint">至少6个字符</span>
-              </template>
-            </el-input>
+            />
           </el-form-item>
+        </div>
 
+        <div class="form-item">
+          <label class="form-label">确认密码</label>
           <el-form-item prop="confirmPassword">
             <el-input
               v-model="form.confirmPassword"
               type="password"
               placeholder="再次输入密码"
-              size="large"
-              prefix-icon="Lock"
               show-password
               @keyup.enter="handleRegister"
             />
           </el-form-item>
-
-          <el-form-item>
-            <el-button
-              type="primary"
-              size="large"
-              :loading="userStore.loading"
-              @click="handleRegister"
-              class="register-btn"
-            >
-              立即注册
-            </el-button>
-          </el-form-item>
-        </el-form>
-
-        <div class="register-footer">
-          已有账户？
-          <router-link to="/login" class="login-link">
-            立即登录
-          </router-link>
         </div>
+
+        <button type="submit" class="btn btn-primary" :disabled="userStore.loading">
+          {{ userStore.loading ? '注册中...' : '立即注册' }}
+        </button>
+      </el-form>
+
+      <div class="auth-footer">
+        已有账户？<router-link to="/login">立即登录</router-link>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onUnmounted } from 'vue'
+import { ref, reactive, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { authApi } from '@/api'
-import { showMessage } from '@/utils/message'
+import { showMessage, debounce } from '@/utils'
 import type { FormInstance, FormRules } from 'element-plus'
 import type { RegisterForm } from '@/types'
 
@@ -133,7 +124,10 @@ const form = reactive<RegisterForm>({
   confirmPassword: '',
 })
 
-// 自定义验证器
+const emailChecking = ref(false)
+const emailCheckResult = ref<'available' | 'taken' | ''>('')
+const lastCheckedEmail = ref('')
+
 const validateUsername = (rule: any, value: any, callback: any) => {
   if (!value) {
     callback(new Error('请输入用户名'))
@@ -177,23 +171,68 @@ const rules: FormRules = {
   ],
 }
 
-// 验证码相关
+const checkEmailAvailability = async () => {
+  if (!form.email) {
+    emailCheckResult.value = ''
+    lastCheckedEmail.value = ''
+    return
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(form.email)) {
+    emailCheckResult.value = ''
+    return
+  }
+
+  if (form.email === lastCheckedEmail.value && emailCheckResult.value) {
+    return
+  }
+
+  emailChecking.value = true
+  emailCheckResult.value = ''
+  
+  try {
+    const response = await authApi.checkEmailExist({ email: form.email })
+    if (response.code === 1) {
+      emailCheckResult.value = 'available'
+      lastCheckedEmail.value = form.email
+    } else if (response.code === 1011) {
+      emailCheckResult.value = 'taken'
+      lastCheckedEmail.value = form.email
+    }
+  } catch (error: any) {
+    emailCheckResult.value = ''
+  } finally {
+    emailChecking.value = false
+  }
+}
+
 const sendingCode = ref(false)
 const countdown = ref(0)
 let countdownTimer: number | null = null
 
-// 发送验证码
 const handleSendCode = async () => {
   if (!form.email) {
     showMessage.warning('请先输入邮箱地址')
     return
   }
 
-  // 验证邮箱格式
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   if (!emailRegex.test(form.email)) {
     showMessage.warning('请输入正确的邮箱格式')
     return
+  }
+
+  if (emailCheckResult.value === 'taken') {
+    showMessage.warning('该邮箱已被注册，无法注册')
+    return
+  }
+
+  if (emailCheckResult.value !== 'available') {
+    await checkEmailAvailability()
+    if (emailCheckResult.value !== 'available') {
+      return
+    }
   }
 
   sendingCode.value = true
@@ -201,7 +240,6 @@ const handleSendCode = async () => {
     const response = await authApi.sendEmailCode({ email: form.email })
     if (response.code === 1) {
       showMessage.success('验证码已发送，请查收邮件')
-      // 开始倒计时
       countdown.value = 60
       countdownTimer = window.setInterval(() => {
         countdown.value--
@@ -218,15 +256,32 @@ const handleSendCode = async () => {
   }
 }
 
-// 注册
 const handleRegister = async () => {
   if (!formRef.value) return
 
+  // 检查两次密码是否一致
+  if (form.password !== form.confirmPassword) {
+    showMessage.error('两次输入的密码不一致')
+    return
+  }
+
   try {
     await formRef.value.validate()
+    
+    if (emailCheckResult.value === 'taken') {
+      showMessage.warning('该邮箱已被注册，请使用其他邮箱')
+      return
+    }
+    
+    if (emailCheckResult.value !== 'available') {
+      await checkEmailAvailability()
+      if (emailCheckResult.value !== 'available') {
+        return
+      }
+    }
+    
     const success = await userStore.register(form)
     if (success) {
-      // 注册成功后跳转到登录页
       setTimeout(() => {
         router.push('/login')
       }, 1500)
@@ -236,7 +291,20 @@ const handleRegister = async () => {
   }
 }
 
-// 组件卸载时清除定时器
+const debouncedCheckEmail = debounce(checkEmailAvailability, 800)
+watch(() => form.email, (newEmail, oldEmail) => {
+  if (newEmail !== oldEmail) {
+    emailCheckResult.value = ''
+    if (newEmail !== lastCheckedEmail.value) {
+      lastCheckedEmail.value = ''
+    }
+  }
+  
+  if (newEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
+    debouncedCheckEmail()
+  }
+})
+
 onUnmounted(() => {
   if (countdownTimer) {
     clearInterval(countdownTimer)
@@ -245,123 +313,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.register-page {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 20px;
-}
-
-.register-container {
-  width: 100%;
-  max-width: 500px;
-}
-
-.register-card {
-  background: rgba(255, 255, 255, 0.98);
-  border-radius: 20px;
-  padding: 40px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(10px);
-}
-
-.register-header {
-  text-align: center;
-  margin-bottom: 32px;
-}
-
-.register-title {
-  font-size: 32px;
-  color: #1890ff;
-  margin-bottom: 8px;
-  font-weight: bold;
-}
-
-.register-subtitle {
-  font-size: 16px;
-  color: #666;
-}
-
-.register-form {
-  margin-top: 20px;
-}
-
-.input-hint {
-  font-size: 12px;
-  color: #999;
-  white-space: nowrap;
-}
-
-.code-input-group {
-  display: flex;
-  gap: 12px;
-  width: 100%;
-}
-
-.code-input-group :deep(.el-input) {
-  flex: 1;
-}
-
-.code-btn {
-  white-space: nowrap;
-  min-width: 120px;
-}
-
-.register-btn {
-  width: 100%;
-  height: 48px;
-  font-size: 16px;
-  font-weight: 600;
-  background: linear-gradient(135deg, #1890ff, #40a9ff);
-  border: none;
-  border-radius: 10px;
-  box-shadow: 0 4px 15px rgba(24, 144, 255, 0.3);
-  transition: all 0.3s ease;
-  margin-top: 8px;
-}
-
-.register-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(24, 144, 255, 0.4);
-}
-
-.register-footer {
-  text-align: center;
-  margin-top: 24px;
-  color: #666;
-  font-size: 14px;
-}
-
-.login-link {
-  color: #1890ff;
-  text-decoration: none;
-  font-weight: 600;
-  margin-left: 4px;
-}
-
-.login-link:hover {
-  text-decoration: underline;
-}
-
-/* 响应式 */
-@media (max-width: 768px) {
-  .register-card {
-    padding: 24px;
-  }
-
-  .register-title {
-    font-size: 24px;
-  }
-
-  .code-input-group {
-    flex-direction: column;
-  }
-
-  .code-btn {
-    width: 100%;
-  }
-}
+/* 所有样式在unified.css中 */
 </style>
 

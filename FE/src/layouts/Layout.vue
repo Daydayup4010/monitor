@@ -34,8 +34,7 @@
             <!-- 用户信息下拉菜单 -->
             <el-dropdown trigger="click" @command="handleCommand">
               <div class="user-dropdown">
-                <div class="user-avatar">
-                  {{ userStore.userInfo?.username?.charAt(0).toUpperCase() || 'U' }}
+                <div class="user-avatar" :style="{ backgroundImage: getUserAvatarBg() }">
                 </div>
                 <div class="user-info">
                   <div class="user-name">{{ userStore.userInfo?.username }}</div>
@@ -45,6 +44,10 @@
               </div>
               <template #dropdown>
                 <el-dropdown-menu>
+                  <el-dropdown-item v-if="userStore.isVip" command="home">
+                    <el-icon><DataAnalysis /></el-icon>
+                    <span>饰品数据</span>
+                  </el-dropdown-item>
                   <el-dropdown-item command="settings">
                     <el-icon><User /></el-icon>
                     <span>个人设置</span>
@@ -109,9 +112,22 @@ const menuRoutes = computed(() => {
     }))
 })
 
+// 获取用户头像背景图
+const getUserAvatarBg = () => {
+  // VIP或管理员用login.png，普通用户用register.png
+  if (userStore.isVip || userStore.isAdmin) {
+    return `url(/src/assets/icons/login.png)`
+  } else {
+    return `url(/src/assets/icons/register.png)`
+  }
+}
+
 // 处理下拉菜单命令
 const handleCommand = (command: string) => {
   switch (command) {
+    case 'home':
+      router.push('/home')
+      break
     case 'settings':
       router.push('/settings')
       break
@@ -136,7 +152,7 @@ onMounted(() => {
 <style scoped>
 .app-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  background: #f5f7fa;
   position: relative;
   overflow-x: hidden;
 }
@@ -268,6 +284,9 @@ onMounted(() => {
   height: 40px;
   border-radius: 50%;
   background: linear-gradient(135deg, #1890ff, #40a9ff);
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
   color: white;
   display: flex;
   align-items: center;
@@ -297,16 +316,14 @@ onMounted(() => {
 
 .main-content {
   min-height: calc(100vh - 70px);
-  padding: 20px 40px 20px 40px;
+  padding: 20px;
 }
 
 .content-wrapper {
   width: 100%;
-  background: rgba(255, 255, 255, 0.98);
-  border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(10px);
-  overflow: hidden;
+  min-height: calc(100vh - 110px);
+  background: transparent;
+  overflow: visible;
 }
 
 /* 全局美化 */
