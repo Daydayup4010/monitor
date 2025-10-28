@@ -4,11 +4,12 @@ import (
 	"time"
 )
 
-func StartFullUpdateScheduler() {
+func StartBuffFullUpdateScheduler() {
+	go UpdateBuffFullData()
 	ticker := time.NewTicker(25 * time.Minute)
 	defer ticker.Stop()
 	for range ticker.C {
-		go UpdateFullData()
+		go UpdateBuffFullData()
 	}
 }
 
@@ -20,6 +21,15 @@ func StartVerifyToken() {
 			VerifyBuffToken()
 			VerifyUUToken()
 		}()
+	}
+}
+
+func StartUUFullUpdateScheduler() {
+	go UpdateUUFullData()
+	ticker := time.NewTicker(8 * time.Minute)
+	defer ticker.Stop()
+	for range ticker.C {
+		go UpdateUUFullData()
 	}
 }
 

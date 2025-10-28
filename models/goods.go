@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"time"
 	"uu/config"
 	"uu/utils"
@@ -20,15 +21,15 @@ type SkinItem struct {
 }
 
 type Goods struct {
-	Id         int64   `json:"id"`
-	UserId     string  `json:"user_id"`
-	Name       string  `json:"name"`
-	BuffPrice  float64 `json:"buff_price"`
-	UPrice     float64 `json:"u_price"`
-	Category   string  `json:"category"`
-	ImageUrl   string  `json:"image_url"`
-	PriceDiff  float64 `json:"price_diff"`
-	ProfitRate float64 `json:"profit_rate"`
+	Id          int64   `json:"id"`
+	UserId      string  `json:"user_id"`
+	Name        string  `json:"name"`
+	SourcePrice float64 `json:"source_price"`
+	TargetPrice float64 `json:"target_price"`
+	Category    string  `json:"category"`
+	ImageUrl    string  `json:"image_url"`
+	PriceDiff   float64 `json:"price_diff"`
+	ProfitRate  float64 `json:"profit_rate"`
 }
 
 func GetSkinItems(pageSize, pageNum int, isDesc bool, sortField, category string) ([]SkinItem, int64) {
@@ -86,15 +87,20 @@ func GetSkinItems(pageSize, pageNum int, isDesc bool, sortField, category string
 //	}
 //}
 
-func GetGoods(userId string, pageSize, pageNum int, isDesc bool, sortField, category, search string) (*[]Goods, int64, int) {
+func GetGoods(userId string, pageSize, pageNum int, isDesc bool, sortField, category, search, source, target string) (*[]Goods, int64, int) {
 	var goods []Goods
 	var total int64
 	validFields := map[string]bool{
-		"buff_price":  true,
-		"u_price":     true,
 		"price_diff":  true,
 		"profit_rate": true,
 	}
+	var targetMap map[string]interface{}
+	tableMap := map[string]string{
+		"uu":   "uitem",
+		"buff": "buff_item",
+	}
+
+	sourceTable := tableMap[source]
 
 	if !validFields[sortField] {
 		sortField = "id" // 默认排序字段
@@ -107,20 +113,39 @@ func GetGoods(userId string, pageSize, pageNum int, isDesc bool, sortField, cate
 
 	settings, code := GetUserSetting(userId)
 
-	query1 := config.DB.Model(&UItem{}).
-		Select("uitem.id as id, uitem.commodity_name as name, uitem.icon_url as image_url, uitem.type_name as category, uitem.price as u_price, buff_item.sell_min_price as buff_price, (uitem.price - buff_item.sell_min_price) as price_diff, ROUND((uitem.price - buff_item.sell_min_price)/buff_item.sell_min_price,4) as profit_rate").
-		Joins("join buff_item ON uitem.commodity_hash_name = buff_item.market_hash_name").
-		Where("(uitem.price - buff_item.sell_min_price) > ? and buff_item.sell_num > ? and buff_item.sell_min_price < ? and buff_item.sell_min_price > ?",
+	switch target {
+	case "uu":
+		targetMap = map[string]interface{}{
+			"model": &UItem{},
+			"table": tableMap[target],
+			"url":   tableMap[target],
+		}
+	case "buff":
+		targetMap = map[string]interface{}{
+			"model": &BuffItem{},
+			"table": tableMap[target],
+			"url":   tableMap[source],
+		}
+	default:
+		targetMap = map[string]interface{}{
+			"model": &UItem{},
+			"table": tableMap[target],
+			"url":   tableMap[target],
+		}
+	}
+
+	query1 := config.DB.Model(targetMap["model"]).
+		Select(fmt.Sprintf("%s.id as id, %s.name as name, %s.icon_url as image_url, %s.type_name as category, %s.price as target_price, %s.price source_price, (%s.price - %s.price) as price_diff, ROUND((%s.price - %s.price)/%s.price,4) as profit_rate", targetMap["table"], targetMap["table"], targetMap["url"], targetMap["url"], targetMap["table"], sourceTable, targetMap["table"], sourceTable, targetMap["table"], sourceTable, sourceTable)).
+		Joins(fmt.Sprintf("join %s ON %s.hash_name = %s.hash_name", sourceTable, targetMap["table"], sourceTable)).
+		Where(fmt.Sprintf("(%s.price - %s.price) > ? and %s.count > ? and %s.price < ? and %s.price > ?", targetMap["table"], sourceTable, targetMap["table"], sourceTable, sourceTable),
 			settings.MinDiff, settings.MinSellNum, settings.MaxSellPrice, settings.MinSellPrice)
-	query2 := config.DB.Model(&UItem{}).
-		Joins("JOIN buff_item ON uitem.commodity_hash_name = buff_item.market_hash_name").
-		Where("(uitem.price - buff_item.sell_min_price) > ?", settings.MinDiff).
-		Where("buff_item.sell_num > ?", settings.MinSellNum).
-		Where("buff_item.sell_min_price < ?", settings.MaxSellPrice).
-		Where("buff_item.sell_min_price > ?", settings.MinSellPrice)
+	query2 := config.DB.Model(targetMap["model"]).
+		Joins(fmt.Sprintf("join %s ON %s.hash_name = %s.hash_name", sourceTable, targetMap["table"], sourceTable)).
+		Where(fmt.Sprintf("(%s.price - %s.price) > ? and %s.count > ? and %s.price < ? and %s.price > ?", targetMap["table"], sourceTable, targetMap["table"], sourceTable, sourceTable),
+			settings.MinDiff, settings.MinSellNum, settings.MaxSellPrice, settings.MinSellPrice)
 	if category != "" {
-		query1 = query1.Where("uitem.type_name = ?", category)
-		query2 = query2.Where("uitem.type_name = ?", category)
+		query1 = query1.Where(fmt.Sprintf("%s.type_name = ?", targetMap["table"]), category)
+		query2 = query2.Where(fmt.Sprintf("%s.type_name = ?", targetMap["table"]), category)
 	}
 
 	if search != "" {

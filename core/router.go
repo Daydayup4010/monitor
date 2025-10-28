@@ -43,7 +43,6 @@ func InitRouter() *gin.Engine {
 	{
 		admin.GET("users", api.GetUserList)
 		admin.DELETE("user", api.DeleteUser)
-		admin.POST("full-update", api.UpdateFull)
 		admin.POST("vip-expiry", api.RenewVipExpiry)
 	}
 

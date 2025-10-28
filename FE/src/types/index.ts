@@ -74,8 +74,10 @@ export interface SkinItem {
   name: string
   category: string
   image_url: string
-  u_price: number
-  buff_price: number
+  source_price: number    // 买入价格（根据source平台）
+  target_price: number    // 卖出价格（根据target平台）
+  u_price?: number        // 兼容旧数据
+  buff_price?: number     // 兼容旧数据
   price_diff: number
   profit_rate: number
   updated_at: string
@@ -90,6 +92,8 @@ export interface PaginationParams {
   user_id?: string
   category?: string  // 分类筛选
   search?: string    // 搜索关键词
+  source?: string    // 买入平台
+  target?: string    // 卖出平台
 }
 
 // Platform Token类型

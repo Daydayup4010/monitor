@@ -23,22 +23,46 @@
           </div>
           
         <div class="filter-item">
-          <label class="filter-label">类别</label>
+          <label class="filter-label">买入平台</label>
           <el-select
-            v-model="selectedCategory"
-            placeholder="全部"
-            clearable
-            style="width: 150px;"
-            @change="handleCategoryChange"
+            v-model="sourcePlatform"
+            style="width: 120px;"
+            @change="handleSourceChange"
           >
-            <el-option
-              v-for="category in categories"
-              :key="category"
-              :label="category"
-              :value="category"
-            />
+            <el-option label="Buff" value="buff" />
+            <el-option label="UU" value="uu" />
           </el-select>
         </div>
+
+        <div class="filter-item">
+          <label class="filter-label">卖出平台</label>
+          <el-select
+            v-model="targetPlatform"
+            style="width: 120px;"
+            @change="handleTargetChange"
+          >
+            <el-option label="UU" value="uu" />
+            <el-option label="Buff" value="buff" />
+          </el-select>
+        </div>
+
+        <div class="filter-item">
+          <label class="filter-label">类别</label>
+            <el-select
+              v-model="selectedCategory"
+            placeholder="全部"
+              clearable
+            style="width: 150px;"
+            @change="handleCategoryChange"
+            >
+              <el-option
+                v-for="category in categories"
+                :key="category"
+                :label="category"
+                :value="category"
+              />
+            </el-select>
+          </div>
           
         <div class="filter-item">
           <label class="filter-label">排序</label>
@@ -59,12 +83,12 @@
           <button
             class="btn btn-primary"
             :disabled="skinStore.loading"
-            @click="refreshData"
+              @click="refreshData"
             style="height: 42px; padding: 0 24px; font-size: 14px;"
           >
             {{ skinStore.loading ? '刷新中...' : '刷新数据' }}
           </button>
-        </div>
+      </div>
     </div>
 
     <!-- 数据表格 -->
@@ -88,31 +112,31 @@
           </template>
         </el-table-column>
         
-          <el-table-column label="UU价格" width="120" class-name="price-column-left">
-            <template #default="{ row }">
-              <span style="color: #1890ff; font-weight: 600; font-size: 15px;">¥{{ formatPrice(row.u_price) }}</span>
-            </template>
-          </el-table-column>
-          
-          <el-table-column label="Buff价格" width="120" class-name="price-column-left">
-            <template #default="{ row }">
-              <span style="color: #52c41a; font-weight: 600; font-size: 15px;">¥{{ formatPrice(row.buff_price) }}</span>
-            </template>
-          </el-table-column>
-          
+          <el-table-column :label="sourcePriceLabel" width="130" class-name="price-column-left">
+          <template #default="{ row }">
+              <span style="color: #52c41a; font-weight: 600; font-size: 15px;">¥{{ formatPrice(row.source_price) }}</span>
+          </template>
+        </el-table-column>
+        
+          <el-table-column :label="targetPriceLabel" width="130" class-name="price-column-left">
+          <template #default="{ row }">
+              <span style="color: #1890ff; font-weight: 600; font-size: 15px;">¥{{ formatPrice(row.target_price) }}</span>
+          </template>
+        </el-table-column>
+        
           <el-table-column label="价格差" width="100" class-name="price-column-left">
-            <template #default="{ row }">
+          <template #default="{ row }">
               <span style="color: #faad14; font-weight: 600; font-size: 15px;">¥{{ formatPrice(row.price_diff) }}</span>
-            </template>
-          </el-table-column>
-          
+          </template>
+        </el-table-column>
+        
           <el-table-column label="利润率" width="100" class-name="price-column-left">
-            <template #default="{ row }">
+          <template #default="{ row }">
               <span :class="getProfitTagClass(row.profit_rate)" style="font-size: 15px !important;">
                 {{ formatPercent(row.profit_rate) }}
               </span>
-            </template>
-          </el-table-column>
+          </template>
+        </el-table-column>
         </el-table>
       </div>
 
@@ -162,6 +186,8 @@ const searchKeyword = ref('')
 const selectedCategory = ref('')
 const sortOption = ref('default')
 const categories = ref<string[]>([])
+const sourcePlatform = ref('buff')  // 买入平台，默认buff
+const targetPlatform = ref('uu')    // 卖出平台，默认uu
 
 const totalPages = computed(() => {
   return Math.ceil(skinStore.total / skinStore.pagination.page_size)
@@ -207,6 +233,8 @@ const handleSearch = debounce(() => {
   skinStore.getSkinItems({
     search: searchKeyword.value,
     category: selectedCategory.value,
+    source: sourcePlatform.value,
+    target: targetPlatform.value,
     page_num: 1
   })
 }, 300)
@@ -221,17 +249,55 @@ const handleSortChange = () => {
   }
   
   const config = sortMap[sortOption.value]
-    skinStore.getSkinItems({ 
+  skinStore.getSkinItems({
     sort: config.field,
     desc: config.desc,
-      page_num: 1
-    })
-  }
+    search: searchKeyword.value,
+    category: selectedCategory.value,
+    source: sourcePlatform.value,
+    target: targetPlatform.value,
+    page_num: 1
+  })
+}
 
 const handleCategoryChange = () => {
+    skinStore.getSkinItems({ 
+    search: searchKeyword.value,
+    category: selectedCategory.value,
+    source: sourcePlatform.value,
+    target: targetPlatform.value,
+      page_num: 1
+    })
+}
+
+const handleSourceChange = () => {
+  // 如果买入平台和卖出平台相同，自动把卖出平台换成另一个
+  if (sourcePlatform.value === targetPlatform.value) {
+    targetPlatform.value = sourcePlatform.value === 'buff' ? 'uu' : 'buff'
+  }
+  
+  // 刷新数据
+    skinStore.getSkinItems({ 
+    search: searchKeyword.value,
+    category: selectedCategory.value,
+    source: sourcePlatform.value,
+    target: targetPlatform.value,
+      page_num: 1
+    })
+}
+
+const handleTargetChange = () => {
+  // 如果卖出平台和买入平台相同，自动把买入平台换成另一个
+  if (targetPlatform.value === sourcePlatform.value) {
+    sourcePlatform.value = targetPlatform.value === 'buff' ? 'uu' : 'buff'
+  }
+  
+  // 刷新数据
   skinStore.getSkinItems({
     search: searchKeyword.value,
     category: selectedCategory.value,
+    source: sourcePlatform.value,
+    target: targetPlatform.value,
     page_num: 1
   })
 }
@@ -240,7 +306,10 @@ const refreshData = async () => {
   // 清除分类缓存，重新获取最新数据
   sessionStorage.removeItem('skinCategories')
   await loadCategories()
-  await skinStore.getSkinItems()
+  await skinStore.getSkinItems({
+    source: sourcePlatform.value,
+    target: targetPlatform.value
+  })
 }
 
 const loadCategories = async () => {
@@ -270,12 +339,20 @@ const loadCategories = async () => {
 }
 
 const handleSizeChange = () => {
-  skinStore.getSkinItems({ page_num: 1 })
+  skinStore.getSkinItems({ 
+    page_num: 1,
+    source: sourcePlatform.value,
+    target: targetPlatform.value
+  })
 }
 
 const handleCurrentChange = (page: number) => {
   if (page >= 1 && page <= totalPages.value) {
-    skinStore.getSkinItems({ page_num: page })
+    skinStore.getSkinItems({ 
+      page_num: page,
+      source: sourcePlatform.value,
+      target: targetPlatform.value
+    })
   }
 }
 
@@ -283,6 +360,15 @@ const handleImageError = (e: Event) => {
   const img = e.target as HTMLImageElement
   img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIGZpbGw9IiNGNUY1RjUiLz48dGV4dCB4PSIzMCIgeT0iMzUiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiNCRkJGQkYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPuaXoOWbvjwvdGV4dD48L3N2Zz4='
 }
+
+// 动态列名
+const sourcePriceLabel = computed(() => {
+  return sourcePlatform.value === 'buff' ? 'Buff价格' : 'UU价格'
+})
+
+const targetPriceLabel = computed(() => {
+  return targetPlatform.value === 'uu' ? 'UU价格' : 'Buff价格'
+})
 
 const getProfitTagClass = (rate: number) => {
   // 将小数转换为百分比（rate是0-1的小数）
@@ -295,14 +381,17 @@ const getProfitTagClass = (rate: number) => {
 }
 
 onMounted(() => {
-  skinStore.getSkinItems()
+  skinStore.getSkinItems({
+    source: sourcePlatform.value,
+    target: targetPlatform.value
+  })
   loadCategories()
 })
 </script>
 
 <style scoped>
 /* 所有样式在unified.css中 */
-.home-page {
+  .home-page {
   padding: 0;
   max-width: 100%;
 }

@@ -6,19 +6,19 @@ import (
 )
 
 type UItem struct {
-	CommodityHashName  string `json:"commodityHashName" gorm:"type:varchar(255);uniqueIndex"`
-	CommodityName      string `json:"commodityName" gorm:"type:varchar(255)"`
-	IconUrl            string `json:"iconUrl" gorm:"type:varchar(255)"`
-	Id                 int64  `json:"id" gorm:"type:int;primaryKey"`
-	LongLeaseUnitPrice string `json:"longLeaseUnitPrice" gorm:"type:decimal(10,2)"`
-	OnLeaseCount       int64  `json:"onLeaseCount" gorm:"type:int"`
-	OnSaleCount        int64  `json:"onSaleCount" gorm:"type:int"`
-	Price              string `json:"price" gorm:"type:decimal(10,2)"`
-	RarityColor        string `json:"rarityColor" gorm:"type:varchar(20)"`
-	Rent               string `json:"rent" gorm:"type:decimal(10,2)"`
-	SortId             int64  `json:"sortId" gorm:"type:int"`
-	SteamPrice         string `json:"steamPrice" gorm:"type:decimal(10,2)"`
-	TypeName           string `json:"typeName" gorm:"type:varchar(255)"`
+	HashName string `json:"commodityHashName" gorm:"type:varchar(255);uniqueIndex"`
+	Name     string `json:"commodityName" gorm:"type:varchar(255)"`
+	IconUrl  string `json:"iconUrl" gorm:"type:varchar(255)"`
+	Id       int64  `json:"id" gorm:"type:int;primaryKey"`
+	//LongLeaseUnitPrice string `json:"longLeaseUnitPrice" gorm:"type:decimal(10,2)"`
+	//OnLeaseCount       int64  `json:"onLeaseCount" gorm:"type:int"`
+	Count int64  `json:"onSaleCount" gorm:"type:int"`
+	Price string `json:"price" gorm:"type:decimal(10,2)"`
+	//RarityColor        string `json:"rarityColor" gorm:"type:varchar(20)"`
+	//Rent               string `json:"rent" gorm:"type:decimal(10,2)"`
+	//SortId             int64  `json:"sortId" gorm:"type:int"`
+	SteamPrice string `json:"steamPrice" gorm:"type:decimal(10,2)"`
+	TypeName   string `json:"typeName" gorm:"type:varchar(255)"`
 }
 
 type UItemsInfo struct {
