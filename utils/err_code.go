@@ -19,6 +19,9 @@ const (
 	ErrCodeSendEmailCode      = 1015
 	ErrCodeUpdateUser         = 1016
 	ErrCodeDeleteUser         = 1017
+	ErrCodeWechatLogin        = 1018
+	ErrCodeWechatBindFailed   = 1019
+	ErrCodeInvalidParams      = 1020
 )
 
 // other
@@ -68,6 +71,9 @@ var errorCodeToMessage = map[int]string{
 	ErrCodeSendEmailCode:      "Send email code error",
 	ErrCodeUpdateUser:         "Update user error",
 	ErrCodeDeleteUser:         "Delete user error",
+	ErrCodeWechatLogin:        "Wechat login error",
+	ErrCodeWechatBindFailed:   "Wechat bind failed",
+	ErrCodeInvalidParams:      "Invalid parameters",
 }
 
 // ErrorMessage 返回指定错误码对应的错误消息

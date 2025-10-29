@@ -31,3 +31,7 @@ email:
   port: 465
   email: goods.monitor@foxmail.com
   password: dhjdghlbwspcbjcc
+
+wechat:
+  app_id: wx3d1432382a8d4fe6
+  app_secret: a90a8199acbe78db81995c090b97fb13

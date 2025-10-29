@@ -1,0 +1,38 @@
+<!-- 饰品数据首页 -->
+<view class="home-page">
+  <!-- 筛选栏 -->
+  <view class="filter-bar">
+    <picker mode="selector" range="{{platforms}}" bindchange="onSourceChange" value="{{sourceIndex}}">
+      <view class="picker">{{platforms[sourceIndex]}}</view>
+    </picker>
+    <text class="arrow">→</text>
+    <picker mode="selector" range="{{platforms}}" bindchange="onTargetChange" value="{{targetIndex}}">
+      <view class="picker">{{platforms[targetIndex]}}</view>
+    </picker>
+  </view>
+
+  <!-- 饰品列表 -->
+  <view class="skin-list">
+    <view class="skin-item" wx:for="{{skinList}}" wx:key="id">
+      <image class="skin-img" src="{{item.image_url}}" mode="aspectFit"></image>
+      <view class="skin-info">
+        <text class="skin-name">{{item.name}}</text>
+        <view class="price-row">
+          <text class="price source">¥{{item.source_price}}</text>
+          <text class="arrow">→</text>
+          <text class="price target">¥{{item.target_price}}</text>
+        </view>
+        <view class="profit-row">
+          <text class="diff">差价: ¥{{item.price_diff}}</text>
+          <text class="rate {{getProfitClass(item.profit_rate)}}">{{item.profit_rate}}%</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加载更多 -->
+  <view class="load-more" wx:if="{{hasMore}}" bindtap="loadMore">
+    <text>{{loading ? '加载中...' : '加载更多'}}</text>
+  </view>
+</view>
+

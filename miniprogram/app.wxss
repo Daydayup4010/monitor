@@ -1,0 +1,52 @@
+/* 全局样式 */
+page {
+  background-color: #f5f7fa;
+  font-family: -apple-system-font, "Helvetica Neue", Helvetica, sans-serif;
+}
+
+/* 卡片样式 */
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 32rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+  margin-bottom: 20rpx;
+}
+
+.card-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #262626;
+  margin-bottom: 24rpx;
+  padding-bottom: 16rpx;
+  border-bottom: 2rpx solid #f0f0f0;
+}
+
+/* 按钮样式 */
+.btn-primary {
+  background: #1890ff;
+  color: white;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  border: none;
+}
+
+.btn-primary:active {
+  background: #40a9ff;
+}
+
+/* 标签样式 */
+.tag {
+  display: inline-block;
+  padding: 8rpx 24rpx;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+  font-weight: 500;
+}
+
+.tag-primary { background: #e6f7ff; color: #1890ff; }
+.tag-success { background: #f6ffed; color: #52c41a; }
+.tag-warning { background: #fffbe6; color: #faad14; }
+.tag-danger { background: #fff1f0; color: #ff4d4f; }
+

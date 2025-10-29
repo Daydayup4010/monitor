@@ -60,5 +60,15 @@ func InitRouter() *gin.Engine {
 		settings.GET("", api.GetSettings)
 		settings.PUT("", api.UpdateSetting)
 	}
+
+	// 微信小程序相关API
+	wechat := v1.Group("wechat")
+	{
+		wechat.POST("login", api.WechatLogin)                                          // 微信登录
+		wechat.POST("bind-email", middleware.AuthMiddleware(), api.BindEmail)          // 绑定邮箱
+		wechat.POST("bind-wechat", middleware.AuthMiddleware(), api.BindWechat)        // Web用户绑定微信
+		wechat.POST("send-email-code", middleware.AuthMiddleware(), api.SendEmailCode) // 发送验证码
+	}
+
 	return r
 }
