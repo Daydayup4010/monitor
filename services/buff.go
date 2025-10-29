@@ -39,13 +39,32 @@ func GetBuffHeaders() map[string]string {
 	if err != nil {
 		config.Log.Errorf("get buff token error: %s", err)
 	}
-	cookie := fmt.Sprintf("session=%s;csrf_token=%s", buff.Session, buff.CsrfToken)
+	cookie := fmt.Sprintf("session=%s; game=csgo", buff.Session)
+
 	return map[string]string{
-		"accept":          utils.Header.Buff.Accept,
-		"accept-language": utils.Header.Buff.AcceptLanguage,
-		//"content-type":    utils.Header.Buff.ContentType,
-		"user-agent": utils.Header.Buff.UserAgent,
-		"Cookie":     cookie,
+		"Accept":              utils.Header.Buff.Accept,
+		"Accept-Language":     utils.Header.Buff.AcceptLanguage,
+		"Accept-Encoding":     utils.Header.Buff.AcceptEncoding,
+		"User-Agent":          utils.Header.Buff.UserAgent,
+		"Timezone-Offset":     utils.Header.Buff.TimezoneOffset,
+		"DeviceName":          utils.Header.Buff.DeviceName,
+		"Device-Id-Weak":      utils.Header.Buff.DeviceIdWeak,
+		"Screen-Scale":        utils.Header.Buff.ScreenScale,
+		"Resolution":          utils.Header.Buff.Resolution,
+		"Locale":              utils.Header.Buff.Locale,
+		"Device-Id":           utils.Header.Buff.DeviceId,
+		"Connection":          utils.Header.Buff.Connection,
+		"Locale-Supported":    utils.Header.Buff.LocaleSupported,
+		"Timezone":            utils.Header.Buff.Timezone,
+		"Network":             utils.Header.Buff.Network,
+		"Product":             utils.Header.Buff.Product,
+		"Timezone-Offset-DST": utils.Header.Buff.TimezoneOffsetDst,
+		"Model":               utils.Header.Buff.Model,
+		"App-Version":         utils.Header.Buff.AppVersion,
+		"Screen-Size":         utils.Header.Buff.ScreenSize,
+		"App-Version-Code":    utils.Header.Buff.AppVersionCode,
+		"System-Version":      utils.Header.Buff.SystemVersion,
+		"Cookie":              cookie,
 	}
 }
 
@@ -57,6 +76,7 @@ func GetBuffItems(pageSize, pageNum string) ([]*models.BuffItem, int, error) {
 			"page_size": pageSize,
 			"page_num":  pageNum,
 			"game":      "csgo",
+			"tab":       "selling",
 		},
 		Headers: header,
 		Result:  &buffResponse,

@@ -6,7 +6,7 @@ import (
 
 func StartBuffFullUpdateScheduler() {
 	go UpdateBuffFullData()
-	ticker := time.NewTicker(25 * time.Minute)
+	ticker := time.NewTicker(30 * time.Minute)
 	defer ticker.Stop()
 	for range ticker.C {
 		go UpdateBuffFullData()

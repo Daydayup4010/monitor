@@ -47,15 +47,7 @@
               v-model="buffForm.session"
               type="textarea"
               :rows="3"
-              placeholder="请输入Buff平台的Session"
-            />
-          </div>
-
-          <div class="form-item">
-            <label class="form-label">CSRF Token</label>
-            <el-input
-              v-model="buffForm.csrf_token"
-              placeholder="请输入Buff平台的CSRF Token"
+              placeholder="请输入Buff平台的Session（iOS APP）"
             />
           </div>
 
@@ -99,7 +91,7 @@ const uuForm = reactive<UUToken>({
 
 const buffForm = reactive<BuffToken>({
   session: '',
-  csrf_token: '',
+  csrf_token: '',  // 保留字段以兼容类型定义
 })
 
 const submitUUToken = async () => {
@@ -125,8 +117,8 @@ const submitUUToken = async () => {
 }
 
 const submitBuffToken = async () => {
-  if (!buffForm.session || !buffForm.csrf_token) {
-    showMessage.warning('请填写完整的Buff Token信息')
+  if (!buffForm.session) {
+    showMessage.warning('请输入Buff Session')
     return
   }
 
@@ -136,7 +128,6 @@ const submitBuffToken = async () => {
     if (response.code === 1) {
       showMessage.success('Buff Token更新成功')
       buffForm.session = ''
-      buffForm.csrf_token = ''
       await loadTokenStatus()
     }
   } catch (error) {

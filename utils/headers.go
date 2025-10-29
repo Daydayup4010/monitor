@@ -2,9 +2,10 @@ package utils
 
 import (
 	"fmt"
-	"gopkg.in/yaml.v3"
 	"log"
 	"os"
+
+	"gopkg.in/yaml.v3"
 )
 
 type Headers struct {
@@ -25,12 +26,30 @@ type UU struct {
 }
 
 type Buff struct {
-	Accept         string `yaml:"accept"`
-	AcceptLanguage string `yaml:"accept-language"`
-	ContentType    string `yaml:"content-type"`
-	UserAgent      string `yaml:"user-agent"`
-	Session        string
-	Csrf           string
+	Accept            string `yaml:"accept"`
+	AcceptLanguage    string `yaml:"accept-language"`
+	AcceptEncoding    string `yaml:"accept-encoding"`
+	UserAgent         string `yaml:"user-agent"`
+	TimezoneOffset    string `yaml:"timezone-offset"`
+	DeviceName        string `yaml:"device-name"`
+	DeviceIdWeak      string `yaml:"device-id-weak"`
+	ScreenScale       string `yaml:"screen-scale"`
+	Resolution        string `yaml:"resolution"`
+	Locale            string `yaml:"locale"`
+	DeviceId          string `yaml:"device-id"`
+	Connection        string `yaml:"connection"`
+	LocaleSupported   string `yaml:"locale-supported"`
+	Timezone          string `yaml:"timezone"`
+	Network           string `yaml:"network"`
+	Product           string `yaml:"product"`
+	TimezoneOffsetDst string `yaml:"timezone-offset-dst"`
+	Model             string `yaml:"model"`
+	AppVersion        string `yaml:"app-version"`
+	ScreenSize        string `yaml:"screen-size"`
+	AppVersionCode    string `yaml:"app-version-code"`
+	SystemVersion     string `yaml:"system-version"`
+	Session           string
+	Csrf              string
 }
 
 func ReadeHeaders() *Headers {

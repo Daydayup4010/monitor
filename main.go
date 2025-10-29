@@ -12,7 +12,7 @@ func main() {
 	core.InitGorm()
 	core.InitRedis()
 	go services.StartBuffFullUpdateScheduler()
-	go services.StartUUFullUpdateScheduler()
+	//go services.StartUUFullUpdateScheduler()
 	go services.StartVerifyToken()
 	r := core.InitRouter()
 	addr := config.CONFIG.Server.GetAddr()
