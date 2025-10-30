@@ -235,6 +235,13 @@ body {
     box-shadow: 0 4px 12px rgba(82, 196, 26, 0.3);
 }
 
+.btn-success:disabled {
+    background: #d9d9d9 !important;
+    color: #8c8c8c !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+}
+
 .btn-secondary {
     background: #f0f0f0;
     color: #595959;
@@ -242,6 +249,11 @@ body {
 
 .btn-secondary:hover {
     background: #e0e0e0;
+}
+
+button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
 }
 
 /* Element Plus按钮覆盖 */

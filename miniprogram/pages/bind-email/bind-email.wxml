@@ -1,2 +1,85 @@
-<!--pages/bind-email/bind-email.wxml-->
-<text>pages/bind-email/bind-email.wxml</text>
+<!-- 绑定邮箱页面 -->
+<view class="bind-page">
+  <view class="bind-card">
+    <view class="card-header">
+      <text class="title">绑定邮箱</text>
+      <text class="subtitle">绑定后可在Web端登录查看更多数据</text>
+    </view>
+
+    <view class="form">
+      <view class="form-item">
+        <text class="label">邮箱地址</text>
+        <view class="input-wrapper">
+          <input 
+            class="input" 
+            type="text" 
+            placeholder="请输入邮箱地址"
+            placeholder-style="color: #bfbfbf;"
+            value="{{email}}"
+            bindinput="onEmailInput"
+          />
+        </view>
+      </view>
+
+      <view class="form-item">
+        <text class="label">邮箱验证码</text>
+        <view class="code-row">
+          <view class="input-wrapper code-input">
+            <input 
+              class="input" 
+              type="text" 
+              placeholder="请输入验证码"
+              placeholder-style="color: #bfbfbf;"
+              value="{{code}}"
+              bindinput="onCodeInput"
+              maxlength="6"
+            />
+          </view>
+          <button 
+            class="btn-code" 
+            bindtap="sendCode"
+            disabled="{{countdown > 0 || sending}}"
+          >
+            {{countdown > 0 ? countdown + 's后重试' : '发送验证码'}}
+          </button>
+        </view>
+      </view>
+
+      <view class="form-item">
+        <text class="label">设置密码</text>
+        <view class="input-wrapper">
+          <input 
+            class="input" 
+            type="password" 
+            placeholder="至少6个字符"
+            placeholder-style="color: #bfbfbf;"
+            value="{{password}}"
+            bindinput="onPasswordInput"
+          />
+        </view>
+      </view>
+
+      <view class="form-item">
+        <text class="label">确认密码</text>
+        <view class="input-wrapper">
+          <input 
+            class="input" 
+            type="password" 
+            placeholder="再次输入密码"
+            placeholder-style="color: #bfbfbf;"
+            value="{{confirmPassword}}"
+            bindinput="onConfirmPasswordInput"
+          />
+        </view>
+      </view>
+
+      <button class="btn-submit" bindtap="handleSubmit" disabled="{{submitting}}">
+        {{submitting ? '绑定中...' : '确认绑定'}}
+      </button>
+
+      <view class="skip" bindtap="skip">
+        <text>暂不绑定</text>
+      </view>
+    </view>
+  </view>
+</view>

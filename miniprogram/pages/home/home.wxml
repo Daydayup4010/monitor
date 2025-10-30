@@ -1,13 +1,37 @@
 <!-- 饰品数据首页 -->
 <view class="home-page">
-  <!-- 筛选栏 -->
-  <view class="filter-bar">
-    <picker mode="selector" range="{{platforms}}" bindchange="onSourceChange" value="{{sourceIndex}}">
-      <view class="picker">{{platforms[sourceIndex]}}</view>
+  <!-- 平台选择卡片 -->
+  <view class="platform-card">
+    <view class="platform-item">
+      <text class="platform-label">买入平台</text>
+      <picker mode="selector" range="{{platforms}}" bindchange="onSourceChange" value="{{sourceIndex}}">
+        <view class="platform-box">{{platforms[sourceIndex]}}</view>
+      </picker>
+    </view>
+    <view class="arrow-wrapper">
+      <text class="arrow">→</text>
+    </view>
+    <view class="platform-item">
+      <text class="platform-label">卖出平台</text>
+      <picker mode="selector" range="{{platforms}}" bindchange="onTargetChange" value="{{targetIndex}}">
+        <view class="platform-box">{{platforms[targetIndex]}}</view>
+      </picker>
+    </view>
+  </view>
+
+  <!-- 类别和排序筛选卡片 -->
+  <view class="filter-card">
+    <picker mode="selector" range="{{categoryOptions}}" bindchange="onCategoryChange" value="{{categoryIndex}}">
+      <view class="filter-item">
+        <text class="filter-label">类别</text>
+        <view class="filter-value">{{categoryOptions[categoryIndex]}}</view>
+      </view>
     </picker>
-    <text class="arrow">→</text>
-    <picker mode="selector" range="{{platforms}}" bindchange="onTargetChange" value="{{targetIndex}}">
-      <view class="picker">{{platforms[targetIndex]}}</view>
+    <picker mode="selector" range="{{sortOptions}}" bindchange="onSortChange" value="{{sortIndex}}">
+      <view class="filter-item">
+        <text class="filter-label">排序</text>
+        <view class="filter-value">{{sortOptions[sortIndex]}}</view>
+      </view>
     </picker>
   </view>
 
@@ -19,14 +43,20 @@
         <text class="skin-name">{{item.name}}</text>
         <view class="price-row">
           <text class="price source">¥{{item.source_price}}</text>
-          <text class="arrow">→</text>
+          <text class="price-arrow">→</text>
           <text class="price target">¥{{item.target_price}}</text>
         </view>
         <view class="profit-row">
-          <text class="diff">差价: ¥{{item.price_diff}}</text>
+          <text class="diff">+¥{{item.price_diff}}</text>
           <text class="rate {{getProfitClass(item.profit_rate)}}">{{item.profit_rate}}%</text>
         </view>
       </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty" wx:if="{{!loading && skinList.length === 0}}">
+      <text class="empty-icon">📦</text>
+      <text class="empty-text">暂无数据</text>
     </view>
   </view>
 
@@ -35,4 +65,3 @@
     <text>{{loading ? '加载中...' : '加载更多'}}</text>
   </view>
 </view>
-

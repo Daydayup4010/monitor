@@ -21,18 +21,17 @@ const (
 )
 
 type User struct {
-	ID            uuid.UUID      `json:"id" gorm:"type:char(36);primaryKey"`
-	UserName      string         `json:"username" gorm:"type:varchar(255);Index"`
-	Email         string         `json:"email" gorm:"type:varchar(255);uniqueIndex:idx_user_email_deleted"`
-	Password      string         `gorm:"type:varchar(255)"`
-	WechatOpenID  *string        `json:"wechat_openid" gorm:"type:varchar(128);uniqueIndex:idx_wechat_openid;default:NULL"`
-	WechatUnionID *string        `json:"wechat_unionid" gorm:"type:varchar(128);index;default:NULL"`
-	Role          int64          `json:"role" gorm:"type:int;default:0"`
-	VipExpiry     time.Time      `json:"vip_expiry" gorm:"type:datetime;default:CURRENT_TIMESTAMP"`
-	LastLogin     time.Time      `json:"last_login" gorm:"type:datetime;default:CURRENT_TIMESTAMP"`
-	CreatedAt     time.Time      `gorm:"type:datetime;default:CURRENT_TIMESTAMP" json:"created_at"`
-	UpdatedAt     time.Time      `gorm:"type:datetime;default:CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" json:"updated_at"`
-	DeletedAt     gorm.DeletedAt `gorm:"type:datetime;index;uniqueIndex:idx_user_email_deleted" json:"deleted_at,omitempty"`
+	ID           uuid.UUID      `json:"id" gorm:"type:char(36);primaryKey"`
+	UserName     string         `json:"username" gorm:"type:varchar(255);Index"`
+	Email        string         `json:"email" gorm:"type:varchar(255);uniqueIndex:idx_user_email_deleted"`
+	Password     string         `gorm:"type:varchar(255)"`
+	WechatOpenID *string        `json:"wechat_openid" gorm:"type:varchar(128);uniqueIndex:idx_wechat_openid;default:NULL"`
+	Role         int64          `json:"role" gorm:"type:int;default:0"`
+	VipExpiry    time.Time      `json:"vip_expiry" gorm:"type:datetime;default:CURRENT_TIMESTAMP"`
+	LastLogin    time.Time      `json:"last_login" gorm:"type:datetime;default:CURRENT_TIMESTAMP"`
+	CreatedAt    time.Time      `gorm:"type:datetime;default:CURRENT_TIMESTAMP" json:"created_at"`
+	UpdatedAt    time.Time      `gorm:"type:datetime;default:CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" json:"updated_at"`
+	DeletedAt    gorm.DeletedAt `gorm:"type:datetime;index;uniqueIndex:idx_user_email_deleted" json:"deleted_at,omitempty"`
 }
 
 type UserResponse struct {
@@ -143,7 +142,7 @@ func QueryUserByOpenID(openID string) *User {
 		return nil
 	}
 	var user User
-	err := config.DB.Where("wechat_openid = ?", openID).First(&user).Error
+	err := config.DB.Where("wechat_open_id = ?", openID).First(&user).Error
 	if err != nil {
 		return nil
 	}

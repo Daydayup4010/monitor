@@ -43,7 +43,7 @@ func WechatLogin(c *gin.Context) {
 	}
 
 	// 1. Get wechat openid from code
-	openID, unionID, err := getWechatOpenID(req.Code)
+	openID, err := getWechatOpenID(req.Code)
 	if err != nil {
 		config.Log.Errorf("get wechat openid error: %v", err)
 		c.JSON(http.StatusOK, gin.H{
@@ -58,16 +58,25 @@ func WechatLogin(c *gin.Context) {
 
 	if user == nil {
 		// 3a. New user: auto create account
+		userId := uuid.New()
 		user = &models.User{
-			ID:            uuid.New(),
-			UserName:      "wechat_user_" + openID[len(openID)-6:],
-			WechatOpenID:  &openID,
-			WechatUnionID: &unionID,
-			Role:          models.RoleNormal,
-			LastLogin:     time.Now(),
+			ID:           userId,
+			UserName:     "wechat_user_" + openID[len(openID)-6:],
+			WechatOpenID: &openID,
+			Role:         models.RoleNormal,
+			LastLogin:    time.Now(),
 		}
 
-		code := models.CreateWechatUser(user)
+		code := models.CreateDefaultSetting(userId.String())
+		if code != utils.SUCCESS {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"code": code,
+				"msg":  utils.ErrorMessage(code),
+			})
+			return
+		}
+
+		code = models.CreateWechatUser(user)
 		if code != utils.SUCCESS {
 			c.JSON(http.StatusOK, gin.H{
 				"code": code,
@@ -177,7 +186,7 @@ func BindWechat(c *gin.Context) {
 	userID := getUserIdFromContext(c)
 
 	// 1. Get wechat openid
-	openID, unionID, err := getWechatOpenID(req.Code)
+	openID, err := getWechatOpenID(req.Code)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code": utils.ErrCodeWechatLogin,
@@ -198,8 +207,7 @@ func BindWechat(c *gin.Context) {
 
 	// 3. Bind wechat
 	updates := map[string]interface{}{
-		"wechat_openid":  openID,
-		"wechat_unionid": unionID,
+		"wechat_openid": openID,
 	}
 
 	err = config.DB.Model(&models.User{}).Where("id = ?", userID).Updates(updates).Error
@@ -219,7 +227,7 @@ func BindWechat(c *gin.Context) {
 }
 
 // Call wechat API to get openid
-func getWechatOpenID(code string) (string, string, error) {
+func getWechatOpenID(code string) (string, error) {
 	// Read from config file
 	appID := config.CONFIG.Wechat.AppID
 	appSecret := config.CONFIG.Wechat.AppSecret
@@ -231,7 +239,7 @@ func getWechatOpenID(code string) (string, string, error) {
 
 	resp, err := http.Get(url)
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
@@ -242,17 +250,17 @@ func getWechatOpenID(code string) (string, string, error) {
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
 
 	var result WechatSessionResponse
 	if err := json.Unmarshal(body, &result); err != nil {
-		return "", "", err
+		return "", err
 	}
 
 	if result.ErrCode != 0 {
-		return "", "", fmt.Errorf("wechat api error: %s", result.ErrMsg)
+		return "", fmt.Errorf("wechat api error: %s", result.ErrMsg)
 	}
 
-	return result.OpenID, result.UnionID, nil
+	return result.OpenID, nil
 }

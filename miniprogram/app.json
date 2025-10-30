@@ -20,11 +20,15 @@
     "list": [
       {
         "pagePath": "pages/home/home",
-        "text": "饰品数据"
+        "text": "饰品数据",
+        "iconPath": "images/home.png",
+        "selectedIconPath": "images/home-active.png"
       },
       {
         "pagePath": "pages/my/my",
-        "text": "我的"
+        "text": "我的",
+        "iconPath": "images/my.png",
+        "selectedIconPath": "images/my-active.png"
       }
     ]
   },
