@@ -1,0 +1,75 @@
+<!-- 个人设置页面 -->
+<view class="settings-page">
+  <!-- VIP权限提示 -->
+  <view class="vip-notice" wx:if="{{!userInfo.isVip}}">
+    <text class="notice-icon">⚠️</text>
+    <view class="notice-content">
+      <text class="notice-title">需要VIP权限</text>
+      <text class="notice-text">您当前是普通用户，升级VIP后可配置筛选参数</text>
+    </view>
+  </view>
+
+  <!-- 筛选参数设置 -->
+  <view class="settings-card" wx:if="{{userInfo.isVip}}">
+    <view class="card-title">筛选参数配置</view>
+
+    <view class="form">
+      <view class="form-row">
+        <view class="form-item">
+          <text class="label">最小销售量</text>
+          <input 
+            class="input" 
+            type="number" 
+            value="{{settings.min_sell_num}}"
+            bindinput="onMinSellNumInput"
+            placeholder="低于此值将被过滤"
+          />
+        </view>
+
+        <view class="form-item">
+          <text class="label">最小价格差（元）</text>
+          <input 
+            class="input" 
+            type="digit" 
+            value="{{settings.min_diff}}"
+            bindinput="onMinDiffInput"
+            placeholder="UU与Buff的价格差"
+          />
+        </view>
+      </view>
+
+      <view class="form-row">
+        <view class="form-item">
+          <text class="label">最低价格（元）</text>
+          <input 
+            class="input" 
+            type="digit" 
+            value="{{settings.min_sell_price}}"
+            bindinput="onMinPriceInput"
+          />
+        </view>
+
+        <view class="form-item">
+          <text class="label">最高价格（元）</text>
+          <input 
+            class="input" 
+            type="digit" 
+            value="{{settings.max_sell_price}}"
+            bindinput="onMaxPriceInput"
+          />
+        </view>
+      </view>
+
+      <view class="button-group">
+        <button class="btn btn-primary" bindtap="handleSave" disabled="{{saving}}">
+          {{saving ? '保存中...' : '保存设置'}}
+        </button>
+        <button class="btn btn-secondary" bindtap="handleReset">
+          重置
+        </button>
+      </view>
+    </view>
+  </view>
+</view>
+
+

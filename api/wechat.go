@@ -32,6 +32,12 @@ type BindEmailRequest struct {
 	Password string `json:"password" binding:"required,min=6"`
 }
 
+// 合并账号请求
+type MergeAccountRequest struct {
+	Email string `json:"email" binding:"required,email"`
+	Code  string `json:"code" binding:"required,len=6"`
+}
+
 func WechatLogin(c *gin.Context) {
 	var req WechatLoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -131,21 +137,22 @@ func BindEmail(c *gin.Context) {
 
 	userID := getUserIdFromContext(c)
 
+	// 2. Check if email already exists
+	if models.IfExistEmail(req.Email) {
+		// 邮箱已存在，提示需要合并账号
+		c.JSON(http.StatusOK, gin.H{
+			"code": utils.ErrCodeEmailExistsNeedMerge,
+			"msg":  utils.ErrorMessage(utils.ErrCodeEmailExistsNeedMerge),
+		})
+		return
+	}
+
 	// 1. Verify email code
 	valid, code := models.VerifyEmailCode(req.Email, req.Code, c)
 	if !valid {
 		c.JSON(http.StatusOK, gin.H{
 			"code": code,
 			"msg":  utils.ErrorMessage(code),
-		})
-		return
-	}
-
-	// 2. Check if email already exists
-	if models.IfExistEmail(req.Email) {
-		c.JSON(http.StatusOK, gin.H{
-			"code": utils.ErrCodeEmailTaken,
-			"msg":  utils.ErrorMessage(utils.ErrCodeEmailTaken),
 		})
 		return
 	}
@@ -223,6 +230,117 @@ func BindWechat(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"code": utils.SUCCESS,
 		"msg":  utils.ErrorMessage(utils.SUCCESS),
+	})
+}
+
+func MergeAccount(c *gin.Context) {
+	var req MergeAccountRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"code": utils.ErrCodeInvalidParams,
+			"msg":  utils.ErrorMessage(utils.ErrCodeInvalidParams),
+		})
+		return
+	}
+
+	// 当前小程序用户ID
+	tempUserID := getUserIdFromContext(c)
+
+	// 1. 验证邮箱验证码
+	valid, code := models.VerifyEmailCode(req.Email, req.Code, c)
+	if !valid {
+		c.JSON(http.StatusOK, gin.H{
+			"code": code,
+			"msg":  utils.ErrorMessage(code),
+		})
+		return
+	}
+
+	// 2. 获取邮箱账号
+	emailUser := models.QueryUser(req.Email)
+	if emailUser == nil {
+		c.JSON(http.StatusOK, gin.H{
+			"code": utils.ErrCodeUserNotFound,
+			"msg":  utils.ErrorMessage(utils.ErrCodeUserNotFound),
+		})
+		return
+	}
+
+	// 3. 检查邮箱账号是否已绑定其他微信
+	if emailUser.WechatOpenID != nil && *emailUser.WechatOpenID != "" {
+		c.JSON(http.StatusOK, gin.H{
+			"code": utils.ErrCodeWechatAlreadyBound,
+			"msg":  utils.ErrorMessage(utils.ErrCodeWechatAlreadyBound),
+		})
+		return
+	}
+
+	// 4. 获取小程序临时账号
+	tempUser, getCode := models.GetUserById(tempUserID)
+	if getCode != utils.SUCCESS {
+		c.JSON(http.StatusOK, gin.H{
+			"code": getCode,
+			"msg":  utils.ErrorMessage(getCode),
+		})
+		return
+	}
+
+	// 5. 合并账号
+
+	// 5.3 删除临时的小程序账号
+	deleteCode := models.DeleteUser(tempUserID)
+	if deleteCode != utils.SUCCESS {
+		config.Log.Warnf("delete temp user failed: %s", tempUserID)
+	}
+
+	// 5.1 把openid绑定到邮箱账号
+	if tempUser.WechatOpenID != nil {
+		emailUser.WechatOpenID = tempUser.WechatOpenID
+	}
+
+	// 5.2 VIP状态合并（取最长的）
+	if tempUser.VipExpiry.After(emailUser.VipExpiry) {
+		emailUser.VipExpiry = tempUser.VipExpiry
+	}
+
+	// 5.4 更新邮箱账号
+	err := config.DB.Save(emailUser).Error
+	if err != nil {
+		config.Log.Errorf("merge account save error: %v", err)
+		c.JSON(http.StatusOK, gin.H{
+			"code": utils.ErrCodeAccountMergeFailed,
+			"msg":  utils.ErrorMessage(utils.ErrCodeAccountMergeFailed),
+		})
+		return
+	}
+
+	config.Log.Infof("account merged: temp user %s -> email user %s", tempUserID, emailUser.ID.String())
+
+	// 6. 生成新token（使用邮箱账号）
+	token, err := utils.GenerateJWT(emailUser.ID, emailUser.UserName, emailUser.Role, emailUser.VipExpiry, emailUser.Email)
+	if err != nil {
+		config.Log.Errorf("generate token error: %v", err)
+		c.JSON(http.StatusOK, gin.H{
+			"code": utils.ErrCodeTokenGenerate,
+			"msg":  utils.ErrorMessage(utils.ErrCodeTokenGenerate),
+		})
+		return
+	}
+
+	// 7. 返回合并后的用户信息
+	c.JSON(http.StatusOK, gin.H{
+		"code":  utils.SUCCESS,
+		"token": token,
+		"data": gin.H{
+			"id":         emailUser.ID.String(),
+			"username":   emailUser.UserName,
+			"email":      emailUser.Email,
+			"role":       emailUser.Role,
+			"vip_expiry": emailUser.VipExpiry,
+			"has_email":  true,
+			"has_wechat": emailUser.WechatOpenID != nil && *emailUser.WechatOpenID != "",
+		},
+		"msg": "Account merged successfully",
 	})
 }
 

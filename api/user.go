@@ -194,7 +194,7 @@ func DeleteUser(c *gin.Context) {
 func RenewVipExpiry(c *gin.Context) {
 	var req struct {
 		UserId string `json:"user_id"`
-		Days   int    `json:"days"`
+		Days   int    `json:"days"` // 注意：字段名为days，但实际表示月数
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -203,6 +203,7 @@ func RenewVipExpiry(c *gin.Context) {
 		})
 		return
 	}
+	// Days参数实际表示月数
 	newExpiry, code := models.RenewVIP(req.UserId, req.Days)
 	c.JSON(http.StatusOK, gin.H{
 		"code": code,

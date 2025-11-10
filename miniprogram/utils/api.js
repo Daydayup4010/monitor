@@ -8,6 +8,9 @@ module.exports = {
   // 绑定邮箱
   bindEmail: (email, code, password) => request.post('/wechat/bind-email', { email, code, password }),
   
+  // 合并账号
+  mergeAccount: (email, code) => request.post('/wechat/merge-account', { email, code }),
+  
   // 发送邮箱验证码
   sendEmailCode: (email) => request.post('/wechat/send-email-code', { email }),
   

@@ -115,16 +115,54 @@ Page({
       )
 
       if (res.code === 1) {
+        // 绑定成功
+        this.handleBindSuccess()
+      } else if (res.code === 1021) {
+        // 邮箱已存在，需要合并
+        this.showMergeDialog()
+      }
+    } catch (error) {
+      console.error('绑定失败:', error)
+    } finally {
+      this.setData({ submitting: false })
+    }
+  },
+
+  // 显示合并账号对话框
+  showMergeDialog() {
+    const that = this
+    wx.showModal({
+      title: '邮箱已注册',
+      content: '此邮箱已在Web端注册，是否合并到该账号？验证码已验证，可直接合并。',
+      confirmText: '确认合并',
+      cancelText: '取消',
+      success(modal) {
+        if (modal.confirm) {
+          that.mergeAccount()
+        }
+      }
+    })
+  },
+
+  // 合并账号
+  async mergeAccount() {
+    wx.showLoading({ title: '合并中...' })
+
+    try {
+      const res = await api.mergeAccount(
+        this.data.email,
+        this.data.code
+      )
+
+      if (res.code === 1) {
+        wx.hideLoading()
         wx.showToast({
-          title: '绑定成功',
+          title: '合并成功',
           icon: 'success'
         })
 
-        // 更新用户信息
-        const userInfo = app.globalData.userInfo
-        userInfo.email = this.data.email
-        userInfo.has_email = true
-        app.saveLoginInfo(app.globalData.token, userInfo)
+        // 保存新token和用户信息
+        app.saveLoginInfo(res.token, res.data)
 
         // 跳转到首页
         setTimeout(() => {
@@ -132,12 +170,38 @@ Page({
             url: '/pages/home/home'
           })
         }, 1500)
+      } else {
+        wx.hideLoading()
+        wx.showToast({
+          title: res.msg || '合并失败',
+          icon: 'none'
+        })
       }
     } catch (error) {
-      console.error('绑定失败:', error)
-    } finally {
-      this.setData({ submitting: false })
+      wx.hideLoading()
+      console.error('合并失败:', error)
     }
+  },
+
+  // 绑定成功处理
+  handleBindSuccess() {
+    wx.showToast({
+      title: '绑定成功',
+      icon: 'success'
+    })
+
+    // 更新用户信息
+    const userInfo = app.globalData.userInfo
+    userInfo.email = this.data.email
+    userInfo.has_email = true
+    app.saveLoginInfo(app.globalData.token, userInfo)
+
+    // 跳转到首页
+    setTimeout(() => {
+      wx.switchTab({
+        url: '/pages/home/home'
+      })
+    }, 1500)
   },
 
   // 跳过绑定

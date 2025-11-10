@@ -52,8 +52,11 @@
           </el-table-column>
           <el-table-column label="VIP到期" width="150">
             <template #default="{ row }">
-              <span v-if="row.vip_expiry && row.role === 1">
+              <span v-if="row.vip_expiry && isVipValid(row.vip_expiry)">
                 {{ formatDate(row.vip_expiry) }}
+              </span>
+              <span v-else-if="row.vip_expiry && !isVipValid(row.vip_expiry)" style="color: #ff4d4f">
+                {{ formatDate(row.vip_expiry) }} (已过期)
               </span>
               <span v-else style="color: #bfbfbf">-</span>
             </template>
@@ -129,11 +132,11 @@
           <el-input :model-value="currentUser.email" disabled />
         </div>
         <div class="form-item">
-          <label class="form-label">续费天数</label>
+          <label class="form-label">续费月数</label>
           <el-input-number
             v-model="renewForm.days"
             :min="1"
-            :max="3650"
+            :max="120"
             controls-position="right"
             style="width: 100%"
           />
@@ -169,7 +172,7 @@ const renewDialogVisible = ref(false)
 const renewLoading = ref(false)
 const currentUser = ref<UserListItem>({} as UserListItem)
 const renewForm = reactive({
-  days: 30,
+  days: 1,  // 默认1个月
 })
 
 const vipCount = computed(() => {
@@ -272,7 +275,7 @@ const handleCurrentChange = (page: number) => {
 
 const handleRenewVip = (user: UserListItem) => {
   currentUser.value = user
-  renewForm.days = 30
+  renewForm.days = 1  // 默认1个月
   renewDialogVisible.value = true
 }
 

@@ -3,6 +3,7 @@
     "pages/login/login",
     "pages/home/home",
     "pages/my/my",
+    "pages/settings/settings",
     "pages/bind-email/bind-email"
   ],
   "window": {

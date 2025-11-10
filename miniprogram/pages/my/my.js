@@ -12,6 +12,12 @@ Page({
     })
   },
 
+  goSettings() {
+    wx.navigateTo({
+      url: '/pages/settings/settings'
+    })
+  },
+
   goBindEmail() {
     wx.navigateTo({
       url: '/pages/bind-email/bind-email'

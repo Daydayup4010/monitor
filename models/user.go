@@ -25,13 +25,13 @@ type User struct {
 	UserName     string         `json:"username" gorm:"type:varchar(255);Index"`
 	Email        string         `json:"email" gorm:"type:varchar(255);uniqueIndex:idx_user_email_deleted"`
 	Password     string         `gorm:"type:varchar(255)"`
-	WechatOpenID *string        `json:"wechat_openid" gorm:"type:varchar(128);uniqueIndex:idx_wechat_openid;default:NULL"`
+	WechatOpenID *string        `json:"wechat_openid" gorm:"type:varchar(128);uniqueIndex:idx_wechat_openid_deleted;default:NULL"`
 	Role         int64          `json:"role" gorm:"type:int;default:0"`
 	VipExpiry    time.Time      `json:"vip_expiry" gorm:"type:datetime;default:CURRENT_TIMESTAMP"`
 	LastLogin    time.Time      `json:"last_login" gorm:"type:datetime;default:CURRENT_TIMESTAMP"`
 	CreatedAt    time.Time      `gorm:"type:datetime;default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt    time.Time      `gorm:"type:datetime;default:CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" json:"updated_at"`
-	DeletedAt    gorm.DeletedAt `gorm:"type:datetime;index;uniqueIndex:idx_user_email_deleted" json:"deleted_at,omitempty"`
+	DeletedAt    gorm.DeletedAt `gorm:"type:datetime;index;uniqueIndex:idx_user_email_deleted;uniqueIndex:idx_wechat_openid_deleted" json:"deleted_at,omitempty"`
 }
 
 type UserResponse struct {
@@ -233,16 +233,23 @@ func RenewVIP(userID string, days int) (time.Time, int) {
 		return newExpiry, utils.ErrCodeUserNotFound
 	}
 
-	// 计算新的过期时间
+	// 计算新的过期时间（days参数表示月数）
+	months := days
 	if user.VipExpiry.IsZero() || user.VipExpiry.Before(time.Now()) {
 		// 如果VIP已过期或未设置，从当前时间开始算
-		newExpiry = time.Now().AddDate(0, 0, days)
+		newExpiry = time.Now().AddDate(0, months, 0)
 	} else {
 		// 如果VIP未过期，在原有基础上续费
-		newExpiry = user.VipExpiry.AddDate(0, 0, days)
+		newExpiry = user.VipExpiry.AddDate(0, months, 0)
 	}
 
-	err := config.DB.Model(&user).Update("vip_expiry", newExpiry).Error
+	// 更新VIP到期时间和角色
+	updates := map[string]interface{}{
+		"vip_expiry": newExpiry,
+		"role":       RoleVip, // 设置为VIP角色
+	}
+
+	err := config.DB.Model(&user).Updates(updates).Error
 	if err != nil {
 		config.Log.Errorf("update vip expiry fail: %v", err)
 		return newExpiry, utils.ErrCodeUpdateUser

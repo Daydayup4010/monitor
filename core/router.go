@@ -66,6 +66,7 @@ func InitRouter() *gin.Engine {
 	{
 		wechat.POST("login", api.WechatLogin)                                          // 微信登录
 		wechat.POST("bind-email", middleware.AuthMiddleware(), api.BindEmail)          // 绑定邮箱
+		wechat.POST("merge-account", middleware.AuthMiddleware(), api.MergeAccount)    // 合并账号
 		wechat.POST("bind-wechat", middleware.AuthMiddleware(), api.BindWechat)        // Web用户绑定微信
 		wechat.POST("send-email-code", middleware.AuthMiddleware(), api.SendEmailCode) // 发送验证码
 	}

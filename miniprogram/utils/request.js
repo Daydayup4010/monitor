@@ -28,6 +28,9 @@ const request = (url, options = {}) => {
               url: '/pages/login/login'
             })
             reject(data)
+          } else if (data.code === 1021) {
+            // 邮箱已存在需要合并，不显示toast，让页面自己处理
+            resolve(data)
           } else {
             wx.showToast({
               title: data.msg || '请求失败',
