@@ -33,11 +33,11 @@ func StartUUFullUpdateScheduler() {
 	}
 }
 
-//
-//func StartUpdateSkin() {
-//	ticker := time.NewTicker(1 * time.Minute)
-//	defer ticker.Stop()
-//	for range ticker.C {
-//		go models.UpdateSkinItems()
-//	}
-//}
+func UpdateBaseGoodsScheduler() {
+	go UpdateBaseGoodsToDb()
+	ticker := time.NewTicker(24 * time.Hour)
+	defer ticker.Stop()
+	for range ticker.C {
+		go UpdateBaseGoodsToDb()
+	}
+}

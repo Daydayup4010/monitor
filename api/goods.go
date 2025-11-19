@@ -11,14 +11,18 @@ import (
 func GetGoods(c *gin.Context) {
 	pageSize, _ := strconv.Atoi(c.Query("page_size"))
 	pageNum, _ := strconv.Atoi(c.Query("page_num"))
+	if pageNum == 0 || pageSize == 0 {
+		pageSize = 25
+		pageNum = 1
+	}
 	userId := getUserIdFromContext(c)
 	sort := c.Query("sort")
 	desc, _ := strconv.ParseBool(c.Query("desc"))
-	category := c.Query("category")
+	//category := c.Query("category")
 	search := c.Query("search")
 	source := c.Query("source")
 	target := c.Query("target")
-	s, total, code := models.GetGoods(userId, pageSize, pageNum, desc, sort, category, search, source, target)
+	s, total, code := models.GetGoods(userId, pageSize, pageNum, desc, sort, search, source, target)
 	c.JSON(http.StatusOK, gin.H{
 		"code":  code,
 		"data":  s,

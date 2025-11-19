@@ -16,7 +16,7 @@ func CreateClient(baseURL string) *HttpClient {
 	client = &HttpClient{
 		client: resty.New().
 			SetBaseURL(baseURL).
-			SetTimeout(30 * time.Second).
+			SetTimeout(120 * time.Second).
 			SetRetryCount(2).
 			SetDebug(false),
 		baseURL: baseURL,

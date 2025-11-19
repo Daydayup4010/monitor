@@ -9,17 +9,22 @@ import (
 )
 
 type Config struct {
-	Mysql  *Mysql              `yaml:"mysql"`
-	Logger *Logger             `yaml:"logger"`
-	Server *Server             `yaml:"server"`
-	Redis  *Redis              `yaml:"redis"`
-	Email  *utils.EmailService `yaml:"email"`
-	Wechat *Wechat             `yaml:"wechat"`
+	Mysql   *Mysql              `yaml:"mysql"`
+	Logger  *Logger             `yaml:"logger"`
+	Server  *Server             `yaml:"server"`
+	Redis   *Redis              `yaml:"redis"`
+	Email   *utils.EmailService `yaml:"email"`
+	Wechat  *Wechat             `yaml:"wechat"`
+	SteamDt *SteamDt            `yaml:"steamDt"`
 }
 
 type Wechat struct {
 	AppID     string `yaml:"app_id"`
 	AppSecret string `yaml:"app_secret"`
+}
+
+type SteamDt struct {
+	Key string `yaml:"key"`
 }
 
 var (

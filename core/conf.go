@@ -22,7 +22,6 @@ func InitConf() {
 		log.Fatalf("结构体映射错误: %s", err)
 		//global.LOG.Panicf("结构体映射错误: %s", err)
 	}
-	//global.LOG.Info("config yaml load success!")
 	log.Println("config yaml load success!")
 	config.CONFIG = c
 }
