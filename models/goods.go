@@ -35,6 +35,7 @@ type BaseGoods struct {
 
 type Platform struct {
 	Id           string  `json:"platformItemId"`
+	Name         string  `json:"platformName" gorm:"-"`
 	SellPrice    float64 `json:"sellPrice"`
 	SellCount    int64   `json:"sellCount"`
 	BiddingPrice float64 `json:"biddingPrice"`
@@ -101,6 +102,7 @@ func GetPlatformListBatch(marketHashNames []string) map[string][]*Platform {
 			BiddingCount: u.BiddingCount,
 			UpdateTime:   u.UpdateTime,
 			Link:         u.Link,
+			Name:         "悠悠",
 		})
 	}
 
@@ -116,6 +118,7 @@ func GetPlatformListBatch(marketHashNames []string) map[string][]*Platform {
 			BiddingCount: buff.BiddingCount,
 			UpdateTime:   buff.UpdateTime,
 			Link:         buff.Link,
+			Name:         "BUFF",
 		})
 	}
 
@@ -131,6 +134,7 @@ func GetPlatformListBatch(marketHashNames []string) map[string][]*Platform {
 			BiddingCount: c5.BiddingCount,
 			UpdateTime:   c5.UpdateTime,
 			Link:         c5.Link,
+			Name:         "C5GAME",
 		})
 	}
 
@@ -146,6 +150,7 @@ func GetPlatformListBatch(marketHashNames []string) map[string][]*Platform {
 			BiddingCount: steam.BiddingCount,
 			UpdateTime:   steam.UpdateTime,
 			Link:         steam.Link,
+			Name:         "STEAM",
 		})
 	}
 
