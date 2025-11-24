@@ -19,10 +19,14 @@ type Steam struct {
 	Link           string  `json:"link"`
 }
 
-func GetSteamGoods(hashName string) *Steam {
-	var steam Steam
-	config.DB.Where("market_hash_name = ?", hashName).Find(&steam)
-	return &steam
+func BatchGetSteamGoods(hashNames []string) map[string]*Steam {
+	var steams []Steam
+	result := make(map[string]*Steam)
+	config.DB.Where("market_hash_name in ?", hashNames).Find(&steams)
+	for i := range steams {
+		result[steams[i].MarketHashName] = &steams[i]
+	}
+	return result
 }
 
 func BatchUpdateSteamGoods(steam []*Steam) {

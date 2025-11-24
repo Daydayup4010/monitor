@@ -22,131 +22,29 @@
       </div>
     </div>
 
-    <!-- 筛选参数设置 -->
+    <!-- 提示信息 -->
     <div class="card">
       <div class="card-title">⚙️ 筛选参数配置</div>
-
-      <el-form ref="formRef" :model="form" :rules="rules">
-        <div class="two-cols">
-          <div class="form-item">
-            <label class="form-label">最小销售量</label>
-            <el-form-item prop="min_sell_num">
-              <el-input-number
-                v-model="form.min_sell_num"
-                :min="0"
-                :max="10000"
-                controls-position="right"
-                placeholder="低于此值将被过滤"
-                style="width: 100%"
-              />
-            </el-form-item>
-          </div>
-
-          <div class="form-item">
-            <label class="form-label">最小价格差（元）</label>
-            <el-form-item prop="min_diff">
-              <el-input-number
-                v-model="form.min_diff"
-                :min="0"
-                :max="1000"
-                :step="0.1"
-                :precision="2"
-                controls-position="right"
-                placeholder="UU与Buff的价格差"
-                style="width: 100%"
-              />
-            </el-form-item>
-          </div>
-
-          <div class="form-item">
-            <label class="form-label">最低价格（元）</label>
-            <el-form-item prop="min_sell_price">
-              <el-input-number
-                v-model="form.min_sell_price"
-                :min="0"
-                :max="100000"
-                :precision="2"
-                controls-position="right"
-                style="width: 100%"
-              />
-            </el-form-item>
-          </div>
-
-          <div class="form-item">
-            <label class="form-label">最高价格（元）</label>
-            <el-form-item prop="max_sell_price">
-              <el-input-number
-                v-model="form.max_sell_price"
-                :min="0"
-                :max="100000"
-                :precision="2"
-                controls-position="right"
-                style="width: 100%"
-              />
-            </el-form-item>
-          </div>
-        </div>
-
-        <div style="text-align: center; margin-top: 24px;">
-          <button type="button" class="btn btn-primary" style="min-width: 160px;" :disabled="loading" @click="handleSave">
-            {{ loading ? '保存中...' : '保存设置' }}
-          </button>
-          <button type="button" class="btn btn-secondary" style="min-width: 120px; margin-left: 12px;" @click="handleReset">
-            重置
-          </button>
-        </div>
-      </el-form>
+      <div style="padding: 24px; text-align: center;">
+        <p style="font-size: 15px; color: #595959; margin-bottom: 16px;">
+          筛选参数（价格范围、成交量等）已移至"饰品数据"页面，方便您直接调整和查看结果。
+        </p>
+        <button class="btn btn-primary" @click="goToHome" style="padding: 12px 32px;">
+          前往饰品数据页面
+        </button>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { useSettingsStore } from '@/stores/settings'
-import { showMessage } from '@/utils/message'
-import type { FormInstance, FormRules } from 'element-plus'
 import dayjs from 'dayjs'
 
 const router = useRouter()
 const userStore = useUserStore()
-const settingsStore = useSettingsStore()
-
-const formRef = ref<FormInstance>()
-const loading = ref(false)
-
-const form = reactive({
-  min_sell_num: 0,
-  min_diff: 0,
-  min_sell_price: 0,
-  max_sell_price: 10000,
-})
-
-const rules: FormRules = {
-  min_sell_num: [
-    { required: true, message: '请输入最小销售量', trigger: 'blur' },
-  ],
-  min_diff: [
-    { required: true, message: '请输入最小价格差异', trigger: 'blur' },
-  ],
-  min_sell_price: [
-    { required: true, message: '请输入最低销售价格', trigger: 'blur' },
-  ],
-  max_sell_price: [
-    { required: true, message: '请输入最高销售价格', trigger: 'blur' },
-    {
-      validator: (rule: any, value: number, callback: Function) => {
-        if (value <= form.min_sell_price) {
-          callback(new Error('最高价格必须大于最低价格'))
-        } else {
-          callback()
-        }
-      },
-      trigger: 'blur',
-    },
-  ],
-}
 
 const badgeIcon = computed(() => {
   if (userStore.isAdmin) return '👨‍💼'
@@ -156,35 +54,6 @@ const badgeIcon = computed(() => {
 
 const formatDate = (date: string) => {
   return dayjs(date).format('YYYY-MM-DD')
-}
-
-const loadSettings = async () => {
-  if (!userStore.isVip) return
-  
-  await settingsStore.getSettings()
-  Object.assign(form, settingsStore.settings)
-}
-
-const handleSave = async () => {
-  if (!formRef.value) return
-
-  try {
-    await formRef.value.validate()
-    loading.value = true
-    await settingsStore.updateSettings(form)
-  } catch (error) {
-    console.error('保存设置失败:', error)
-  } finally {
-    loading.value = false
-  }
-}
-
-const handleReset = () => {
-  form.min_sell_num = 200
-  form.min_diff = 1
-  form.min_sell_price = 0
-  form.max_sell_price = 10000
-  showMessage.info('已恢复默认设置')
 }
 
 const goToHome = () => {
@@ -200,10 +69,6 @@ const getUserAvatarBg = () => {
     return `url(/src/assets/icons/register.png)`
   }
 }
-
-onMounted(() => {
-  loadSettings()
-})
 </script>
 
 <style scoped>

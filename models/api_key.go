@@ -66,7 +66,7 @@ func InitKeys() {
 
 func GetActivateKey() []APIKey {
 	var apiKey []APIKey
-	err := config.DB.Where("last_useD is NULL or last_useD < ?", time.Now().Add(-60*time.Second)).Find(&apiKey).Error
+	err := config.DB.Where("last_useD is NULL or last_useD < ?", time.Now().Add(-65*time.Second)).Find(&apiKey).Error
 	if err != nil {
 		config.Log.Errorf("Get activate key error: %v", err)
 	}

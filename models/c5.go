@@ -18,10 +18,14 @@ type C5 struct {
 	Link           string  `json:"link"`
 }
 
-func GetC5Goods(hashName string) *C5 {
-	var c5 C5
-	config.DB.Where("market_hash_name = ?", hashName).Find(&c5)
-	return &c5
+func BatchGetC5Goods(hashNames []string) map[string]*C5 {
+	var c5s []C5
+	result := make(map[string]*C5)
+	config.DB.Where("market_hash_name in ?", hashNames).Find(&c5s)
+	for i := range c5s {
+		result[c5s[i].MarketHashName] = &c5s[i]
+	}
+	return result
 }
 
 func BatchUpdateC5Goods(c5 []*C5) {

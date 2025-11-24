@@ -11,12 +11,10 @@ export const ICONS = {
   data: '📊',            // 饰品数据
   settings: '⚙️',        // 设置
   user: '👥',            // 用户管理
-  token: '🔑',           // Token管理
   
   // 统计卡片图标
   statUsers: '👥',       // 总用户数
   statVip: '👑',         // VIP用户
-  statToken: '🔑',       // Token状态
   
   // 用户类型标识
   userAdmin: '👨‍💼',     // 管理员
@@ -37,10 +35,8 @@ export const ICON_USAGE = {
   'ICONS.data': 'Home.vue - 卡片标题',
   'ICONS.settings': 'Settings.vue - 卡片标题',
   'ICONS.user': 'UserManager.vue - 卡片标题 & Admin.vue - 左侧菜单',
-  'ICONS.token': 'TokenManager.vue - 卡片标题 & Admin.vue - 左侧菜单',
   'ICONS.statUsers': 'UserManager.vue - 统计卡片',
   'ICONS.statVip': 'UserManager.vue - 统计卡片',
-  'ICONS.statToken': 'Admin.vue - 统计卡片（如需要）',
   'ICONS.userAdmin': 'Settings.vue - 管理员徽章',
   'ICONS.userVip': 'Settings.vue - VIP徽章',
   'ICONS.userNormal': 'Settings.vue - 普通用户徽章',

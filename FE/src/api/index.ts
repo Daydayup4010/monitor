@@ -3,12 +3,9 @@ import router from '@/router'
 import { getErrorMessage, translateErrorMessage } from '@/utils/errorCode'
 import { showMessage } from '@/utils/message'
 import type { 
-  UUToken, 
-  BuffToken, 
   Settings, 
   PaginationParams, 
   ApiResponse,
-  TokenStatus,
   SkinItem,
   LoginForm,
   EmailLoginForm,
@@ -233,25 +230,6 @@ export const userApi = {
   // VIP续费
   renewVip: (data: RenewVipRequest): Promise<ApiResponse> => 
     api.post('/admin/vip-expiry', data),
-}
-
-// Platform Token相关API（管理员）
-export const platformTokenApi = {
-  // 更新UU Token
-  updateUUToken: (data: UUToken): Promise<ApiResponse> => 
-    api.post('/admin/tokens/uu', data),
-  
-  // 更新Buff Token
-  updateBuffToken: (data: BuffToken): Promise<ApiResponse> => 
-    api.post('/admin/tokens/buff', data),
-  
-  // 验证Token状态（获取状态用）
-  verifyTokens: (): Promise<ApiResponse<TokenStatus>> => 
-    api.get('/admin/tokens/verify'),
-    
-  // 手动验证所有Token（验证按钮用）
-  manualVerifyTokens: (): Promise<ApiResponse<TokenStatus>> => 
-    api.post('/admin/tokens/verify'),
 }
 
 // 设置相关API（VIP用户）

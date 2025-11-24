@@ -7,16 +7,11 @@
           <div class="menu-icon">👥</div>
           <div class="menu-text">用户管理</div>
         </div>
-        <div class="menu-item" :class="{ active: activeTab === 'tokens' }" @click="activeTab = 'tokens'">
-          <div class="menu-icon">🔑</div>
-          <div class="menu-text">Token管理</div>
-        </div>
       </div>
 
       <!-- 右侧内容区 -->
       <div class="admin-content">
         <UserManager v-if="activeTab === 'users'" />
-        <TokenManager v-if="activeTab === 'tokens'" />
       </div>
     </div>
   </div>
@@ -25,7 +20,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import UserManager from '@/components/UserManager.vue'
-import TokenManager from '@/components/TokenManager.vue'
 
 const activeTab = ref('users')
 </script>

@@ -1,21 +1,28 @@
 package models
 
 import (
+	"context"
 	"fmt"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"math"
+	"strconv"
+	"time"
 	"uu/config"
 	"uu/utils"
 )
 
 type Goods struct {
-	Id             int64   `json:"id"`
-	MarketHashName string  `json:"market_hash_name"`
-	UserId         string  `json:"user_id"`
-	Name           string  `json:"name"`
-	SourcePrice    float64 `json:"source_price"`
-	TargetPrice    float64 `json:"target_price"`
+	Id               int64   `json:"id"`
+	MarketHashName   string  `json:"market_hash_name"`
+	UserId           string  `json:"user_id"`
+	Name             string  `json:"name"`
+	SourcePrice      float64 `json:"source_price"`
+	TargetPrice      float64 `json:"target_price"`
+	SourceUpdateTime int64   `json:"source_update_time"`
+	TargetUpdateTime int64   `json:"target_update_time"`
+	BiddingPrice     float64 `json:"bidding_price"`
+	BiddingCount     int64   `json:"bidding_count"`
 	//Category    string  `json:"category"`
 	ImageUrl     string      `json:"image_url"`
 	PriceDiff    float64     `json:"price_diff"`
@@ -150,7 +157,7 @@ func GetPlatformListBatch(marketHashNames []string) map[string][]*Platform {
 			BiddingCount: steam.BiddingCount,
 			UpdateTime:   steam.UpdateTime,
 			Link:         steam.Link,
-			Name:         "STEAM",
+			Name:         "Steam",
 		})
 	}
 
@@ -214,13 +221,14 @@ func GetGoods(userId string, pageSize, pageNum int, isDesc bool, sortField, sear
 	}
 
 	query1 := config.DB.Model(targetMap["model"]).
-		Select(fmt.Sprintf("%s.id as id, %s.sell_count as sell_count, %s.turn_over as turn_over, base_goods.market_hash_name as market_hash_name, base_goods.name as name, base_goods.icon_url as image_url, %s.sell_price as target_price, %s.sell_price as source_price, (%s.sell_price - %s.sell_price) as price_diff, ROUND((%s.sell_price - %s.sell_price)/%s.sell_price,4) as profit_rate", targetMap["table"], targetMap["table"], targetMap["table"], targetMap["table"], sourceTable, targetMap["table"], sourceTable, targetMap["table"], sourceTable, sourceTable)).
+		Select(fmt.Sprintf("%s.id as id, %s.sell_count as sell_count, %s.turn_over as turn_over, %s.bidding_count as bidding_count, %s.bidding_price as bidding_price, base_goods.market_hash_name as market_hash_name, base_goods.name as name, base_goods.icon_url as image_url, %s.sell_price as target_price, %s.sell_price as source_price, (%s.sell_price - %s.sell_price) as price_diff, ROUND((%s.sell_price - %s.sell_price)/%s.sell_price,4) as profit_rate, %s.update_time as target_update_time, %s.update_time as source_update_time", targetMap["table"], targetMap["table"], targetMap["table"], targetMap["table"], targetMap["table"], targetMap["table"], sourceTable, targetMap["table"], sourceTable, targetMap["table"], sourceTable, sourceTable, targetMap["table"], sourceTable)).
 		Joins(fmt.Sprintf("join %s ON %s.market_hash_name = %s.market_hash_name", sourceTable, targetMap["table"], sourceTable)).
 		Joins(fmt.Sprintf("join base_goods ON %s.market_hash_name = base_goods.market_hash_name", targetMap["table"])).
 		Where(fmt.Sprintf("(%s.sell_price - %s.sell_price) > ? and %s.sell_count > ? and %s.sell_price < ? and %s.sell_price > ?", targetMap["table"], sourceTable, targetMap["table"], sourceTable, sourceTable),
 			settings.MinDiff, settings.MinSellNum, settings.MaxSellPrice, settings.MinSellPrice)
 	query2 := config.DB.Model(targetMap["model"]).
 		Joins(fmt.Sprintf("join %s ON %s.market_hash_name = %s.market_hash_name", sourceTable, targetMap["table"], sourceTable)).
+		Joins(fmt.Sprintf("join base_goods ON %s.market_hash_name = base_goods.market_hash_name", targetMap["table"])).
 		Where(fmt.Sprintf("(%s.sell_price - %s.sell_price) > ? and %s.sell_count > ? and %s.sell_price < ? and %s.sell_price > ?", targetMap["table"], sourceTable, targetMap["table"], sourceTable, sourceTable),
 			settings.MinDiff, settings.MinSellNum, settings.MaxSellPrice, settings.MinSellPrice)
 	//if category != "" {
@@ -230,7 +238,7 @@ func GetGoods(userId string, pageSize, pageNum int, isDesc bool, sortField, sear
 
 	if search != "" {
 		query1 = query1.Where("name LIKE ?", "%"+search+"%")
-		query2 = query2.Where("name LIKE ?", "%"+search+"%")
+		query2 = query2.Where("base_goods.name LIKE ?", "%"+search+"%")
 	}
 
 	err := query2.Count(&total).Error
@@ -271,4 +279,24 @@ func GetCategory() (*[]string, int) {
 		return &category, utils.ErrCodeGetGoodsCategory
 	}
 	return &category, utils.SUCCESS
+}
+
+func SetLastIndex(index int) {
+	ctx := context.Background()
+	err := config.RDB.Set(ctx, "hash_name_index", index, time.Minute*5).Err()
+	if err != nil {
+		config.Log.Errorf("Set hash name index error: %v", err)
+	}
+}
+
+func GetLastIndex() int {
+	ctx := context.Background()
+	index, err := config.RDB.Get(ctx, "hash_name_index").Result()
+	if err != nil {
+		config.Log.Errorf("Get hash name index error: %v", err)
+		return 0
+	}
+	newIndex, _ := strconv.Atoi(index)
+
+	return newIndex
 }

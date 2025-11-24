@@ -66,10 +66,14 @@ type U struct {
 	Link           string  `json:"link"`
 }
 
-func GetUUGoods(hashName string) *U {
-	var u U
-	config.DB.Where("market_hash_name = ?", hashName).Find(&u)
-	return &u
+func BatchGetUUGoods(hashNames []string) map[string]*U {
+	var uList []U
+	config.DB.Where("market_hash_name in ?", hashNames).Find(&uList)
+	result := make(map[string]*U)
+	for i := range uList {
+		result[uList[i].MarketHashName] = &uList[i]
+	}
+	return result
 }
 
 func BatchUpdateUUGoods(uu []*U) {

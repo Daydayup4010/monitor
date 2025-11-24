@@ -85,9 +85,10 @@ func BatchGetPrice() ([]*PriceList, error) {
 		config.Log.Errorf("Get hash name error: %v", err)
 		return allPrice, err
 	}
-
+	index := models.GetLastIndex()
+	config.Log.Infof("Redis start is %d", index)
 	n := len(hashNames) / 100
-	remainder := len(hashNames) % 10
+	remainder := len(hashNames) % 100
 	if remainder > 0 {
 		n++
 	}
@@ -98,25 +99,30 @@ func BatchGetPrice() ([]*PriceList, error) {
 		return allPrice, fmt.Errorf("no activate key")
 	}
 
-	for i := 0; i < n; i++ {
+	for i := index; i < n; i++ {
 		var rep BatchPriceResponse
 		start := i * 100
 		end := start + 100
 		if end > len(hashNames) {
 			end = len(hashNames)
 		}
-		hashList := hashNames[start:end]
 		key := keys[0]
 		if len(keys) != 1 {
 			keys = keys[1:]
+			if end >= len(hashNames) {
+				i = 0
+				config.Log.Info("over index")
+			}
 		} else {
 			keys = models.GetActivateKey()
 			if len(keys) == 0 {
 				config.Log.Warnf("no activate key")
+				config.Log.Infof("Start is %d", i)
+				models.SetLastIndex(i)
 				return allPrice, fmt.Errorf("no activate key")
 			}
 		}
-
+		hashList := hashNames[start:end]
 		header := getHeaderFormatKey(key.Key)
 		opts := utils.RequestOptions{
 			Headers: header,
@@ -149,13 +155,23 @@ func UpdateAllPlatformData() {
 	if err != nil && len(all) == 0 {
 		return
 	}
+
+	hashNames, _ := models.GetHashNames()
+	uMap := models.BatchGetUUGoods(hashNames)
+	buffMap := models.BatchGetBuffGoods(hashNames)
+	c5Map := models.BatchGetC5Goods(hashNames)
+	steamMap := models.BatchGetSteamGoods(hashNames)
+
 	for _, data := range all {
 		dataList := data.DataList
 		for i, _ := range dataList {
 			switch dataList[i].Platform {
 			case "YOUPIN":
-				u := models.GetUUGoods(data.MarketHashName)
-				if dataList[i].UpdateTime-u.UpdateTime >= 86400 {
+				u := uMap[data.MarketHashName]
+				if u == nil {
+					u = &models.U{}
+				}
+				if dataList[i].UpdateTime-u.UpdateTime >= 43200 {
 					turnOver := int64(math.Abs(float64(dataList[i].SellCount - u.SellCount)))
 					u.TurnOver = turnOver
 				}
@@ -169,8 +185,11 @@ func UpdateAllPlatformData() {
 				u.Link = fmt.Sprintf("https://www.youpin898.com/market/goods-list?listType=10&templateId=%s&gameId=730", dataList[i].PlatformItemId)
 				uList = append(uList, u)
 			case "BUFF":
-				buff := models.GetBuffGoods(data.MarketHashName)
-				if dataList[i].UpdateTime-buff.UpdateTime >= 86400 {
+				buff := buffMap[data.MarketHashName]
+				if buff == nil {
+					buff = &models.Buff{}
+				}
+				if dataList[i].UpdateTime-buff.UpdateTime >= 43200 {
 					turnOver := int64(math.Abs(float64(dataList[i].SellCount - buff.SellCount)))
 					buff.TurnOver = turnOver
 				}
@@ -184,8 +203,11 @@ func UpdateAllPlatformData() {
 				buff.Link = fmt.Sprintf("https://buff.163.com/goods/%s?from=market#tab=selling", dataList[i].PlatformItemId)
 				buffList = append(buffList, buff)
 			case "C5":
-				c5 := models.GetC5Goods(data.MarketHashName)
-				if dataList[i].UpdateTime-c5.UpdateTime >= 86400 {
+				c5 := c5Map[data.MarketHashName]
+				if c5 == nil {
+					c5 = &models.C5{}
+				}
+				if dataList[i].UpdateTime-c5.UpdateTime >= 43200 {
 					turnOver := int64(math.Abs(float64(dataList[i].SellCount - c5.SellCount)))
 					c5.TurnOver = turnOver
 				}
@@ -199,8 +221,11 @@ func UpdateAllPlatformData() {
 				c5.Link = fmt.Sprintf("https://www.c5game.com/csgo/%s/%s/sell", dataList[i].PlatformItemId, data.MarketHashName)
 				c5List = append(c5List, c5)
 			case "STEAM":
-				steam := models.GetSteamGoods(data.MarketHashName)
-				if dataList[i].UpdateTime-steam.UpdateTime >= 86400 {
+				steam := steamMap[data.MarketHashName]
+				if steam == nil {
+					steam = &models.Steam{}
+				}
+				if dataList[i].UpdateTime-steam.UpdateTime >= 43200 {
 					turnOver := int64(math.Abs(float64(dataList[i].SellCount - steam.SellCount)))
 					steam.TurnOver = turnOver
 				}

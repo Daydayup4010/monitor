@@ -4,6 +4,7 @@ import (
 	"uu/config"
 	"uu/core"
 	"uu/models"
+	"uu/services"
 )
 
 func main() {
@@ -13,8 +14,7 @@ func main() {
 	core.InitRedis()
 	models.InitKeys()
 	//go services.UpdateBaseGoodsScheduler()
-	//services.UpdateAllPlatformData()
-	//go services.UpdateAllPlatformData()
+	go services.UpdateAllGoodsScheduler()
 	r := core.InitRouter()
 	addr := config.CONFIG.Server.GetAddr()
 	err := r.Run(addr)

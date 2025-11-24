@@ -68,6 +68,19 @@ export interface RenewVipRequest {
   days: number
 }
 
+// 平台数据类型
+export interface PlatformData {
+  platformItemId: string
+  platformName: string
+  sellPrice: number
+  sellCount: number
+  biddingPrice: number
+  biddingCount: number
+  price_diff: number
+  updateTime: number
+  link: string
+}
+
 // 饰品数据类型
 export interface SkinItem {
   id: number
@@ -76,11 +89,16 @@ export interface SkinItem {
   image_url: string
   source_price: number    // 买入价格（根据source平台）
   target_price: number    // 卖出价格（根据target平台）
+  source_update_time: number  // 买入平台更新时间（时间戳）
+  target_update_time: number  // 卖出平台更新时间（时间戳）
+  turn_over: number       // 12小时成交量
+  sell_count: number      // 在售数量
   u_price?: number        // 兼容旧数据
   buff_price?: number     // 兼容旧数据
   price_diff: number
   profit_rate: number
   updated_at: string
+  platform_list?: PlatformData[]  // 各平台数据列表
 }
 
 // 分页参数
@@ -94,22 +112,6 @@ export interface PaginationParams {
   search?: string    // 搜索关键词
   source?: string    // 买入平台
   target?: string    // 卖出平台
-}
-
-// Platform Token类型
-export interface UUToken {
-  authorization: string
-  uk: string
-}
-
-export interface BuffToken {
-  session: string
-  csrf_token: string
-}
-
-export interface TokenStatus {
-  uu: 'yes' | 'no'  // no表示有效，yes表示无效
-  buff: 'yes' | 'no'
 }
 
 // 设置类型

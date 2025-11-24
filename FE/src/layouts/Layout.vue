@@ -7,7 +7,7 @@
           <div class="brand-icon">
             <el-icon size="28" color="white"><TrendCharts /></el-icon>
           </div>
-          <h1 class="brand-title">饰品差价监控</h1>
+          <h1 class="brand-title">CS Goods</h1>
         </div>
         
         <nav class="nav-menu">

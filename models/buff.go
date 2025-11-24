@@ -59,10 +59,14 @@ type Buff struct {
 	Link           string  `json:"link"`
 }
 
-func GetBuffGoods(hashName string) *Buff {
-	var buff Buff
-	config.DB.Where("market_hash_name = ?", hashName).Find(&buff)
-	return &buff
+func BatchGetBuffGoods(hashNames []string) map[string]*Buff {
+	var buffs []Buff
+	result := make(map[string]*Buff)
+	config.DB.Where("market_hash_name in ?", hashNames).Find(&buffs)
+	for i := range buffs {
+		result[buffs[i].MarketHashName] = &buffs[i]
+	}
+	return result
 }
 
 func BatchUpdateBuffGoods(buff []*Buff) {
