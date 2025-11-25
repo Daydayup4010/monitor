@@ -39,5 +39,5 @@ func BatchUpdateC5Goods(c5 []*C5) {
 		config.Log.Errorf("Update C5 Goods fail: %v", err)
 		return
 	}
-	config.Log.Info("Update C5 Goods Success")
+	//config.Log.Info("Update C5 Goods Success")
 }

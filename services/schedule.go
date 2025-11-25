@@ -3,7 +3,6 @@ package services
 import (
 	"sync"
 	"time"
-	"uu/config"
 )
 
 func StartBuffFullUpdateScheduler() {
@@ -53,7 +52,6 @@ func UpdateAllGoodsScheduler() {
 	for range ticker.C {
 		mutex.Lock()
 		if running {
-			config.Log.Info("上一个任务还在执行")
 			mutex.Unlock()
 			continue
 		}
@@ -63,7 +61,6 @@ func UpdateAllGoodsScheduler() {
 			defer func() {
 				mutex.Lock()
 				running = false
-				config.Log.Info("任务执行完，释放锁")
 				mutex.Unlock()
 			}()
 			UpdateAllPlatformData()

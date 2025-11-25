@@ -43,5 +43,5 @@ func BatchUpdateSteamGoods(steam []*Steam) {
 		config.Log.Errorf("Update steam Goods fail: %v", err)
 		return
 	}
-	config.Log.Info("Update steam Goods Success")
+	//config.Log.Info("Update steam Goods Success")
 }

@@ -80,5 +80,5 @@ func BatchUpdateBuffGoods(buff []*Buff) {
 		config.Log.Errorf("Update Buff Goods fail: %v", err)
 		return
 	}
-	config.Log.Info("Update Buff Goods Success")
+	//config.Log.Info("Update Buff Goods Success")
 }

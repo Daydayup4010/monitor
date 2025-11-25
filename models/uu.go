@@ -87,7 +87,7 @@ func BatchUpdateUUGoods(uu []*U) {
 		config.Log.Errorf("Update UU Goods fail: %v", err)
 		return
 	}
-	config.Log.Info("Update UU Goods Success")
+	//config.Log.Info("Update UU Goods Success")
 }
 
 func BatchQueryHashIcon() ([]UBaseInfo, error) {

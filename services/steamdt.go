@@ -86,7 +86,6 @@ func BatchGetPrice() ([]*PriceList, error) {
 		return allPrice, err
 	}
 	index := models.GetLastIndex()
-	config.Log.Infof("Redis start is %d", index)
 	n := len(hashNames) / 100
 	remainder := len(hashNames) % 100
 	if remainder > 0 {
@@ -95,7 +94,6 @@ func BatchGetPrice() ([]*PriceList, error) {
 
 	keys := models.GetActivateKey()
 	if len(keys) == 0 {
-		config.Log.Warnf("no activate key")
 		return allPrice, fmt.Errorf("no activate key")
 	}
 
@@ -107,17 +105,16 @@ func BatchGetPrice() ([]*PriceList, error) {
 			end = len(hashNames)
 		}
 		key := keys[0]
-		if len(keys) != 1 {
+		if len(keys) > 1 {
 			keys = keys[1:]
 			if end >= len(hashNames) {
 				i = 0
-				config.Log.Info("over index")
+				continue
 			}
 		} else {
+			models.UpdateLastUsed(&key)
 			keys = models.GetActivateKey()
 			if len(keys) == 0 {
-				config.Log.Warnf("no activate key")
-				config.Log.Infof("Start is %d", i)
 				models.SetLastIndex(i)
 				return allPrice, fmt.Errorf("no activate key")
 			}
@@ -136,7 +133,8 @@ func BatchGetPrice() ([]*PriceList, error) {
 			config.Log.Errorf("Request open/cs2/v1/price/batch error:%v, code: %v", err, res.StatusCode())
 		}
 		if rep.ErrorCode == 4005 {
-			config.Log.Warningf("Request api %s limit", "open/cs2/v1/price/batch")
+			config.Log.Warningf("Request api %s limit, key: %s", "open/cs2/v1/price/batch", key)
+			config.Log.Info(rep.ErrorMsg)
 		} else {
 			models.UpdateLastUsed(&key)
 		}
