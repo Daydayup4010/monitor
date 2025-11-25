@@ -168,6 +168,16 @@ api.interceptors.response.use(
       return Promise.reject(error)
     }
 
+    // 429 请求限流
+    if (error.response?.status === 429) {
+      const retryAfter = errorData?.retryAfter
+      const limitMsg = retryAfter 
+        ? `请求过于频繁，请 ${retryAfter} 秒后再试`
+        : errorMessage
+      showMessage.warning(limitMsg)
+      return Promise.reject(error)
+    }
+
     // VIP权限不足（特殊code标识）
     if (errorData?.code === 'VIP_REQUIRED') {
       showMessage.warning('需要VIP权限才能访问')

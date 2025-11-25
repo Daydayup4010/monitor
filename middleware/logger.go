@@ -25,7 +25,11 @@ func Logger() gin.HandlerFunc {
 	}
 	logger.Out = scr
 
-	logger.SetLevel(logrus.DebugLevel)
+	parseLevel, err := logrus.ParseLevel(config.CONFIG.Logger.Level)
+	if err != nil {
+		parseLevel = logrus.InfoLevel
+	}
+	logger.SetLevel(parseLevel)
 	logWriter, _ := rota.New(filePath+"%Y%m%d.log", rota.WithMaxAge(7*24*time.Hour), rota.WithRotationTime(24*time.Hour), rota.WithLinkName(linkName))
 	wireMap := lfshook.WriterMap{
 		logrus.InfoLevel:  logWriter,

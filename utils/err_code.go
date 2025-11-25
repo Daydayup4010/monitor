@@ -41,6 +41,7 @@ const (
 	ErrCodeGetTokenExpired      = 2007
 	ErrCodeCreateDefaultSetting = 2008
 	ErrCodeGetGoodsCategory     = 2009
+	ErrCodeRateLimitExceeded    = 2010
 )
 
 // 错误码与消息映射
@@ -56,6 +57,7 @@ var errorCodeToMessage = map[int]string{
 	ErrCodeUpdateBuffToken:   "Update buff token error",
 	ErrCodeGetTokenExpired:   "Get token expired error",
 	ErrCodeGetGoodsCategory:  "Get goods category error",
+	ErrCodeRateLimitExceeded: "Too many requests, please try again later",
 	// 用户模块
 	ErrCodeInvalidEmailCode:     "The provided email code is incorrect",
 	ErrCodeUsernameTaken:        "The requested username is already in use",

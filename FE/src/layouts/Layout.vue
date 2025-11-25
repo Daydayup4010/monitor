@@ -3,7 +3,7 @@
     <!-- 顶部导航栏 -->
     <header class="top-header">
       <div class="header-content">
-        <div class="brand">
+        <div class="brand" @click="goHome" style="cursor: pointer;">
           <div class="brand-icon">
             <el-icon size="28" color="white"><TrendCharts /></el-icon>
           </div>
@@ -120,6 +120,11 @@ const getUserAvatarBg = () => {
   } else {
     return `url(/src/assets/icons/register.png)`
   }
+}
+
+// 点击logo回到首页
+const goHome = () => {
+  router.push('/home')
 }
 
 // 处理下拉菜单命令

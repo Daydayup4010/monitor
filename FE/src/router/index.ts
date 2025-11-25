@@ -47,7 +47,7 @@ const router = createRouter({
           name: 'Settings',
           component: () => import('@/pages/Settings.vue'),
           meta: { 
-            title: '设置', 
+            title: '个人设置', 
             icon: 'User',
             requiresAuth: true,
             hideInMenu: true  // 不在导航菜单中显示
@@ -72,6 +72,10 @@ const router = createRouter({
 // 路由守卫
 router.beforeEach((to, from, next) => {
   const userStore = useUserStore()
+  
+  // 动态设置页面标题
+  const title = to.meta.title as string
+  document.title = title ? `${title} - CS Goods` : 'CS Goods'
   
   // 如果已登录且访问登录/注册页，重定向到首页
   if ((to.path === '/login' || to.path === '/register') && userStore.isLoggedIn) {

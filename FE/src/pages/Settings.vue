@@ -22,18 +22,19 @@
       </div>
     </div>
 
-    <!-- 提示信息 -->
+    <!-- 修改密码 -->
     <div class="card">
-      <div class="card-title">⚙️ 筛选参数配置</div>
-      <div style="padding: 24px; text-align: center;">
-        <p style="font-size: 15px; color: #595959; margin-bottom: 16px;">
-          筛选参数（价格范围、成交量等）已移至"饰品数据"页面，方便您直接调整和查看结果。
+      <div class="card-title">🔐 账号安全</div>
+      <div style="padding: 24px;">
+        <p style="font-size: 14px; color: #666; margin-bottom: 16px;">
+          通过邮箱验证码修改您的登录密码
         </p>
-        <button class="btn btn-primary" @click="goToHome" style="padding: 12px 32px;">
-          前往饰品数据页面
+        <button class="btn btn-primary" @click="goToResetPassword">
+          修改密码
         </button>
       </div>
     </div>
+
   </div>
 </template>
 
@@ -58,6 +59,10 @@ const formatDate = (date: string) => {
 
 const goToHome = () => {
   router.push('/home')
+}
+
+const goToResetPassword = () => {
+  router.push('/reset-password')
 }
 
 // 获取用户头像背景图
