@@ -43,6 +43,8 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import dayjs from 'dayjs'
+import loginIcon from '@/assets/icons/login.png'
+import registerIcon from '@/assets/icons/register.png'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -69,9 +71,9 @@ const goToResetPassword = () => {
 const getUserAvatarBg = () => {
   // VIP或管理员用login.png，普通用户用register.png
   if (userStore.isVip || userStore.isAdmin) {
-    return `url(/src/assets/icons/login.png)`
+    return `url(${loginIcon})`
   } else {
-    return `url(/src/assets/icons/register.png)`
+    return `url(${registerIcon})`
   }
 }
 </script>
