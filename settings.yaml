@@ -3,7 +3,7 @@ mysql:
   port: 3306
   db: uu
   username: root
-  password: 2333tv.top
+  password: 2333Tv.top
   log_level: dev
   config: charset=utf8mb4&parseTime=True&loc=Asia%2FShanghai
   maxIdleConns: 10
@@ -23,7 +23,7 @@ server:
 redis:
   host: 127.0.0.1
   port: 6379
-  password: ""
+  password: 2333tv.top
   db: 0
 
 email:
