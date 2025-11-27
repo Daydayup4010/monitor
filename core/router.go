@@ -14,6 +14,10 @@ func InitRouter() *gin.Engine {
 	r := gin.Default()
 	r.Use(gin.Recovery(), middleware.Cors(), middleware.Logger())
 	v1 := r.Group("api/v1")
+
+	// 验证码接口（无需登录）
+	v1.GET("captcha", api.GenerateCaptcha)
+
 	user := v1.Group("user")
 	{
 		// 注册接口：每个IP每分钟最多5次

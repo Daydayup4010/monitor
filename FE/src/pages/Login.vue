@@ -53,13 +53,35 @@
           </el-form-item>
         </div>
 
+        <div class="form-item">
+          <label class="form-label">图形验证码</label>
+          <el-form-item prop="captchaCode">
+            <div style="display: flex; gap: 12px; align-items: center;">
+              <el-input
+                v-model="passwordForm.captchaCode"
+                placeholder="请输入验证码"
+                style="flex: 1;"
+                @keyup.enter="handlePasswordLogin"
+              />
+              <img 
+                v-if="captchaImg" 
+                :src="captchaImg" 
+                @click="refreshCaptcha"
+                style="height: 40px; cursor: pointer; border-radius: 4px; border: 1px solid #dcdfe6;"
+                title="点击刷新验证码"
+              />
+              <span v-else style="color: #999; font-size: 12px;">加载中...</span>
+            </div>
+          </el-form-item>
+        </div>
+
         <div style="text-align: right; margin-bottom: 12px;">
           <router-link to="/reset-password" style="color: #1890ff; font-size: 13px; text-decoration: none;">
             忘记密码？
           </router-link>
         </div>
 
-        <button type="submit" class="btn btn-primary" :disabled="userStore.loading">
+        <button type="submit" class="btn btn-primary" :disabled="userStore.loading || !captchaId">
           {{ userStore.loading ? '登录中...' : '立即登录' }}
         </button>
       </el-form>
@@ -129,10 +151,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch, onUnmounted } from 'vue'
+import { ref, reactive, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { authApi } from '@/api'
+import { authApi, captchaApi } from '@/api'
 import { showMessage, debounce } from '@/utils'
 import type { FormInstance, FormRules } from 'element-plus'
 import type { LoginForm, EmailLoginForm } from '@/types'
@@ -143,10 +165,33 @@ const userStore = useUserStore()
 
 const loginType = ref<'password' | 'email'>('password')
 
+// 图形验证码
+const captchaId = ref('')
+const captchaImg = ref('')
+
 const passwordFormRef = ref<FormInstance>()
-const passwordForm = reactive<LoginForm>({
+const passwordForm = reactive<LoginForm & { captchaCode: string }>({
   email: '',
   password: '',
+  captchaCode: '',
+})
+
+// 获取图形验证码
+const refreshCaptcha = async () => {
+  try {
+    const response = await captchaApi.getCaptcha()
+    if (response.code === 1) {
+      captchaId.value = response.captcha_id
+      captchaImg.value = response.captcha_img
+    }
+  } catch (error) {
+    console.error('获取验证码失败:', error)
+  }
+}
+
+// 页面加载时获取验证码
+onMounted(() => {
+  refreshCaptcha()
 })
 
 const passwordRules: FormRules = {
@@ -157,6 +202,9 @@ const passwordRules: FormRules = {
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
     { min: 6, message: '密码长度不能少于6位', trigger: 'blur' },
+  ],
+  captchaCode: [
+    { required: true, message: '请输入图形验证码', trigger: 'blur' },
   ],
 }
 
@@ -271,7 +319,12 @@ const handlePasswordLogin = async () => {
 
   try {
     await passwordFormRef.value.validate()
-    const success = await userStore.login(passwordForm)
+    const success = await userStore.login({
+      email: passwordForm.email,
+      password: passwordForm.password,
+      captcha_id: captchaId.value,
+      captcha_code: passwordForm.captchaCode,
+    })
     if (success) {
       await new Promise(resolve => setTimeout(resolve, 100))
       if (userStore.isVip || userStore.isAdmin) {
@@ -279,9 +332,16 @@ const handlePasswordLogin = async () => {
       } else {
         router.push('/settings')
       }
+    } else {
+      // 登录失败，刷新验证码
+      refreshCaptcha()
+      passwordForm.captchaCode = ''
     }
   } catch (error) {
     console.error('表单验证失败:', error)
+    // 登录失败，刷新验证码
+    refreshCaptcha()
+    passwordForm.captchaCode = ''
   }
 }
 
@@ -326,14 +386,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.auth-page-wrapper {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.auth-page-wrapper .auth-page {
-  flex: 1;
-}
+/* 样式在 unified.css 中 */
 </style>
 

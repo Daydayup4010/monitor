@@ -76,8 +76,8 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  // 账户密码登录
-  const login = async (form: LoginForm) => {
+  // 账户密码登录（带验证码）
+  const login = async (form: LoginForm & { captcha_id: string; captcha_code: string }) => {
     loading.value = true
     try {
       const response = await authApi.login(form)

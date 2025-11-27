@@ -579,10 +579,18 @@ tr:hover {
 
 /* 登录/注册页面 */
 .auth-page {
-    min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
+    background: #f5f7fa;
+    flex: 1;
+    padding: 40px 20px;
+}
+
+.auth-page-wrapper {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
     background: #f5f7fa;
 }
 

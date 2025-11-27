@@ -28,6 +28,8 @@ export const ERROR_CODE_MAP: Record<number, string> = {
   1021: '邮箱已存在，需要合并账号',
   1022: '账号合并失败',
   1023: '该邮箱已绑定其他微信账号',
+  1024: '生成图形验证码失败',
+  1025: '图形验证码错误或已过期',
   
   // 系统模块错误 (2000-2999)
   2000: '全量更新正在运行中',
@@ -83,6 +85,8 @@ export const ERROR_MSG_MAP: Record<string, string> = {
   'Get token expired error': '获取Token状态失败',
   'create default setting error': '创建默认设置失败',
   'success': '操作成功',
+  'Generate captcha error': '生成图形验证码失败',
+  'Invalid captcha or captcha expired': '图形验证码错误或已过期',
 }
 
 // 翻译错误消息为中文

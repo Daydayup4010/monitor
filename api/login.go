@@ -11,8 +11,10 @@ import (
 
 // LoginRequest 登录请求体
 type LoginRequest struct {
-	Email    string `json:"email" binding:"required"`
-	Password string `json:"password" binding:"required"`
+	Email       string `json:"email" binding:"required"`
+	Password    string `json:"password" binding:"required"`
+	CaptchaId   string `json:"captcha_id" binding:"required"`
+	CaptchaCode string `json:"captcha_code" binding:"required"`
 }
 
 func Login(c *gin.Context) {
@@ -24,6 +26,16 @@ func Login(c *gin.Context) {
 		})
 		return
 	}
+
+	// 验证图形验证码
+	if !VerifyCaptcha(req.CaptchaId, req.CaptchaCode) {
+		c.JSON(http.StatusOK, gin.H{
+			"code": utils.ErrCodeCaptchaInvalid,
+			"msg":  utils.ErrorMessage(utils.ErrCodeCaptchaInvalid),
+		})
+		return
+	}
+
 	if !models.IfExistEmail(req.Email) {
 		c.JSON(http.StatusOK, gin.H{
 			"code": utils.ErrCodeUserNotFound,

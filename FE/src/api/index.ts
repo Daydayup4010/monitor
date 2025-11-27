@@ -192,10 +192,17 @@ api.interceptors.response.use(
   }
 )
 
+// 验证码API
+export const captchaApi = {
+  // 获取图形验证码
+  getCaptcha: (): Promise<ApiResponse<{ captcha_id: string; captcha_img: string }>> =>
+    api.get('/captcha'),
+}
+
 // 用户认证相关API
 export const authApi = {
-  // 账户密码登录
-  login: (data: LoginForm): Promise<ApiResponse> => 
+  // 账户密码登录（需要验证码）
+  login: (data: LoginForm & { captcha_id: string; captcha_code: string }): Promise<ApiResponse> => 
     api.post('/user/login', data),
   
   // 邮箱验证码登录

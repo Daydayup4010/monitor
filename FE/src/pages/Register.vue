@@ -330,14 +330,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.auth-page-wrapper {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.auth-page-wrapper .auth-page {
-  flex: 1;
-}
+/* 样式在 unified.css 中 */
 </style>
 

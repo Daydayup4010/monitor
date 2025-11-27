@@ -25,6 +25,8 @@ const (
 	ErrCodeEmailExistsNeedMerge = 1021
 	ErrCodeAccountMergeFailed   = 1022
 	ErrCodeWechatAlreadyBound   = 1023
+	ErrCodeCaptchaGenerate      = 1024
+	ErrCodeCaptchaInvalid       = 1025
 )
 
 // other
@@ -82,6 +84,8 @@ var errorCodeToMessage = map[int]string{
 	ErrCodeEmailExistsNeedMerge: "Email already exists, merge required",
 	ErrCodeAccountMergeFailed:   "Account merge failed",
 	ErrCodeWechatAlreadyBound:   "Email account already bound to another wechat",
+	ErrCodeCaptchaGenerate:      "Generate captcha error",
+	ErrCodeCaptchaInvalid:       "Invalid captcha or captcha expired",
 }
 
 // ErrorMessage 返回指定错误码对应的错误消息

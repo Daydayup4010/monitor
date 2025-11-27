@@ -166,6 +166,8 @@ onMounted(() => {
   background: #f5f7fa;
   position: relative;
   overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .top-header {
@@ -326,13 +328,12 @@ onMounted(() => {
 }
 
 .main-content {
-  min-height: calc(100vh - 70px);
+  flex: 1;
   padding: 20px;
 }
 
 .content-wrapper {
   width: 100%;
-  min-height: calc(100vh - 170px);
   background: transparent;
   overflow: visible;
 }
@@ -395,7 +396,6 @@ onMounted(() => {
   
   .main-content {
     padding: 12px;
-    min-height: calc(100vh - 120px);
   }
   
   .content-wrapper {
@@ -425,7 +425,6 @@ onMounted(() => {
   
   .main-content {
     padding: 8px;
-    min-height: calc(100vh - 55px);
   }
   
   .content-wrapper {
