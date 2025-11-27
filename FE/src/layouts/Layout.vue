@@ -74,6 +74,9 @@
         <router-view />
       </div>
     </main>
+
+    <!-- 页脚 -->
+    <Footer />
   </div>
 </template>
 
@@ -83,6 +86,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import loginIcon from '@/assets/icons/login.png'
 import registerIcon from '@/assets/icons/register.png'
+import Footer from '@/components/Footer.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -328,7 +332,7 @@ onMounted(() => {
 
 .content-wrapper {
   width: 100%;
-  min-height: calc(100vh - 110px);
+  min-height: calc(100vh - 170px);
   background: transparent;
   overflow: visible;
 }
@@ -391,7 +395,7 @@ onMounted(() => {
   
   .main-content {
     padding: 12px;
-    min-height: calc(100vh - 60px);
+    min-height: calc(100vh - 120px);
   }
   
   .content-wrapper {

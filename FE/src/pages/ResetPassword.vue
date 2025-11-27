@@ -1,6 +1,7 @@
 <template>
-  <div class="auth-page">
-    <div class="auth-card">
+  <div class="auth-page-wrapper">
+    <div class="auth-page">
+      <div class="auth-card">
       <div class="auth-header">
         <h2 class="auth-title">
           <img src="@/assets/icons/register.png" style="height: 36px; width: auto; vertical-align: middle; margin-right: 8px; object-fit: contain;" alt="重置密码" />
@@ -89,7 +90,9 @@
       <div class="auth-footer">
         想起密码了？<router-link to="/login">返回登录</router-link>
       </div>
+      </div>
     </div>
+    <Footer />
   </div>
 </template>
 
@@ -99,6 +102,7 @@ import { useRouter } from 'vue-router'
 import { authApi } from '@/api'
 import { showMessage, debounce } from '@/utils'
 import type { FormInstance, FormRules } from 'element-plus'
+import Footer from '@/components/Footer.vue'
 
 const router = useRouter()
 const formRef = ref<FormInstance>()
@@ -305,6 +309,14 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* 所有样式在unified.css中 */
+.auth-page-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-page-wrapper .auth-page {
+  flex: 1;
+}
 </style>
 

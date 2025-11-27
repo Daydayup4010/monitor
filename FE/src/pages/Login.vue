@@ -1,6 +1,7 @@
 <template>
-  <div class="auth-page">
-    <div class="auth-card">
+  <div class="auth-page-wrapper">
+    <div class="auth-page">
+      <div class="auth-card">
       <div class="auth-header">
         <h2 class="auth-title">
           <img src="@/assets/icons/login.png" style="height: 36px; width: auto; vertical-align: middle; margin-right: 8px; object-fit: contain;" alt="登录" />
@@ -121,7 +122,9 @@
       <div class="auth-footer">
         还没有账户？<router-link to="/register">立即注册</router-link>
       </div>
+      </div>
     </div>
+    <Footer />
   </div>
 </template>
 
@@ -133,6 +136,7 @@ import { authApi } from '@/api'
 import { showMessage, debounce } from '@/utils'
 import type { FormInstance, FormRules } from 'element-plus'
 import type { LoginForm, EmailLoginForm } from '@/types'
+import Footer from '@/components/Footer.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -322,6 +326,14 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* 所有样式在unified.css中 */
+.auth-page-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-page-wrapper .auth-page {
+  flex: 1;
+}
 </style>
 
