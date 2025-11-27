@@ -18,7 +18,7 @@ export default defineConfig({
     hmr: false, // 生产环境禁用HMR
     proxy: {
       '/api': {
-        target: 'http://localhost:3601',
+        target: 'http://localhost:3100',
         changeOrigin: true,
       }
     }

@@ -33,7 +33,7 @@ func (es *EmailService) SendVerificationCode(toEmail, code string) int {
 	m := gomail.NewMessage()
 	m.SetHeader("From", es.FromEmail)
 	m.SetHeader("To", toEmail)
-	m.SetHeader("Subject", "【Monitor】")
+	m.SetHeader("Subject", "【CS Goods】")
 	body := fmt.Sprintf(`<h2>您好！</h2>
         <p>您的邮箱验证码是：<strong>%s</strong></p>
         <p>请在10分钟内完成验证。</p>

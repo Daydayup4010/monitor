@@ -130,7 +130,7 @@ func BatchGetPrice() ([]*PriceList, error) {
 		}
 		res, err := steamClient.DoRequest("POST", "open/cs2/v1/price/batch", opts)
 		if err != nil || res.StatusCode() != 200 {
-			config.Log.Errorf("Request open/cs2/v1/price/batch error:%v, code: %v", err, res.StatusCode())
+			config.Log.Errorf("Request open/cs2/v1/price/batch error: %v", err)
 		}
 		if rep.ErrorCode == 4005 {
 			config.Log.Warningf("Request api %s limit, key: %s", "open/cs2/v1/price/batch", key)

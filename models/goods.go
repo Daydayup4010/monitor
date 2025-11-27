@@ -83,6 +83,80 @@ func UpdateBaseGoods(base []*BaseGoods) {
 	config.Log.Info("Update Base Goods Success")
 }
 
+func UpdateBaseGoodsIcon() {
+	UInfos, err := BatchQueryHashIcon()
+	if err != nil {
+		config.Log.Errorf("Get icon info failed: %v", err)
+		return
+	}
+
+	iconMap := make(map[string]string)
+	for _, info := range UInfos {
+		if info.IconUrl != "" {
+			iconMap[info.HashName] = info.IconUrl
+		}
+	}
+
+	if len(iconMap) == 0 {
+		config.Log.Info("No icon data to update")
+		return
+	}
+
+	// 只查询 icon_url 为空的 BaseGoods
+	var baseGoodsList []BaseGoods
+	err = config.DB.Where("icon_url = '' OR icon_url IS NULL").Find(&baseGoodsList).Error
+	if err != nil {
+		config.Log.Errorf("Query BaseGoods failed: %v", err)
+		return
+	}
+
+	if len(baseGoodsList) == 0 {
+		config.Log.Info("No BaseGoods need to update icon")
+		return
+	}
+
+	// 筛选出能匹配到 icon 的记录
+	var toUpdate []BaseGoods
+	for i := range baseGoodsList {
+		if icon, exist := iconMap[baseGoodsList[i].MarketHashName]; exist {
+			baseGoodsList[i].IconUrl = icon
+			toUpdate = append(toUpdate, baseGoodsList[i])
+		}
+	}
+
+	if len(toUpdate) == 0 {
+		config.Log.Info("No matching icon found for BaseGoods")
+		return
+	}
+
+	// 批量更新到数据库
+	batchSize := 500
+	for i := 0; i < len(toUpdate); i += batchSize {
+		end := i + batchSize
+		if end > len(toUpdate) {
+			end = len(toUpdate)
+		}
+		batch := toUpdate[i:end]
+
+		err = config.DB.Transaction(func(tx *gorm.DB) error {
+			for _, goods := range batch {
+				if err := tx.Model(&BaseGoods{}).
+					Where("market_hash_name = ?", goods.MarketHashName).
+					Update("icon_url", goods.IconUrl).Error; err != nil {
+					return err
+				}
+			}
+			return nil
+		})
+		if err != nil {
+			config.Log.Errorf("Batch update BaseGoods icon failed: %v", err)
+			continue
+		}
+	}
+
+	config.Log.Infof("Update BaseGoods Icon Success, updated %d records", len(toUpdate))
+}
+
 func GetHashNames() ([]string, error) {
 	var hashNames []string
 	err := config.DB.Model(&BaseGoods{}).Pluck("market_hash_name", &hashNames).Error

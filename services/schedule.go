@@ -35,12 +35,21 @@ func StartUUFullUpdateScheduler() {
 }
 
 func UpdateBaseGoodsScheduler() {
-	go UpdateBaseGoodsToDb()
+	SafeGo(UpdateBaseGoodsToDb)
 	ticker := time.NewTicker(24 * time.Hour)
 	defer ticker.Stop()
 	for range ticker.C {
-		go UpdateBaseGoodsToDb()
+		SafeGo(UpdateBaseGoodsToDb)
 	}
+}
+
+func UpdateIconScheduler() {
+	ticker := time.NewTicker(1 * time.Hour)
+	defer ticker.Stop()
+	for range ticker.C {
+		SafeGo(UpdateUUGoods)
+	}
+
 }
 
 func UpdateAllGoodsScheduler() {
@@ -63,7 +72,7 @@ func UpdateAllGoodsScheduler() {
 				running = false
 				mutex.Unlock()
 			}()
-			UpdateAllPlatformData()
+			SafeGo(UpdateAllPlatformData)
 		}()
 	}
 }

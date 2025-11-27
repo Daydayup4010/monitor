@@ -119,7 +119,7 @@ export const useUserStore = defineStore('user', () => {
       const { confirmPassword, ...registerData } = form
       const response = await authApi.register(registerData)
       if (response.code === 1) {
-        showMessage.success('注册成功，请登录')
+        showMessage.success('注册成功！新用户免费送1天试用时间，请登录')
         return true
       }
       return false

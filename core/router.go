@@ -73,10 +73,10 @@ func InitRouter() *gin.Engine {
 	vip := v1.Group("vip")
 	vip.Use(middleware.AuthMiddleware(), middleware.AuthVIPMiddleware())
 	goods := vip.Group("goods")
-	// 商品接口：每个用户每分钟最多30次
+	// 商品接口：每个用户每分钟最多10次
 	goods.Use(middleware.RateLimiterByUser(middleware.RateLimiterConfig{
 		Window:      60 * time.Second,
-		MaxRequests: 30,
+		MaxRequests: 10,
 		KeyPrefix:   "vip:goods",
 	}))
 	{

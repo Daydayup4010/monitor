@@ -753,7 +753,10 @@ tr:hover {
 }
 
 .el-form-item__error {
-    display: none !important;
+    display: block !important;
+    color: #ff4d4f !important;
+    font-size: 12px !important;
+    padding-top: 4px !important;
 }
 
 .el-form-item__content {

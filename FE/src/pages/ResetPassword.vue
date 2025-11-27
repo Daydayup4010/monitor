@@ -151,6 +151,20 @@ const checkEmailExist = async () => {
   }
 }
 
+const validatePassword = (rule: any, value: any, callback: any) => {
+  if (!value) {
+    callback(new Error('请输入新密码'))
+  } else if (value.length < 6) {
+    callback(new Error('密码长度不能少于6位'))
+  } else if (/\s/.test(value)) {
+    callback(new Error('密码不能包含空格'))
+  } else if (!/^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]+$/.test(value)) {
+    callback(new Error('密码包含违规字符，只允许字母、数字和常见符号'))
+  } else {
+    callback()
+  }
+}
+
 const validateConfirmPassword = (rule: any, value: any, callback: any) => {
   if (!value) {
     callback(new Error('请再次输入密码'))
@@ -171,8 +185,7 @@ const rules: FormRules = {
     { len: 6, message: '验证码长度为6位', trigger: 'blur' },
   ],
   password: [
-    { required: true, message: '请输入新密码', trigger: 'blur' },
-    { min: 6, message: '密码长度不能少于6位', trigger: 'blur' },
+    { required: true, validator: validatePassword, trigger: 'blur' },
   ],
   confirmPassword: [
     { required: true, validator: validateConfirmPassword, trigger: 'blur' },

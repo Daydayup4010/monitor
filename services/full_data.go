@@ -19,6 +19,7 @@ var taskUU sync.Mutex
 var uuLimiter = rate.NewLimiter(3, 1) // 速率: 3 tokens/s, 突发容量: 1
 var buffLimiter = rate.NewLimiter(rate.Every(2000*time.Millisecond), 1)
 var RequestDelay = time.Second * 10
+var newLimiter = rate.NewLimiter(rate.Every(1000*time.Millisecond), 1)
 
 func UpdateAllUUItems() {
 	_, total, _ := GetUUItems(20, 1)
@@ -79,6 +80,26 @@ func UpdateAllBuffItems() {
 		config.Log.Infof("Full Update buff item pageName: %d, success", i)
 		models.BatchAddBuffItem(items)
 	}
+}
+
+func UpdateUUGoods() {
+	hashNames := models.QueryAllUUHashName()
+	n := len(hashNames) / 200
+	remainder := len(hashNames) % 200
+	if remainder > 0 {
+		n++
+	}
+	for i := 0; i < n; i++ {
+		if err := newLimiter.Wait(context.Background()); err != nil {
+			config.Log.Errorf("wait limiter error: %v", err)
+			return
+		}
+		start := i * 200
+		end := start + 200
+		goods := GetUUGoods(hashNames[start:end])
+		models.BatchUpdateIcon(goods)
+	}
+	models.UpdateBaseGoodsIcon()
 }
 
 //func UpdateFullData() int {

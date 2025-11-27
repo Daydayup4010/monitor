@@ -33,8 +33,9 @@ type UItemsInfo struct {
 }
 
 type UBaseInfo struct {
-	HashName string `json:"hash_name"`
-	IconUrl  string `json:"icon_url"`
+	Id       int    `json:"item_id" gorm:"primaryKey"`
+	HashName string `json:"hash_name" gorm:"type:varchar(255);uniqueIndex;not null"`
+	IconUrl  string `json:"icon_url" gorm:"index"`
 }
 
 func BatchAddUUItem(uu []*UItem) {
@@ -92,9 +93,31 @@ func BatchUpdateUUGoods(uu []*U) {
 
 func BatchQueryHashIcon() ([]UBaseInfo, error) {
 	var Infos []UBaseInfo
-	err := config.DB.Model(&UItem{}).Select("hash_name, icon_url").Find(&Infos).Error
+	err := config.DB.Select("hash_name, icon_url").Find(&Infos).Error
 	if err != nil {
 		config.Log.Errorf("Get uu icon url error: %v", err)
 	}
 	return Infos, err
+}
+
+func BatchUpdateIcon(infos []*UBaseInfo) {
+	err := config.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Clauses(clause.OnConflict{UpdateAll: true}).CreateInBatches(infos, 200).Error; err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		config.Log.Errorf("Update UU Goods Icon fail: %v", err)
+		return
+	}
+}
+
+func QueryAllUUHashName() []string {
+	var hashNames []string
+	err := config.DB.Model(&U{}).Pluck("market_hash_name", &hashNames).Error
+	if err != nil {
+		config.Log.Errorf("Get all uu hash name error: %v", err)
+	}
+	return hashNames
 }

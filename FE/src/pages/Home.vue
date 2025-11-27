@@ -198,6 +198,18 @@
               {{ skinStore.loading ? '刷新中...' : '确定并搜索' }}
             </button>
           </div>
+
+          <div style="margin-left: auto;">
+            <button
+              class="btn btn-refresh"
+              :disabled="skinStore.loading"
+              @click="reloadData"
+              style="height: 40px; padding: 0 24px; font-size: 14px;"
+            >
+              <el-icon style="margin-right: 6px;"><Refresh /></el-icon>
+              {{ skinStore.loading ? '刷新中...' : '刷新数据' }}
+            </button>
+          </div>
         </div>
 
         <!-- 当前选项描述 -->
@@ -424,7 +436,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, reactive } from 'vue'
-import { Search, QuestionFilled } from '@element-plus/icons-vue'
+import { Search, QuestionFilled, Refresh } from '@element-plus/icons-vue'
 import { useSkinStore } from '@/stores/skin'
 import { useSettingsStore } from '@/stores/settings'
 import { dataApi } from '@/api'
@@ -564,6 +576,14 @@ const refreshData = async () => {
   }
   
   // 再刷新数据
+  await skinStore.getSkinItems({
+    source: sourcePlatform.value,
+    target: targetPlatform.value
+  })
+}
+
+// 仅刷新数据（不保存设置）
+const reloadData = async () => {
   await skinStore.getSkinItems({
     source: sourcePlatform.value,
     target: targetPlatform.value
@@ -801,9 +821,33 @@ onMounted(async () => {
 
 <style scoped>
 /* 所有样式在unified.css中 */
-  .home-page {
+.home-page {
   padding: 0;
   max-width: 100%;
+}
+
+.btn-refresh {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #52c41a, #73d13d);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-refresh:hover:not(:disabled) {
+  background: linear-gradient(135deg, #389e0d, #52c41a);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(82, 196, 26, 0.4);
+}
+
+.btn-refresh:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 </style>
 

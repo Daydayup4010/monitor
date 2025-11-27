@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 	"strconv"
+	"time"
 	"uu/config"
 	"uu/models"
 	"uu/utils"
@@ -52,11 +53,14 @@ func Register(c *gin.Context) {
 		return
 	}
 	uid, _ := uuid.NewV7()
+	newExpiry := time.Now().AddDate(0, 0, 1)
 	var user = models.User{
-		ID:       uid,
-		UserName: reg.Username,
-		Email:    reg.Email,
-		Password: models.ScryptPw(reg.Password),
+		ID:        uid,
+		UserName:  reg.Username,
+		Email:     reg.Email,
+		Password:  models.ScryptPw(reg.Password),
+		Role:      1,
+		VipExpiry: newExpiry,
 	}
 
 	code = models.CreateDefaultSetting(uid.String())
@@ -220,7 +224,15 @@ func RefreshToken(c *gin.Context) {
 	email, _ := c.Get("email")
 
 	// 从数据库获取最新的用户信息（确保role和vipExpiry是最新的）
-	userIdStr := userID.(uuid.UUID).String()
+	userIDVal, ok := userID.(uuid.UUID)
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code": utils.ErrCodeInvalidToken,
+			"msg":  utils.ErrorMessage(utils.ErrCodeInvalidToken),
+		})
+		return
+	}
+	userIdStr := userIDVal.String()
 	user, code := models.GetUserById(userIdStr)
 	if code != utils.SUCCESS {
 		c.JSON(http.StatusBadRequest, gin.H{
