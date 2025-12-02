@@ -53,7 +53,18 @@ func Login(c *gin.Context) {
 	}
 	user.LastLogin = time.Now()
 	models.UpdateUserLastLogin(user)
-	token, err := utils.GenerateJWT(user.ID, user.UserName, user.Role, user.VipExpiry, user.Email)
+
+	// 生成 token 版本号并存储到 Redis（单设备登录）
+	tokenVersion := models.GenerateTokenVersion()
+	if err := models.SetTokenVersion(c.Request.Context(), user.ID, tokenVersion); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": utils.ErrCodeTokenGenerate,
+			"msg":  "登录失败，请重试",
+		})
+		return
+	}
+
+	token, err := utils.GenerateJWT(user.ID, user.UserName, user.Role, user.VipExpiry, user.Email, tokenVersion)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code": utils.ErrCodeTokenGenerate,
@@ -111,7 +122,17 @@ func LoginByEmail(c *gin.Context) {
 	user.LastLogin = time.Now()
 	models.UpdateUserLastLogin(user)
 
-	token, err := utils.GenerateJWT(user.ID, user.UserName, user.Role, user.VipExpiry, user.Email)
+	// 生成 token 版本号并存储到 Redis（单设备登录）
+	tokenVersion := models.GenerateTokenVersion()
+	if err := models.SetTokenVersion(c.Request.Context(), user.ID, tokenVersion); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": utils.ErrCodeTokenGenerate,
+			"msg":  "登录失败，请重试",
+		})
+		return
+	}
+
+	token, err := utils.GenerateJWT(user.ID, user.UserName, user.Role, user.VipExpiry, user.Email, tokenVersion)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code": utils.ErrCodeTokenGenerate,

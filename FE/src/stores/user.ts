@@ -164,7 +164,18 @@ export const useUserStore = defineStore('user', () => {
   }
 
   // 登出
-  const logout = () => {
+  const logout = async () => {
+    // 调用后端登出接口使 token 失效
+    try {
+      if (token.value) {
+        await authApi.logout()
+      }
+    } catch (error) {
+      // 即使后端登出失败，也继续清除本地状态
+      console.error('后端登出失败:', error)
+    }
+    
+    // 清除本地状态
     token.value = ''
     userInfo.value = null
     localStorage.removeItem('token')

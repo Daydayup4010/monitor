@@ -92,7 +92,17 @@
           </el-form-item>
         </div>
 
-        <button type="submit" class="btn btn-primary" :disabled="userStore.loading">
+        <div class="agreement-notice">
+          <el-checkbox v-model="agreeTerms" />
+          <span>
+            注册即表示同意
+            <router-link to="/user-agreement" target="_blank">《用户使用协议》</router-link>
+            和
+            <router-link to="/privacy-policy" target="_blank">《用户隐私政策》</router-link>
+          </span>
+        </div>
+
+        <button type="submit" class="btn btn-primary" :disabled="userStore.loading || !agreeTerms">
           {{ userStore.loading ? '注册中...' : '立即注册' }}
         </button>
       </el-form>
@@ -120,6 +130,7 @@ const router = useRouter()
 const userStore = useUserStore()
 
 const formRef = ref<FormInstance>()
+const agreeTerms = ref(false)  // 同意协议
 const form = reactive<RegisterForm>({
   username: '',
   email: '',
@@ -330,6 +341,30 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* 样式在 unified.css 中 */
+.agreement-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: #666;
+}
+
+.agreement-notice a {
+  color: #1890ff;
+  text-decoration: none;
+}
+
+.agreement-notice a:hover {
+  text-decoration: underline;
+}
+
+.agreement-notice :deep(.el-checkbox) {
+  height: auto;
+}
+
+.agreement-notice :deep(.el-checkbox__label) {
+  display: none;
+}
 </style>
 

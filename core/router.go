@@ -16,7 +16,11 @@ func InitRouter() *gin.Engine {
 	v1 := r.Group("api/v1")
 
 	// 验证码接口（无需登录）
-	v1.GET("captcha", api.GenerateCaptcha)
+	v1.GET("captcha", middleware.RateLimiterByIP(middleware.RateLimiterConfig{
+		Window:      60 * time.Second,
+		MaxRequests: 10,
+		KeyPrefix:   "user:captcha",
+	}), api.GenerateCaptcha)
 
 	user := v1.Group("user")
 	{
@@ -72,6 +76,7 @@ func InitRouter() *gin.Engine {
 		authUser.GET("self", api.GetSelfInfo)
 		authUser.PUT("name", api.UpdateUserName)
 		authUser.POST("refresh", api.RefreshToken)
+		authUser.POST("logout", api.Logout)
 	}
 
 	vip := v1.Group("vip")

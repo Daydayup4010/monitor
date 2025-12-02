@@ -27,6 +27,7 @@ const (
 	ErrCodeWechatAlreadyBound   = 1023
 	ErrCodeCaptchaGenerate      = 1024
 	ErrCodeCaptchaInvalid       = 1025
+	ErrCodeTokenKicked          = 1026 // 账号已在其他设备登录
 )
 
 // other
@@ -86,6 +87,7 @@ var errorCodeToMessage = map[int]string{
 	ErrCodeWechatAlreadyBound:   "Email account already bound to another wechat",
 	ErrCodeCaptchaGenerate:      "Generate captcha error",
 	ErrCodeCaptchaInvalid:       "Invalid captcha or captcha expired",
+	ErrCodeTokenKicked:          "账号已在其他设备登录",
 }
 
 // ErrorMessage 返回指定错误码对应的错误消息

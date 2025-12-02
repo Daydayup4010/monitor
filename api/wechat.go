@@ -98,8 +98,19 @@ func WechatLogin(c *gin.Context) {
 		config.Log.Infof("wechat user login: %s", user.ID.String())
 	}
 
-	// 4. Generate JWT token
-	token, err := utils.GenerateJWT(user.ID, user.UserName, user.Role, user.VipExpiry, user.Email)
+	// 4. Generate token version and store to Redis (single device login)
+	tokenVersion := models.GenerateTokenVersion()
+	if err := models.SetTokenVersion(c.Request.Context(), user.ID, tokenVersion); err != nil {
+		config.Log.Errorf("set token version error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": utils.ErrCodeTokenGenerate,
+			"msg":  "登录失败，请重试",
+		})
+		return
+	}
+
+	// 5. Generate JWT token
+	token, err := utils.GenerateJWT(user.ID, user.UserName, user.Role, user.VipExpiry, user.Email, tokenVersion)
 	if err != nil {
 		config.Log.Errorf("generate token error: %v", err)
 		c.JSON(http.StatusOK, gin.H{
@@ -316,8 +327,19 @@ func MergeAccount(c *gin.Context) {
 
 	config.Log.Infof("account merged: temp user %s -> email user %s", tempUserID, emailUser.ID.String())
 
-	// 6. 生成新token（使用邮箱账号）
-	token, err := utils.GenerateJWT(emailUser.ID, emailUser.UserName, emailUser.Role, emailUser.VipExpiry, emailUser.Email)
+	// 6. Generate token version and store to Redis (single device login)
+	tokenVersion := models.GenerateTokenVersion()
+	if err := models.SetTokenVersion(c.Request.Context(), emailUser.ID, tokenVersion); err != nil {
+		config.Log.Errorf("set token version error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": utils.ErrCodeTokenGenerate,
+			"msg":  "登录失败，请重试",
+		})
+		return
+	}
+
+	// 7. 生成新token（使用邮箱账号）
+	token, err := utils.GenerateJWT(emailUser.ID, emailUser.UserName, emailUser.Role, emailUser.VipExpiry, emailUser.Email, tokenVersion)
 	if err != nil {
 		config.Log.Errorf("generate token error: %v", err)
 		c.JSON(http.StatusOK, gin.H{

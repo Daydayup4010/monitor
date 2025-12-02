@@ -242,8 +242,27 @@ func RefreshToken(c *gin.Context) {
 		return
 	}
 
-	// 生成新的token（使用最新的用户信息）
-	newToken, err := utils.GenerateJWT(user.ID, user.UserName, user.Role, user.VipExpiry, user.Email)
+	// 获取当前的 token 版本号（沿用，不重新生成）
+	currentVersion, err := models.GetTokenVersion(c.Request.Context(), user.ID)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"code": utils.ErrCodeTokenKicked,
+			"msg":  "登录已过期，请重新登录",
+		})
+		return
+	}
+
+	// 刷新 Redis 中版本号的过期时间
+	if err := models.SetTokenVersion(c.Request.Context(), user.ID, currentVersion); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": utils.ErrCodeTokenGenerate,
+			"msg":  "刷新失败，请重试",
+		})
+		return
+	}
+
+	// 生成新的token（使用最新的用户信息 + 原版本号）
+	newToken, err := utils.GenerateJWT(user.ID, user.UserName, user.Role, user.VipExpiry, user.Email, currentVersion)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code": utils.ErrCodeTokenGenerate,
@@ -263,6 +282,30 @@ func RefreshToken(c *gin.Context) {
 			"role":       user.Role,
 			"vip_expiry": user.VipExpiry,
 		},
+	})
+}
+
+// Logout 登出（使当前 token 失效）
+func Logout(c *gin.Context) {
+	userID, _ := c.Get("userID")
+	userIDVal, ok := userID.(uuid.UUID)
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code": utils.ErrCodeInvalidToken,
+			"msg":  utils.ErrorMessage(utils.ErrCodeInvalidToken),
+		})
+		return
+	}
+
+	// 删除 Redis 中的 token 版本号，使所有该用户的 token 失效
+	if err := models.InvalidateTokenVersion(c.Request.Context(), userIDVal); err != nil {
+		config.Log.Errorf("logout invalidate token error: %v", err)
+		// 即使失败也返回成功，因为客户端会清除本地 token
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": utils.SUCCESS,
+		"msg":  "登出成功",
 	})
 }
 

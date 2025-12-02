@@ -98,6 +98,15 @@ api.interceptors.response.use(
 
     // 401错误处理
     if (error.response?.status === 401) {
+      // 检查是否是被踢出（单设备登录限制）
+      if (errorData?.code === 1026) {
+        localStorage.removeItem('token')
+        localStorage.removeItem('userInfo')
+        router.push('/login')
+        showMessage.warning('您的账号已在其他设备登录，请重新登录')
+        return Promise.reject(error)
+      }
+
       // 检查是否是登录相关的接口（登录、注册等不需要Token的接口）
       const isAuthEndpoint = originalRequest.url?.includes('/user/login') || 
                             originalRequest.url?.includes('/user/register') ||
@@ -232,6 +241,10 @@ export const authApi = {
   // 刷新Token
   refreshToken: (): Promise<ApiResponse> => 
     api.post('/user/refresh'),
+  
+  // 登出
+  logout: (): Promise<ApiResponse> => 
+    api.post('/user/logout'),
 }
 
 // 用户管理API（管理员）

@@ -15,6 +15,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{
+				"code":  utils.ErrCodeTokenNotFound,
 				"error": "Authorization header required",
 			})
 			c.Abort()
@@ -23,6 +24,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		parts := strings.Split(authHeader, " ")
 		if len(parts) != 2 || parts[0] != "Bearer" {
 			c.JSON(http.StatusUnauthorized, gin.H{
+				"code":  utils.ErrCodeInvalidTokenFormat,
 				"error": "Invalid authorization format",
 			})
 			c.Abort()
@@ -31,16 +33,29 @@ func AuthMiddleware() gin.HandlerFunc {
 		claims, err := utils.ParseJWT(parts[1])
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
+				"code":  utils.ErrCodeInvalidToken,
 				"error": "invalid token",
 			})
 			c.Abort()
 			return
 		}
+
+		// 验证 token 版本号（单设备登录检查）
+		if !models.ValidateTokenVersion(c.Request.Context(), claims.UserID, claims.TokenVersion) {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"code":  utils.ErrCodeTokenKicked,
+				"error": utils.ErrorMessage(utils.ErrCodeTokenKicked),
+			})
+			c.Abort()
+			return
+		}
+
 		c.Set("userID", claims.UserID)
 		c.Set("username", claims.Username)
 		c.Set("role", claims.Role)
 		c.Set("vipExpiry", claims.VipExpiry)
 		c.Set("email", claims.Email)
+		c.Set("tokenVersion", claims.TokenVersion)
 		c.Next()
 	}
 }

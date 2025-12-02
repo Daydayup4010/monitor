@@ -69,7 +69,10 @@ type U struct {
 
 func BatchGetUUGoods(hashNames []string) map[string]*U {
 	var uList []U
-	config.DB.Where("market_hash_name in ?", hashNames).Find(&uList)
+	err := config.DB.Where("market_hash_name in ?", hashNames).Find(&uList).Error
+	if err != nil {
+		config.Log.Errorf("Batch get uu goods error: %v", err)
+	}
 	result := make(map[string]*U)
 	for i := range uList {
 		result[uList[i].MarketHashName] = &uList[i]

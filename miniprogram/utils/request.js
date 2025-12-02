@@ -28,6 +28,20 @@ const request = (url, options = {}) => {
               url: '/pages/login/login'
             })
             reject(data)
+          } else if (data.code === 1026) {
+            // 账号已在其他设备登录（单设备登录限制）
+            wx.showToast({
+              title: '账号已在其他设备登录',
+              icon: 'none',
+              duration: 2000
+            })
+            app.clearLoginInfo()
+            setTimeout(() => {
+              wx.reLaunch({
+                url: '/pages/login/login'
+              })
+            }, 1500)
+            reject(data)
           } else if (data.code === 1021) {
             // 邮箱已存在需要合并，不显示toast，让页面自己处理
             resolve(data)

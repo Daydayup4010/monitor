@@ -25,6 +25,18 @@ const router = createRouter({
       meta: { title: '重置密码', requiresAuth: false, hideInMenu: true }
     },
     {
+      path: '/privacy-policy',
+      name: 'PrivacyPolicy',
+      component: () => import('@/pages/PrivacyPolicy.vue'),
+      meta: { title: '隐私政策', requiresAuth: false, hideInMenu: true }
+    },
+    {
+      path: '/user-agreement',
+      name: 'UserAgreement',
+      component: () => import('@/pages/UserAgreement.vue'),
+      meta: { title: '用户协议', requiresAuth: false, hideInMenu: true }
+    },
+    {
       path: '/',
       component: Layout,
       redirect: '/home',
@@ -83,8 +95,9 @@ router.beforeEach((to, from, next) => {
     return
   }
   
-  // 重置密码页面允许所有人访问
-  if (to.path === '/reset-password') {
+  // 公开页面允许所有人访问（不需要登录）
+  const publicPages = ['/reset-password', '/privacy-policy', '/user-agreement']
+  if (publicPages.includes(to.path)) {
     next()
     return
   }
