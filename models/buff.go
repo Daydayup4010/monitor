@@ -55,6 +55,8 @@ type Buff struct {
 	BiddingPrice   float64 `json:"biddingPrice"`
 	BiddingCount   int64   `json:"biddingCount"`
 	UpdateTime     int64   `json:"updateTime"`
+	BeforeTime     int64   `json:"beforeTime"`
+	BeforeCount    int64   `json:"beforeCount"`
 	TurnOver       int64   `json:"turn_over"`
 	Link           string  `json:"link"`
 }

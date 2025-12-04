@@ -14,6 +14,8 @@ type Steam struct {
 	SellCount      int64   `json:"sellCount"`
 	BiddingPrice   float64 `json:"biddingPrice"`
 	BiddingCount   int64   `json:"biddingCount"`
+	BeforeTime     int64   `json:"beforeTime"`
+	BeforeCount    int64   `json:"beforeCount"`
 	UpdateTime     int64   `json:"updateTime"`
 	TurnOver       int64   `json:"turn_over"`
 	Link           string  `json:"link"`

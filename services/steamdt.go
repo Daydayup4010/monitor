@@ -169,8 +169,10 @@ func UpdateAllPlatformData() {
 				if u == nil {
 					u = &models.U{}
 				}
-				if dataList[i].UpdateTime-u.UpdateTime >= 43200 {
-					turnOver := int64(math.Abs(float64(dataList[i].SellCount - u.SellCount)))
+				if dataList[i].UpdateTime-u.BeforeTime >= 43200 {
+					turnOver := int64(math.Abs(float64(dataList[i].SellCount - u.BeforeCount)))
+					u.BeforeTime = dataList[i].UpdateTime
+					u.BeforeCount = dataList[i].SellCount
 					u.TurnOver = turnOver
 				}
 				u.Id = dataList[i].PlatformItemId
@@ -187,8 +189,10 @@ func UpdateAllPlatformData() {
 				if buff == nil {
 					buff = &models.Buff{}
 				}
-				if dataList[i].UpdateTime-buff.UpdateTime >= 43200 {
-					turnOver := int64(math.Abs(float64(dataList[i].SellCount - buff.SellCount)))
+				if dataList[i].UpdateTime-buff.BeforeTime >= 43200 {
+					turnOver := int64(math.Abs(float64(dataList[i].SellCount - buff.BeforeCount)))
+					buff.BeforeTime = dataList[i].UpdateTime
+					buff.BeforeCount = dataList[i].SellCount
 					buff.TurnOver = turnOver
 				}
 				buff.Id = dataList[i].PlatformItemId
@@ -205,8 +209,10 @@ func UpdateAllPlatformData() {
 				if c5 == nil {
 					c5 = &models.C5{}
 				}
-				if dataList[i].UpdateTime-c5.UpdateTime >= 43200 {
-					turnOver := int64(math.Abs(float64(dataList[i].SellCount - c5.SellCount)))
+				if dataList[i].UpdateTime-c5.BeforeTime >= 43200 {
+					turnOver := int64(math.Abs(float64(dataList[i].SellCount - c5.BeforeCount)))
+					c5.BeforeTime = dataList[i].UpdateTime
+					c5.BeforeCount = dataList[i].SellCount
 					c5.TurnOver = turnOver
 				}
 				c5.Id = dataList[i].PlatformItemId
@@ -223,8 +229,10 @@ func UpdateAllPlatformData() {
 				if steam == nil {
 					steam = &models.Steam{}
 				}
-				if dataList[i].UpdateTime-steam.UpdateTime >= 43200 {
-					turnOver := int64(math.Abs(float64(dataList[i].SellCount - steam.SellCount)))
+				if dataList[i].UpdateTime-steam.BeforeTime >= 43200 {
+					turnOver := int64(math.Abs(float64(dataList[i].SellCount - steam.BeforeCount)))
+					steam.BeforeCount = dataList[i].SellCount
+					steam.BeforeTime = dataList[i].UpdateTime
 					steam.TurnOver = turnOver
 				}
 				steam.MarketHashName = data.MarketHashName
