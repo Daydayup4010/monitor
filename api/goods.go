@@ -39,3 +39,63 @@ func GetGoodsCategory(c *gin.Context) {
 		"msg":  utils.ErrorMessage(code),
 	})
 }
+
+// GetPriceHistory 获取商品价格历史
+func GetPriceHistory(c *gin.Context) {
+	marketHashName := c.Query("market_hash_name")
+	platform := c.Query("platform")
+	daysStr := c.Query("days")
+
+	if marketHashName == "" {
+		c.JSON(http.StatusOK, gin.H{
+			"code": utils.ErrCodeInvalidParams,
+			"msg":  "market_hash_name is required",
+		})
+		return
+	}
+
+	days := 30 // 默认30天
+	if daysStr != "" {
+		if d, err := strconv.Atoi(daysStr); err == nil && d > 0 && d <= 30 {
+			days = d
+		}
+	}
+
+	// 如果指定了平台，只返回该平台的数据
+	if platform != "" {
+		history, err := models.GetPriceHistoryByPlatform(marketHashName, platform, days)
+		if err != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"code": utils.ErrCodeGetGoods,
+				"msg":  "Failed to get price history",
+			})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"code": utils.SUCCESS,
+			"data": gin.H{
+				"marketHashName": marketHashName,
+				"platform":       platform,
+				"history":        history,
+			},
+			"msg": utils.ErrorMessage(utils.SUCCESS),
+		})
+		return
+	}
+
+	// 返回所有平台的数据
+	history, err := models.GetPriceHistoryByHashName(marketHashName, days)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"code": utils.ErrCodeGetGoods,
+			"msg":  "Failed to get price history",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": utils.SUCCESS,
+		"data": history,
+		"msg":  utils.ErrorMessage(utils.SUCCESS),
+	})
+}

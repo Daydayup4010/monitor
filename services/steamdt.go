@@ -3,6 +3,7 @@ package services
 import (
 	"fmt"
 	"math"
+	"time"
 	"uu/config"
 	"uu/models"
 	"uu/utils"
@@ -250,4 +251,87 @@ func UpdateAllPlatformData() {
 	models.BatchUpdateBuffGoods(buffList)
 	models.BatchUpdateC5Goods(c5List)
 	models.BatchUpdateSteamGoods(steamList)
+}
+
+// RecordDailyPriceHistory 每天记录一次价格历史
+func RecordDailyPriceHistory() {
+	// 检查今天是否已记录
+	if models.CheckTodayRecordExists() {
+		config.Log.Info("Today's price history already recorded, skip.")
+		return
+	}
+
+	today := time.Now().Truncate(24 * time.Hour) // 只保留日期部分
+
+	var histories []*models.PriceHistory
+
+	hashNames, err := models.GetHashNames()
+	if err != nil {
+		config.Log.Errorf("Get hash names error: %v", err)
+		return
+	}
+
+	// 获取各平台当前数据
+	uMap := models.BatchGetUUGoods(hashNames)
+	buffMap := models.BatchGetBuffGoods(hashNames)
+	c5Map := models.BatchGetC5Goods(hashNames)
+	steamMap := models.BatchGetSteamGoods(hashNames)
+
+	for _, u := range uMap {
+		if u.SellPrice > 0 { // 只记录有价格的数据
+			histories = append(histories, &models.PriceHistory{
+				MarketHashName: u.MarketHashName,
+				Platform:       "YOUPIN",
+				SellPrice:      u.SellPrice,
+				SellCount:      u.SellCount,
+				RecordDate:     today,
+			})
+		}
+	}
+
+	for _, buff := range buffMap {
+		if buff.SellPrice > 0 {
+			histories = append(histories, &models.PriceHistory{
+				MarketHashName: buff.MarketHashName,
+				Platform:       "BUFF",
+				SellPrice:      buff.SellPrice,
+				SellCount:      buff.SellCount,
+				RecordDate:     today,
+			})
+		}
+	}
+
+	for _, c5 := range c5Map {
+		if c5.SellPrice > 0 {
+			histories = append(histories, &models.PriceHistory{
+				MarketHashName: c5.MarketHashName,
+				Platform:       "C5",
+				SellPrice:      c5.SellPrice,
+				SellCount:      c5.SellCount,
+				RecordDate:     today,
+			})
+		}
+	}
+
+	for _, steam := range steamMap {
+		if steam.SellPrice > 0 {
+			histories = append(histories, &models.PriceHistory{
+				MarketHashName: steam.MarketHashName,
+				Platform:       "STEAM",
+				SellPrice:      steam.SellPrice,
+				SellCount:      steam.SellCount,
+				RecordDate:     today,
+			})
+		}
+	}
+
+	// 批量保存
+	if err := models.BatchCreatePriceHistory(histories); err != nil {
+		config.Log.Errorf("Record daily price history error: %v", err)
+		return
+	}
+	config.Log.Infof("Recorded %d price history entries for today", len(histories))
+
+	// 清理超过30天的旧数据
+	models.CleanOldHistory(30)
 }

@@ -91,6 +91,7 @@ func InitRouter() *gin.Engine {
 	{
 		goods.GET("data", api.GetGoods)
 		goods.GET("category", api.GetGoodsCategory)
+		goods.GET("price-history", api.GetPriceHistory)
 	}
 
 	admin := v1.Group("admin")

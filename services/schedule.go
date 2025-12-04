@@ -76,3 +76,27 @@ func UpdateAllGoodsScheduler() {
 		}()
 	}
 }
+
+// StartDailyPriceHistoryScheduler 每天凌晨2点记录一次价格历史
+func StartDailyPriceHistoryScheduler() {
+	// 计算距离下一个凌晨2点的时间
+	now := time.Now()
+	next := time.Date(now.Year(), now.Month(), now.Day(), 2, 0, 0, 0, now.Location())
+	if next.Before(now) {
+		next = next.Add(24 * time.Hour)
+	}
+
+	// 先等待到第一次执行时间
+	waitDuration := next.Sub(now)
+	time.Sleep(waitDuration)
+
+	// 执行第一次记录
+	SafeGo(RecordDailyPriceHistory)
+
+	// 然后每24小时执行一次
+	ticker := time.NewTicker(24 * time.Hour)
+	defer ticker.Stop()
+	for range ticker.C {
+		SafeGo(RecordDailyPriceHistory)
+	}
+}
