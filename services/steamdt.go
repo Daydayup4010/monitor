@@ -261,7 +261,9 @@ func RecordDailyPriceHistory() {
 		return
 	}
 
-	today := time.Now().Truncate(24 * time.Hour) // 只保留日期部分
+	// 获取本地时区的今天 00:00:00
+	now := time.Now()
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 
 	var histories []*models.PriceHistory
 
@@ -333,5 +335,8 @@ func RecordDailyPriceHistory() {
 	config.Log.Infof("Recorded %d price history entries for today", len(histories))
 
 	// 清理超过30天的旧数据
-	models.CleanOldHistory(30)
+	models.CleanOldHistory(31)
+
+	// 清除涨幅缓存，让下次查询获取最新数据
+	models.ClearPriceIncreaseCache()
 }

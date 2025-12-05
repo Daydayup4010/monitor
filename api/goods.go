@@ -99,3 +99,29 @@ func GetPriceHistory(c *gin.Context) {
 		"msg":  utils.ErrorMessage(utils.SUCCESS),
 	})
 }
+
+func GetPriceIncreaseByU(c *gin.Context) {
+	limit, _ := strconv.Atoi(c.Query("limit"))
+	isDesc, _ := strconv.ParseBool(c.Query("is_desc"))
+	if limit > 500 {
+		c.JSON(http.StatusOK, gin.H{
+			"code": utils.ErrCodeGetGoods,
+			"msg":  "Over limit",
+		})
+		return
+	}
+	increase, err := models.GetPriceIncrease("YOUPIN", "", isDesc, limit)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"code": utils.ErrCodeGetGoods,
+			"msg":  "Failed to get price increase data",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": utils.SUCCESS,
+		"data": increase,
+		"msg":  utils.ErrorMessage(utils.SUCCESS),
+	})
+}

@@ -1,18 +1,46 @@
 package models
 
 import (
+	"context"
+	"encoding/json"
+	"fmt"
 	"time"
 	"uu/config"
 )
 
-// PriceHistory 价格历史记录表
+// getLocalToday 获取本地时区的今天 00:00:00
+func getLocalToday() time.Time {
+	now := time.Now()
+	return time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+}
+
 type PriceHistory struct {
 	ID             uint      `gorm:"primaryKey;autoIncrement"`
-	MarketHashName string    `gorm:"type:varchar(255);index:idx_hash_platform_date,priority:1;not null"`
-	Platform       string    `gorm:"type:varchar(20);index:idx_hash_platform_date,priority:2;not null"`
-	SellPrice      float64   `json:"sellPrice"`
+	MarketHashName string    `gorm:"type:varchar(255);index:idx_hash_platform_date,priority:1;index:idx_query,priority:3;not null"`
+	Platform       string    `gorm:"type:varchar(20);index:idx_hash_platform_date,priority:2;index:idx_platform_date,priority:1;index:idx_query,priority:1;not null"`
+	SellPrice      float64   `json:"sellPrice" gorm:"index:idx_query,priority:4"`
 	SellCount      int64     `json:"sellCount"`
-	RecordDate     time.Time `gorm:"type:date;index:idx_hash_platform_date,priority:3;index:idx_date"` // 记录日期
+	RecordDate     time.Time `gorm:"type:date;index:idx_hash_platform_date,priority:3;index:idx_date;index:idx_platform_date,priority:2;index:idx_query,priority:2;"` // 记录日期
+}
+
+// PriceIncreaseItem 带价格趋势和各时间段涨幅的数据
+type PriceIncreaseItem struct {
+	MarketHashName  string   `json:"marketHashName" gorm:"column:market_hash_name"`
+	Name            string   `json:"name" gorm:"column:name"`
+	IconUrl         string   `json:"iconUrl" gorm:"column:icon_url"`
+	Platform        string   `json:"platform" gorm:"column:platform"`
+	TodayPrice      float64  `json:"todayPrice" gorm:"column:today_price"`
+	YesterdayPrice  float64  `json:"yesterdayPrice" gorm:"column:yesterday_price"`
+	Price3DaysAgo   *float64 `json:"price3DaysAgo" gorm:"column:price_3_days_ago"`
+	Price7DaysAgo   *float64 `json:"price7DaysAgo" gorm:"column:price_7_days_ago"`
+	Price15DaysAgo  *float64 `json:"price15DaysAgo" gorm:"column:price_15_days_ago"`
+	Price30DaysAgo  *float64 `json:"price30DaysAgo" gorm:"column:price_30_days_ago"`
+	PriceChange     float64  `json:"priceChange" gorm:"column:price_change"`
+	IncreaseRate1D  float64  `json:"increaseRate1D" gorm:"column:increase_rate_1d"`
+	IncreaseRate3D  *float64 `json:"increaseRate3D" gorm:"column:increase_rate_3d"`
+	IncreaseRate7D  *float64 `json:"increaseRate7D" gorm:"column:increase_rate_7d"`
+	IncreaseRate15D *float64 `json:"increaseRate15D" gorm:"column:increase_rate_15d"`
+	IncreaseRate30D *float64 `json:"increaseRate30D" gorm:"column:increase_rate_30d"`
 }
 
 // TableName 自定义表名
@@ -44,8 +72,7 @@ func BatchCreatePriceHistory(histories []*PriceHistory) error {
 // GetPriceHistoryByHashName 获取指定商品所有平台最近N天的历史记录
 func GetPriceHistoryByHashName(marketHashName string, days int) (*PriceHistoryResponse, error) {
 	var histories []PriceHistory
-	startDate := time.Now().AddDate(0, 0, -days)
-
+	startDate := getLocalToday().AddDate(0, 0, -days)
 	err := config.DB.Where("market_hash_name = ? AND record_date >= ?", marketHashName, startDate).
 		Order("platform ASC, record_date ASC").
 		Find(&histories).Error
@@ -74,7 +101,7 @@ func GetPriceHistoryByHashName(marketHashName string, days int) (*PriceHistoryRe
 // GetPriceHistoryByPlatform 获取指定商品指定平台最近N天的历史记录
 func GetPriceHistoryByPlatform(marketHashName, platform string, days int) ([]PriceHistoryItem, error) {
 	var histories []PriceHistory
-	startDate := time.Now().AddDate(0, 0, -days)
+	startDate := getLocalToday().AddDate(0, 0, -days)
 
 	err := config.DB.Where("market_hash_name = ? AND platform = ? AND record_date >= ?",
 		marketHashName, platform, startDate).
@@ -99,7 +126,7 @@ func GetPriceHistoryByPlatform(marketHashName, platform string, days int) ([]Pri
 
 // CleanOldHistory 清理超过指定天数的历史数据
 func CleanOldHistory(days int) {
-	cutoffDate := time.Now().AddDate(0, 0, -days)
+	cutoffDate := getLocalToday().AddDate(0, 0, -days)
 	result := config.DB.Where("record_date < ?", cutoffDate).Delete(&PriceHistory{})
 	if result.Error != nil {
 		config.Log.Errorf("Clean old history error: %v", result.Error)
@@ -121,7 +148,7 @@ func CheckTodayRecordExists() bool {
 func GetTurnOverFromHistory(marketHashName, platform string) int64 {
 	var histories []PriceHistory
 	// 获取最近两天的数据
-	startDate := time.Now().AddDate(0, 0, -2)
+	startDate := getLocalToday().AddDate(0, 0, -2)
 
 	err := config.DB.Where("market_hash_name = ? AND platform = ? AND record_date >= ?",
 		marketHashName, platform, startDate).
@@ -139,4 +166,165 @@ func GetTurnOverFromHistory(marketHashName, platform string) int64 {
 		turnOver = -turnOver
 	}
 	return turnOver
+}
+
+// getCacheExpiration 获取缓存过期时间（到第二天凌晨2点）
+func getCacheExpiration() time.Duration {
+	now := time.Now()
+	// 第二天凌晨3点（在每日记录任务 2:00 之后）
+	next := time.Date(now.Year(), now.Month(), now.Day(), 2, 0, 0, 0, now.Location())
+	if next.Before(now) {
+		next = next.Add(24 * time.Hour)
+	}
+	return next.Sub(now)
+}
+
+// GetPriceIncrease 获取涨幅排行（带多日价格趋势和各时间段涨幅）
+// platform: 平台名称 (YOUPIN, BUFF, C5, STEAM)
+// sortBy: 排序字段 (1d, 3d, 7d, 15d, 30d)
+// isDesc: 是否降序
+// limit: 返回数量
+func GetPriceIncrease(platform, sortBy string, isDesc bool, limit int) ([]PriceIncreaseItem, error) {
+	var results []PriceIncreaseItem
+	ctx := context.Background()
+
+	// 生成缓存 key
+	cacheKey := fmt.Sprintf("price_increase:%s:%s:%v:%d", platform, sortBy, isDesc, limit)
+
+	// 1. 先查缓存
+	cached, err := config.RDB.Get(ctx, cacheKey).Result()
+	if err == nil && cached != "" {
+		if err := json.Unmarshal([]byte(cached), &results); err == nil {
+			return results, nil
+		}
+	}
+
+	// 2. 缓存未命中，查询数据库
+	today := getLocalToday()
+	yesterday := today.AddDate(0, 0, -1)
+	day3 := today.AddDate(0, 0, -3)
+	day7 := today.AddDate(0, 0, -7)
+	day15 := today.AddDate(0, 0, -15)
+	day30 := today.AddDate(0, 0, -30)
+
+	// 排序方向
+	sortOrder := "ASC"
+	if isDesc {
+		sortOrder = "DESC"
+	}
+
+	// 根据 sortBy 确定排序的基准日期
+	var sortDate time.Time
+	switch sortBy {
+	case "3d":
+		sortDate = day3
+	case "7d":
+		sortDate = day7
+	case "15d":
+		sortDate = day15
+	case "30d":
+		sortDate = day30
+	default:
+		sortDate = yesterday
+	}
+
+	// 优化：使用子查询先筛选出 Top N，再 JOIN 获取其他数据
+	sql := `
+		SELECT 
+			top_items.market_hash_name,
+			bg.name,
+			bg.icon_url,
+			top_items.platform,
+			top_items.today_price,
+			top_items.yesterday_price,
+			d3.sell_price AS price_3_days_ago,
+			d7.sell_price AS price_7_days_ago,
+			d15.sell_price AS price_15_days_ago,
+			d30.sell_price AS price_30_days_ago,
+			top_items.price_change,
+			top_items.increase_rate_1d,
+			ROUND((top_items.today_price - d3.sell_price) / NULLIF(d3.sell_price, 0) * 100, 2) AS increase_rate_3d,
+			ROUND((top_items.today_price - d7.sell_price) / NULLIF(d7.sell_price, 0) * 100, 2) AS increase_rate_7d,
+			ROUND((top_items.today_price - d15.sell_price) / NULLIF(d15.sell_price, 0) * 100, 2) AS increase_rate_15d,
+			ROUND((top_items.today_price - d30.sell_price) / NULLIF(d30.sell_price, 0) * 100, 2) AS increase_rate_30d
+		FROM (
+			SELECT 
+				t.market_hash_name,
+				t.platform,
+				t.sell_price AS today_price,
+				s.sell_price AS yesterday_price,
+				(t.sell_price - s.sell_price) AS price_change,
+				ROUND((t.sell_price - s.sell_price) / s.sell_price * 100, 2) AS increase_rate_1d
+			FROM price_history t
+			INNER JOIN price_history s 
+				ON t.market_hash_name = s.market_hash_name 
+				AND t.platform = s.platform
+				AND s.record_date = ?
+			WHERE t.platform = ?
+				AND t.record_date = ?
+				AND s.sell_price > 0
+			ORDER BY increase_rate_1d ` + sortOrder + `
+			LIMIT ?
+		) AS top_items
+		LEFT JOIN price_history d3 
+			ON top_items.market_hash_name = d3.market_hash_name 
+			AND top_items.platform = d3.platform
+			AND d3.record_date = ?
+		LEFT JOIN price_history d7 
+			ON top_items.market_hash_name = d7.market_hash_name 
+			AND top_items.platform = d7.platform
+			AND d7.record_date = ?
+		LEFT JOIN price_history d15 
+			ON top_items.market_hash_name = d15.market_hash_name 
+			AND top_items.platform = d15.platform
+			AND d15.record_date = ?
+		LEFT JOIN price_history d30 
+			ON top_items.market_hash_name = d30.market_hash_name 
+			AND top_items.platform = d30.platform
+			AND d30.record_date = ?
+		INNER JOIN base_goods bg 
+			ON top_items.market_hash_name = bg.market_hash_name
+		ORDER BY top_items.increase_rate_1d ` + sortOrder + `
+	`
+
+	err = config.DB.Raw(sql,
+		sortDate, // s.record_date (排序基准日期)
+		platform, // t.platform
+		today,    // t.record_date
+		limit,    // LIMIT
+		day3,     // d3.record_date
+		day7,     // d7.record_date
+		day15,    // d15.record_date
+		day30,    // d30.record_date
+	).Scan(&results).Error
+
+	if err != nil {
+		config.Log.Errorf("Get price increase error: %v", err)
+		return nil, err
+	}
+
+	// 3. 存入缓存
+	if len(results) > 0 {
+		if data, err := json.Marshal(results); err == nil {
+			expiration := getCacheExpiration()
+			config.RDB.Set(ctx, cacheKey, data, expiration)
+		}
+	}
+
+	return results, nil
+}
+
+// ClearPriceIncreaseCache 清除涨幅缓存（在每日数据更新后调用）
+func ClearPriceIncreaseCache() {
+	ctx := context.Background()
+	// 使用通配符删除所有涨幅缓存
+	keys, err := config.RDB.Keys(ctx, "price_increase:*").Result()
+	if err != nil {
+		config.Log.Errorf("Get price increase cache keys error: %v", err)
+		return
+	}
+	if len(keys) > 0 {
+		config.RDB.Del(ctx, keys...)
+		config.Log.Infof("Cleared %d price increase cache keys", len(keys))
+	}
 }
