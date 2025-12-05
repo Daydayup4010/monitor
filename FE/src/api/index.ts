@@ -291,6 +291,19 @@ export interface PriceIncreaseItem {
   increaseRate7D: number | null
   increaseRate15D: number | null
   increaseRate30D: number | null
+  // 在售数相关字段
+  todaySellCount: number
+  yesterdaySellCount: number
+  sellCount3DaysAgo: number | null
+  sellCount7DaysAgo: number | null
+  sellCount15DaysAgo: number | null
+  sellCount30DaysAgo: number | null
+  sellCountChange: number
+  sellCountRate1D: number
+  sellCountRate3D: number | null
+  sellCountRate7D: number | null
+  sellCountRate15D: number | null
+  sellCountRate30D: number | null
 }
 
 // 数据相关API（VIP用户）

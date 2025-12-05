@@ -60,7 +60,23 @@
                             <div class="tooltip-row" v-if="row.price30DaysAgo !== null">与30天前对比 <span class="tooltip-price">¥{{ formatPrice(row.price30DaysAgo) }}</span> <span :class="getChangeClass(row.increaseRate30D)">{{ formatChangeRate(row.increaseRate30D) }}</span></div>
                           </div>
                         </template>
-                        <el-icon class="meta-icon"><Warning /></el-icon>
+                        <el-icon class="meta-icon"><InfoFilled /></el-icon>
+                      </el-tooltip>
+                    </span>
+                    <span class="meta-item">
+                      在售数涨幅: 
+                      <span :class="getChangeClass(row.sellCountRate1D)">{{ formatChangeRate(row.sellCountRate1D) }}</span>
+                      <el-tooltip placement="right" :show-after="200">
+                        <template #content>
+                          <div class="tooltip-content">
+                            <div class="tooltip-header">当前在售数: {{ row.todaySellCount }}</div>
+                            <div class="tooltip-row">与1天前对比 <span class="tooltip-price">{{ row.yesterdaySellCount }}</span> <span :class="getChangeClass(row.sellCountRate1D)">{{ formatChangeRate(row.sellCountRate1D) }}</span></div>
+                            <div class="tooltip-row" v-if="row.sellCount3DaysAgo !== null">与3天前对比 <span class="tooltip-price">{{ row.sellCount3DaysAgo }}</span> <span :class="getChangeClass(row.sellCountRate3D)">{{ formatChangeRate(row.sellCountRate3D) }}</span></div>
+                            <div class="tooltip-row" v-if="row.sellCount7DaysAgo !== null">与7天前对比 <span class="tooltip-price">{{ row.sellCount7DaysAgo }}</span> <span :class="getChangeClass(row.sellCountRate7D)">{{ formatChangeRate(row.sellCountRate7D) }}</span></div>
+                            <div class="tooltip-row" v-if="row.sellCount30DaysAgo !== null">与30天前对比 <span class="tooltip-price">{{ row.sellCount30DaysAgo }}</span> <span :class="getChangeClass(row.sellCountRate30D)">{{ formatChangeRate(row.sellCountRate30D) }}</span></div>
+                          </div>
+                        </template>
+                        <el-icon class="meta-icon"><InfoFilled /></el-icon>
                       </el-tooltip>
                     </span>
                   </div>
@@ -88,7 +104,7 @@
       <!-- 数据说明 -->
       <div class="data-info">
         <el-icon><InfoFilled /></el-icon>
-        <span>数据来源：悠悠有品平台 | 共 {{ rankingData.length }} 条数据 | 每日凌晨更新</span>
+        <span>数据来源：悠悠有品平台 | 每日凌晨更新</span>
       </div>
     </div>
   </div>
@@ -96,7 +112,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { TrendCharts, InfoFilled, Warning } from '@element-plus/icons-vue'
+import { TrendCharts, InfoFilled } from '@element-plus/icons-vue'
 import { dataApi, type PriceIncreaseItem } from '@/api'
 import { formatPrice } from '@/utils'
 import { showMessage } from '@/utils/message'

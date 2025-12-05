@@ -23,8 +23,12 @@
             <h4>联系我们</h4>
             <a href="mailto:goods.monitor@foxmail.com">
               <span class="contact-icon">📧</span>
-              goods.monitor@foxmail.com
+              Email: goods.monitor@foxmail.com
             </a>
+            <span class="contact-item">
+              <span class="contact-icon">💬</span>
+              QQ: 401026211
+            </span>
           </div>
         </div>
       </div>
@@ -88,7 +92,7 @@ const currentYear = new Date().getFullYear()
 }
 
 .brand-desc {
-  font-size: 14px;
+  font-size: 21px;
   color: #666;
 }
 
@@ -105,20 +109,28 @@ const currentYear = new Date().getFullYear()
 }
 
 .link-group h4 {
-  font-size: 14px;
+  font-size: 21px;
   font-weight: 600;
   color: #fff;
   margin-bottom: 4px;
 }
 
 .link-group a {
-  font-size: 13px;
+  font-size: 20px;
   color: #a0a0a0;
   text-decoration: none;
   transition: color 0.3s;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+}
+
+.contact-item {
+  font-size: 20px;
+  color: #a0a0a0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .link-group a:hover {
@@ -126,7 +138,7 @@ const currentYear = new Date().getFullYear()
 }
 
 .contact-icon {
-  font-size: 14px;
+  font-size: 21px;
 }
 
 /* 分割线 */
@@ -141,7 +153,7 @@ const currentYear = new Date().getFullYear()
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 12px;
+  font-size: 18px;
 }
 
 .copyright {

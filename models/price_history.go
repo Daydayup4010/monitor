@@ -41,6 +41,19 @@ type PriceIncreaseItem struct {
 	IncreaseRate7D  *float64 `json:"increaseRate7D" gorm:"column:increase_rate_7d"`
 	IncreaseRate15D *float64 `json:"increaseRate15D" gorm:"column:increase_rate_15d"`
 	IncreaseRate30D *float64 `json:"increaseRate30D" gorm:"column:increase_rate_30d"`
+	// 在售数相关字段
+	TodaySellCount     int64    `json:"todaySellCount" gorm:"column:today_sell_count"`
+	YesterdaySellCount int64    `json:"yesterdaySellCount" gorm:"column:yesterday_sell_count"`
+	SellCount3DaysAgo  *int64   `json:"sellCount3DaysAgo" gorm:"column:sell_count_3_days_ago"`
+	SellCount7DaysAgo  *int64   `json:"sellCount7DaysAgo" gorm:"column:sell_count_7_days_ago"`
+	SellCount15DaysAgo *int64   `json:"sellCount15DaysAgo" gorm:"column:sell_count_15_days_ago"`
+	SellCount30DaysAgo *int64   `json:"sellCount30DaysAgo" gorm:"column:sell_count_30_days_ago"`
+	SellCountChange    int64    `json:"sellCountChange" gorm:"column:sell_count_change"`
+	SellCountRate1D    float64  `json:"sellCountRate1D" gorm:"column:sell_count_rate_1d"`
+	SellCountRate3D    *float64 `json:"sellCountRate3D" gorm:"column:sell_count_rate_3d"`
+	SellCountRate7D    *float64 `json:"sellCountRate7D" gorm:"column:sell_count_rate_7d"`
+	SellCountRate15D   *float64 `json:"sellCountRate15D" gorm:"column:sell_count_rate_15d"`
+	SellCountRate30D   *float64 `json:"sellCountRate30D" gorm:"column:sell_count_rate_30d"`
 }
 
 // TableName 自定义表名
@@ -246,7 +259,19 @@ func GetPriceIncrease(platform, sortBy string, isDesc bool, limit int) ([]PriceI
 			ROUND((top_items.today_price - d3.sell_price) / NULLIF(d3.sell_price, 0) * 100, 2) AS increase_rate_3d,
 			ROUND((top_items.today_price - d7.sell_price) / NULLIF(d7.sell_price, 0) * 100, 2) AS increase_rate_7d,
 			ROUND((top_items.today_price - d15.sell_price) / NULLIF(d15.sell_price, 0) * 100, 2) AS increase_rate_15d,
-			ROUND((top_items.today_price - d30.sell_price) / NULLIF(d30.sell_price, 0) * 100, 2) AS increase_rate_30d
+			ROUND((top_items.today_price - d30.sell_price) / NULLIF(d30.sell_price, 0) * 100, 2) AS increase_rate_30d,
+			top_items.today_sell_count,
+			top_items.yesterday_sell_count,
+			d3.sell_count AS sell_count_3_days_ago,
+			d7.sell_count AS sell_count_7_days_ago,
+			d15.sell_count AS sell_count_15_days_ago,
+			d30.sell_count AS sell_count_30_days_ago,
+			top_items.sell_count_change,
+			top_items.sell_count_rate_1d,
+			ROUND((top_items.today_sell_count - d3.sell_count) / NULLIF(d3.sell_count, 0) * 100, 2) AS sell_count_rate_3d,
+			ROUND((top_items.today_sell_count - d7.sell_count) / NULLIF(d7.sell_count, 0) * 100, 2) AS sell_count_rate_7d,
+			ROUND((top_items.today_sell_count - d15.sell_count) / NULLIF(d15.sell_count, 0) * 100, 2) AS sell_count_rate_15d,
+			ROUND((top_items.today_sell_count - d30.sell_count) / NULLIF(d30.sell_count, 0) * 100, 2) AS sell_count_rate_30d
 		FROM (
 			SELECT 
 				t.market_hash_name,
@@ -254,7 +279,11 @@ func GetPriceIncrease(platform, sortBy string, isDesc bool, limit int) ([]PriceI
 				t.sell_price AS today_price,
 				s.sell_price AS yesterday_price,
 				(t.sell_price - s.sell_price) AS price_change,
-				ROUND((t.sell_price - s.sell_price) / s.sell_price * 100, 2) AS increase_rate_1d
+				ROUND((t.sell_price - s.sell_price) / s.sell_price * 100, 2) AS increase_rate_1d,
+				t.sell_count AS today_sell_count,
+				s.sell_count AS yesterday_sell_count,
+				(t.sell_count - s.sell_count) AS sell_count_change,
+				ROUND((t.sell_count - s.sell_count) / NULLIF(s.sell_count, 0) * 100, 2) AS sell_count_rate_1d
 			FROM price_history t
 			INNER JOIN price_history s 
 				ON t.market_hash_name = s.market_hash_name 
