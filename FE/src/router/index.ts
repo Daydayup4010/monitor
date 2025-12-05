@@ -39,19 +39,29 @@ const router = createRouter({
     {
       path: '/',
       component: Layout,
-      redirect: '/home',
+      redirect: '/ranking',
       meta: { requiresAuth: true },
       children: [
+        {
+          path: 'ranking',
+          name: 'Ranking',
+          component: () => import('@/pages/Ranking.vue'),
+          meta: { 
+            title: '饰品榜单', 
+            icon: 'TrendCharts',
+            requiresAuth: true,
+            requiresVip: true
+          }
+        },
         {
           path: 'home',
           name: 'Home',
           component: () => import('@/pages/Home.vue'),
           meta: { 
-            title: '饰品数据', 
+            title: '挂刀/搬砖', 
             icon: 'DataAnalysis',
             requiresAuth: true,
-            requiresVip: true,  // 需要VIP权限
-            hideInMenu: true  // 不在导航菜单中显示
+            requiresVip: true
           }
         },
         {

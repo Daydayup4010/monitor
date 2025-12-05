@@ -2,8 +2,8 @@
   <div class="home-page">
     <div class="card">
       <div class="card-title">
-        <img src="@/assets/icons/data.png" style="height: 20px; width: auto; vertical-align: text-top; margin-right: 8px; object-fit: contain; position: relative; top: 2px;" alt="饰品数据" />
-        饰品数据
+        <img src="@/assets/icons/data.png" style="height: 20px; width: auto; vertical-align: text-top; margin-right: 8px; object-fit: contain; position: relative; top: 2px;" alt="挂刀/搬砖" />
+        挂刀/搬砖
       </div>
 
       <!-- 筛选栏 -->
@@ -331,6 +331,9 @@
               placement="right"
               :width="500"
               trigger="hover"
+              :show-after="300"
+              :hide-after="0"
+              :persistent="false"
             >
               <template #reference>
                 <span style="color: #1890ff; cursor: pointer; font-size: 13px;">平台数据</span>
@@ -823,7 +826,9 @@ onMounted(async () => {
 /* 所有样式在unified.css中 */
 .home-page {
   padding: 0;
+  width: 1800px;
   max-width: 100%;
+  margin: 0 auto;
 }
 
 .btn-refresh {

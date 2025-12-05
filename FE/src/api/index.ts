@@ -273,6 +273,26 @@ export const settingsApi = {
     api.put('/vip/settings', data),
 }
 
+// 涨跌幅数据类型
+export interface PriceIncreaseItem {
+  marketHashName: string
+  name: string
+  iconUrl: string
+  platform: string
+  todayPrice: number
+  yesterdayPrice: number
+  price3DaysAgo: number | null
+  price7DaysAgo: number | null
+  price15DaysAgo: number | null
+  price30DaysAgo: number | null
+  priceChange: number
+  increaseRate1D: number
+  increaseRate3D: number | null
+  increaseRate7D: number | null
+  increaseRate15D: number | null
+  increaseRate30D: number | null
+}
+
 // 数据相关API（VIP用户）
 export const dataApi = {
   // 获取饰品数据
@@ -282,6 +302,10 @@ export const dataApi = {
   // 获取分类列表
   getCategories: (): Promise<ApiResponse<string[]>> => 
     api.get('/vip/goods/category'),
+  
+  // 获取涨跌幅排行
+  getPriceIncrease: (params: { is_desc: boolean; limit: number }): Promise<ApiResponse<PriceIncreaseItem[]>> =>
+    api.get('/vip/goods/price-increase', { params }),
 }
 
 export default api

@@ -16,6 +16,7 @@
             mode="horizontal"
             router
             class="header-menu"
+            :ellipsis="false"
           >
             <el-menu-item
               v-for="route in menuRoutes"
@@ -23,7 +24,6 @@
               :index="route.path"
               class="nav-item"
             >
-              <el-icon><component :is="route.meta.icon" /></el-icon>
               <span>{{ route.meta.title }}</span>
             </el-menu-item>
           </el-menu>
@@ -44,9 +44,13 @@
               </div>
               <template #dropdown>
                 <el-dropdown-menu>
+                  <el-dropdown-item v-if="userStore.isVip" command="ranking">
+                    <el-icon><TrendCharts /></el-icon>
+                    <span>饰品榜单</span>
+                  </el-dropdown-item>
                   <el-dropdown-item v-if="userStore.isVip" command="home">
                     <el-icon><DataAnalysis /></el-icon>
-                    <span>饰品数据</span>
+                    <span>挂刀/搬砖</span>
                   </el-dropdown-item>
                   <el-dropdown-item command="settings">
                     <el-icon><User /></el-icon>
@@ -130,12 +134,15 @@ const getUserAvatarBg = () => {
 
 // 点击logo回到首页
 const goHome = () => {
-  router.push('/home')
+  router.push('/ranking')
 }
 
 // 处理下拉菜单命令
 const handleCommand = (command: string) => {
   switch (command) {
+    case 'ranking':
+      router.push('/ranking')
+      break
     case 'home':
       router.push('/home')
       break
@@ -173,8 +180,7 @@ onMounted(() => {
 .top-header {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(24, 144, 255, 0.2);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid #eee;
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -220,13 +226,11 @@ onMounted(() => {
   flex: 1;
   display: flex;
   justify-content: center;
-  max-width: 600px;
 }
 
 .header-menu {
   border-bottom: none;
   background: transparent;
-  flex: 1;
 }
 
 :deep(.el-menu--horizontal) {
@@ -234,42 +238,44 @@ onMounted(() => {
 }
 
 :deep(.el-menu--horizontal .el-menu-item) {
-  height: 60px;
-  line-height: 60px;
-  padding: 0 20px;
-  border-radius: 8px;
-  margin: 0 4px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  height: 69px;
+  line-height: 69px;
+  padding: 0 24px;
+  border-radius: 0;
+  margin: 0;
+  margin-bottom: -1px;
+  border-bottom: 2px solid transparent;
+  font-size: 18px;
+  color: #333;
 }
 
 :deep(.el-menu--horizontal .el-menu-item:hover) {
-  background: rgba(24, 144, 255, 0.1);
+  background: transparent;
+  color: #1890ff;
 }
 
 :deep(.el-menu--horizontal .el-menu-item.is-active) {
-  background: rgba(24, 144, 255, 0.15);
+  background: transparent;
   color: #1890ff;
   border-bottom: 2px solid #1890ff;
 }
 
 :deep(.el-menu--horizontal .el-menu-item span) {
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: normal;
 }
 
 .nav-item {
-  border-radius: 8px;
-  margin: 0 4px;
+  border-radius: 0;
+  margin: 0;
 }
 
 .nav-item:hover {
-  background: rgba(24, 144, 255, 0.1);
+  background: transparent;
 }
 
 .nav-item.is-active {
-  background: rgba(24, 144, 255, 0.15);
+  background: transparent;
   color: #1890ff;
 }
 
