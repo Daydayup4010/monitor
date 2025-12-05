@@ -334,8 +334,8 @@ func RecordDailyPriceHistory() {
 	}
 	config.Log.Infof("Recorded %d price history entries for today", len(histories))
 
-	// 清理超过30天的旧数据
-	models.CleanOldHistory(31)
+	// 清理超过一年的旧数据
+	models.CleanOldHistory(365)
 
 	// 清除涨幅缓存，让下次查询获取最新数据
 	models.ClearPriceIncreaseCache()
