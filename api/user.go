@@ -53,7 +53,7 @@ func Register(c *gin.Context) {
 		return
 	}
 	uid, _ := uuid.NewV7()
-	newExpiry := time.Now().AddDate(0, 0, 1)
+	newExpiry := time.Now().AddDate(0, 0, 7)
 	var user = models.User{
 		ID:        uid,
 		UserName:  reg.Username,
