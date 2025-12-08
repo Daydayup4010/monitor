@@ -292,6 +292,7 @@ func GetPriceIncrease(platform, sortBy string, isDesc bool, limit int) ([]PriceI
 			WHERE t.platform = ?
 				AND t.record_date = ?
 				AND s.sell_price > 0
+				AND t.sell_price > 1
 			ORDER BY increase_rate_1d ` + sortOrder + `
 			LIMIT ?
 		) AS top_items
