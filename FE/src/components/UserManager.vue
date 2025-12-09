@@ -61,6 +61,14 @@
               <span v-else style="color: #bfbfbf">-</span>
             </template>
           </el-table-column>
+          <el-table-column label="最后登录" width="170">
+            <template #default="{ row }">
+              <span v-if="row.last_login">
+                {{ formatDateTime(row.last_login) }}
+              </span>
+              <span v-else style="color: #bfbfbf">-</span>
+            </template>
+          </el-table-column>
           <el-table-column label="操作" width="200">
             <template #default="{ row }">
               <div v-if="row.role !== 2" style="display: flex; gap: 8px;">
@@ -235,6 +243,10 @@ const isVipValid = (expiryDate?: string): boolean => {
 
 const formatDate = (date: string) => {
   return dayjs(date).format('YYYY-MM-DD')
+}
+
+const formatDateTime = (date: string) => {
+  return dayjs(date).format('YYYY-MM-DD HH:mm')
 }
 
 const loadUserList = async () => {
