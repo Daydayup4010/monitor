@@ -138,15 +138,7 @@
     </main>
 
     <!-- 底部区域 -->
-    <footer class="landing-footer">
-      <div class="footer-content">
-        <p>© 2024 CS Goods. All rights reserved.</p>
-        <div class="footer-links">
-          <router-link to="/privacy-policy">隐私政策</router-link>
-          <router-link to="/user-agreement">用户协议</router-link>
-        </div>
-      </div>
-    </footer>
+    <Footer />
   </div>
 </template>
 
@@ -157,6 +149,7 @@ import { TrendCharts, DataAnalysis, ArrowRight } from '@element-plus/icons-vue'
 import { publicApi, type PublicHomeData } from '@/api'
 import { showMessage } from '@/utils/message'
 import LoginDialog from '@/components/LoginDialog.vue'
+import Footer from '@/components/Footer.vue'
 
 const router = useRouter()
 const loading = ref(false)
@@ -534,44 +527,6 @@ onMounted(() => {
   margin: 0;
 }
 
-/* 底部 */
-.landing-footer {
-  background: #fff;
-  padding: 30px 0;
-  border-top: 1px solid #e8e8e8;
-}
-
-.footer-content {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 40px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.footer-content p {
-  margin: 0;
-  color: #8c8c8c;
-  font-size: 14px;
-}
-
-.footer-links {
-  display: flex;
-  gap: 24px;
-}
-
-.footer-links a {
-  color: #8c8c8c;
-  font-size: 14px;
-  text-decoration: none;
-  transition: color 0.2s;
-}
-
-.footer-links a:hover {
-  color: #1890ff;
-}
-
 /* 响应式 */
 @media (max-width: 1200px) {
   .data-section {
@@ -603,12 +558,6 @@ onMounted(() => {
   
   .features-grid {
     grid-template-columns: 1fr;
-  }
-  
-  .footer-content {
-    flex-direction: column;
-    gap: 16px;
-    text-align: center;
   }
 }
 </style>

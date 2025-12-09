@@ -397,9 +397,9 @@ func GetPublicHomeData() (*PublicHomeData, error) {
 	adminSettings, _ := GetAdminSetting()
 
 	var goods []Goods
-	// 默认 uu -> steam 的搬砖数据
+	// 默认 uu -> buff 的搬砖数据
 	sourceTable := "u"
-	targetTable := "steam"
+	targetTable := "buff"
 
 	query := config.DB.Model(&Buff{}).
 		Select(fmt.Sprintf("%s.id as id, %s.sell_count as sell_count, %s.turn_over as turn_over, %s.bidding_count as bidding_count, %s.bidding_price as bidding_price, base_goods.market_hash_name as market_hash_name, base_goods.name as name, base_goods.icon_url as image_url, %s.sell_price as target_price, %s.sell_price as source_price, (%s.sell_price - %s.sell_price) as price_diff, ROUND((%s.sell_price - %s.sell_price)/%s.sell_price,4) as profit_rate, %s.update_time as target_update_time, %s.update_time as source_update_time",

@@ -107,8 +107,8 @@ func GetAdminSetting() (*SettingsResponse, int) {
 	var setting SettingsResponse
 	// 查找管理员用户的setting
 	err := config.DB.Model(&Settings{}).
-		Joins("JOIN users ON settings.user_id = users.id").
-		Where("users.role = ?", RoleAdmin).
+		Joins("JOIN user ON settings.user_id = user.id").
+		Where("user.role = ?", RoleAdmin).
 		First(&setting).Error
 	if err != nil {
 		config.Log.Errorf("get admin settings err: %s", err)
