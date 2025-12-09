@@ -56,7 +56,7 @@ func GetPriceHistory(c *gin.Context) {
 
 	days := 30 // 默认30天
 	if daysStr != "" {
-		if d, err := strconv.Atoi(daysStr); err == nil && d > 0 && d <= 30 {
+		if d, err := strconv.Atoi(daysStr); err == nil && d > 0 && d <= 365 {
 			days = d
 		}
 	}
@@ -96,6 +96,43 @@ func GetPriceHistory(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"code": utils.SUCCESS,
 		"data": history,
+		"msg":  utils.ErrorMessage(utils.SUCCESS),
+	})
+}
+
+// GetGoodsDetail 获取商品详情（包含基础信息、所有平台历史数据、各平台在售信息）
+func GetGoodsDetail(c *gin.Context) {
+	marketHashName := c.Query("market_hash_name")
+	daysStr := c.Query("days")
+
+	if marketHashName == "" {
+		c.JSON(http.StatusOK, gin.H{
+			"code": utils.ErrCodeInvalidParams,
+			"msg":  "market_hash_name is required",
+		})
+		return
+	}
+
+	// 默认30天，最多365天
+	days := 30
+	if daysStr != "" {
+		if d, err := strconv.Atoi(daysStr); err == nil && d > 0 && d <= 365 {
+			days = d
+		}
+	}
+
+	detail, err := models.GetGoodsDetail(marketHashName, days)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"code": utils.ErrCodeGetGoods,
+			"msg":  "Failed to get goods detail",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": utils.SUCCESS,
+		"data": detail,
 		"msg":  utils.ErrorMessage(utils.SUCCESS),
 	})
 }

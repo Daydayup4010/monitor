@@ -233,7 +233,7 @@
             <div class="skin-info">
               <img :src="row.image_url" @error="handleImageError" alt="饰品" class="skin-img" />
               <div>
-                <div class="skin-name">{{ row.name }}</div>
+                <div class="skin-name clickable" @click="goToDetail(row.market_hash_name)">{{ row.name }}</div>
                 <div style="font-size: 12px; color: #8c8c8c;">{{ row.category }}</div>
               </div>
             </div>
@@ -439,6 +439,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, reactive } from 'vue'
+import { useRouter } from 'vue-router'
 import { Search, QuestionFilled, Refresh } from '@element-plus/icons-vue'
 import { useSkinStore } from '@/stores/skin'
 import { useSettingsStore } from '@/stores/settings'
@@ -451,6 +452,7 @@ import uuIcon from '@/assets/icons/uu.png'
 import c5Icon from '@/assets/icons/c5.png'
 import steamIcon from '@/assets/icons/steam.png'
 
+const router = useRouter()
 const skinStore = useSkinStore()
 const settingsStore = useSettingsStore()
 
@@ -637,6 +639,14 @@ const handleCurrentChange = (page: number) => {
 const handleImageError = (e: Event) => {
   const img = e.target as HTMLImageElement
   img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIGZpbGw9IiNGNUY1RjUiLz48dGV4dCB4PSIzMCIgeT0iMzUiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiNCRkJGQkYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPuaXoOWbvjwvdGV4dD48L3N2Zz4='
+}
+
+// 跳转到详情页
+const goToDetail = (marketHashName: string) => {
+  router.push({
+    path: '/detail',
+    query: { market_hash_name: marketHashName }
+  })
 }
 
 // 获取平台图标
@@ -829,6 +839,16 @@ onMounted(async () => {
   width: 1800px;
   max-width: 100%;
   margin: 0 auto;
+}
+
+/* 饰品名称点击样式 */
+.skin-name.clickable {
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.skin-name.clickable:hover {
+  color: #1890ff;
 }
 
 .btn-refresh {

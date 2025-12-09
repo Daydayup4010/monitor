@@ -44,7 +44,7 @@
                   <img :src="row.iconUrl" @error="handleImageError" alt="饰品" />
                 </div>
                 <div class="skin-info-box">
-                  <div class="skin-name">{{ row.name }}</div>
+                  <div class="skin-name clickable" @click="goToDetail(row.marketHashName)">{{ row.name }}</div>
                   <div class="skin-price">¥{{ formatPrice(row.todayPrice) }}</div>
                   <div class="skin-meta">
                     <span class="meta-item">
@@ -112,11 +112,13 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { TrendCharts, InfoFilled } from '@element-plus/icons-vue'
 import { dataApi, type PriceIncreaseItem } from '@/api'
 import { formatPrice } from '@/utils'
 import { showMessage } from '@/utils/message'
 
+const router = useRouter()
 const activeTab = ref<'increase' | 'decrease'>('increase')
 const loading = ref(false)
 const rankingData = ref<PriceIncreaseItem[]>([])
@@ -186,6 +188,14 @@ const getRowClassName = ({ rowIndex }: { rowIndex: number }) => {
 const handleImageError = (e: Event) => {
   const img = e.target as HTMLImageElement
   img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIGZpbGw9IiNGNUY1RjUiLz48dGV4dCB4PSIzMCIgeT0iMzUiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiNCRkJGQkYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPuaXoOWbvjwvdGV4dD48L3N2Zz4='
+}
+
+// 跳转到详情页
+const goToDetail = (marketHashName: string) => {
+  router.push({
+    path: '/detail',
+    query: { market_hash_name: marketHashName }
+  })
 }
 
 onMounted(() => {
@@ -277,6 +287,15 @@ onMounted(() => {
   color: #000;
   margin-bottom: 5px;
   line-height: 1.4;
+}
+
+.skin-name.clickable {
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.skin-name.clickable:hover {
+  color: #1890ff;
 }
 
 .skin-price {

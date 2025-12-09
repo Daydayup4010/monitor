@@ -306,6 +306,33 @@ export interface PriceIncreaseItem {
   sellCountRate30D: number | null
 }
 
+// 价格历史数据项
+export interface PriceHistoryItem {
+  date: string
+  sellPrice: number
+  sellCount: number
+}
+
+// 平台在售信息
+export interface GoodsPlatformInfo {
+  platform: string
+  platformName: string
+  sellPrice: number
+  sellCount: number
+  biddingPrice: number
+  biddingCount: number
+  link: string
+}
+
+// 商品详情响应
+export interface GoodsDetailResponse {
+  marketHashName: string
+  name: string
+  iconUrl: string
+  priceHistory: Record<string, PriceHistoryItem[]>  // key: 平台名，value: 历史数据数组
+  platformList: GoodsPlatformInfo[]
+}
+
 // 数据相关API（VIP用户）
 export const dataApi = {
   // 获取饰品数据
@@ -319,6 +346,10 @@ export const dataApi = {
   // 获取涨跌幅排行
   getPriceIncrease: (params: { is_desc: boolean; limit: number }): Promise<ApiResponse<PriceIncreaseItem[]>> =>
     api.get('/vip/goods/price-increase', { params }),
+  
+  // 获取商品详情
+  getGoodsDetail: (params: { market_hash_name: string; days?: number }): Promise<ApiResponse<GoodsDetailResponse>> =>
+    api.get('/vip/goods/detail', { params }),
 }
 
 export default api

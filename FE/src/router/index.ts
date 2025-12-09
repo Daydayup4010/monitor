@@ -65,6 +65,18 @@ const router = createRouter({
           }
         },
         {
+          path: 'detail',
+          name: 'Detail',
+          component: () => import('@/pages/Detail.vue'),
+          meta: { 
+            title: '饰品详情', 
+            icon: 'InfoFilled',
+            requiresAuth: true,
+            requiresVip: true,
+            hideInMenu: true  // 不在导航菜单中显示
+          }
+        },
+        {
           path: 'settings',
           name: 'Settings',
           component: () => import('@/pages/Settings.vue'),

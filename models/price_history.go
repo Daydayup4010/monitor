@@ -74,6 +74,26 @@ type PriceHistoryResponse struct {
 	Platforms      map[string][]PriceHistoryItem `json:"platforms"` // key: platform name
 }
 
+// GoodsDetailResponse 商品详情响应
+type GoodsDetailResponse struct {
+	MarketHashName string                        `json:"marketHashName"`
+	Name           string                        `json:"name"`
+	IconUrl        string                        `json:"iconUrl"`
+	PriceHistory   map[string][]PriceHistoryItem `json:"priceHistory"` // 所有平台的历史数据，key: 平台名
+	PlatformList   []*GoodsPlatformInfo          `json:"platformList"` // 各平台当前在售信息
+}
+
+// GoodsPlatformInfo 各平台在售信息
+type GoodsPlatformInfo struct {
+	Platform     string  `json:"platform"`
+	PlatformName string  `json:"platformName"`
+	SellPrice    float64 `json:"sellPrice"`
+	SellCount    int64   `json:"sellCount"`
+	BiddingPrice float64 `json:"biddingPrice"`
+	BiddingCount int64   `json:"biddingCount"`
+	Link         string  `json:"link"`
+}
+
 // BatchCreatePriceHistory 批量创建历史记录
 func BatchCreatePriceHistory(histories []*PriceHistory) error {
 	if len(histories) == 0 {
@@ -135,6 +155,96 @@ func GetPriceHistoryByPlatform(marketHashName, platform string, days int) ([]Pri
 	}
 
 	return result, nil
+}
+
+// GetGoodsDetail 获取商品详情（包含基础信息、所有平台历史数据、各平台在售信息）
+func GetGoodsDetail(marketHashName string, days int) (*GoodsDetailResponse, error) {
+	// 1. 获取商品基础信息
+	var baseGoods BaseGoods
+	err := config.DB.Where("market_hash_name = ?", marketHashName).First(&baseGoods).Error
+	if err != nil {
+		return nil, err
+	}
+
+	// 2. 获取所有平台的历史数据
+	historyResponse, err := GetPriceHistoryByHashName(marketHashName, days)
+	if err != nil {
+		return nil, err
+	}
+
+	// 3. 获取各平台当前在售信息
+	platformList := GetAllPlatformInfo(marketHashName)
+
+	return &GoodsDetailResponse{
+		MarketHashName: marketHashName,
+		Name:           baseGoods.Name,
+		IconUrl:        baseGoods.IconUrl,
+		PriceHistory:   historyResponse.Platforms,
+		PlatformList:   platformList,
+	}, nil
+}
+
+// GetAllPlatformInfo 获取指定商品在所有平台的当前在售信息
+func GetAllPlatformInfo(marketHashName string) []*GoodsPlatformInfo {
+	result := make([]*GoodsPlatformInfo, 0, 4)
+
+	// 悠悠有品
+	var u U
+	if err := config.DB.Where("market_hash_name = ?", marketHashName).First(&u).Error; err == nil {
+		result = append(result, &GoodsPlatformInfo{
+			Platform:     "YOUPIN",
+			PlatformName: "悠悠有品",
+			SellPrice:    u.SellPrice,
+			SellCount:    u.SellCount,
+			BiddingPrice: u.BiddingPrice,
+			BiddingCount: u.BiddingCount,
+			Link:         u.Link,
+		})
+	}
+
+	// BUFF
+	var buff Buff
+	if err := config.DB.Where("market_hash_name = ?", marketHashName).First(&buff).Error; err == nil {
+		result = append(result, &GoodsPlatformInfo{
+			Platform:     "BUFF",
+			PlatformName: "BUFF",
+			SellPrice:    buff.SellPrice,
+			SellCount:    buff.SellCount,
+			BiddingPrice: buff.BiddingPrice,
+			BiddingCount: buff.BiddingCount,
+			Link:         buff.Link,
+		})
+	}
+
+	// C5GAME
+	var c5 C5
+	if err := config.DB.Where("market_hash_name = ?", marketHashName).First(&c5).Error; err == nil {
+		result = append(result, &GoodsPlatformInfo{
+			Platform:     "C5",
+			PlatformName: "C5GAME",
+			SellPrice:    c5.SellPrice,
+			SellCount:    c5.SellCount,
+			BiddingPrice: c5.BiddingPrice,
+			BiddingCount: c5.BiddingCount,
+			Link:         c5.Link,
+		})
+	}
+
+	// Steam
+	var steam Steam
+	if err := config.DB.Where("market_hash_name = ?", marketHashName).First(&steam).Error; err == nil {
+		result = append(result, &GoodsPlatformInfo{
+			Platform:     "STEAM",
+			PlatformName: "Steam",
+			SellPrice:    steam.SellPrice,
+			SellCount:    steam.SellCount,
+			BiddingPrice: steam.BiddingPrice,
+			BiddingCount: steam.BiddingCount,
+			Link:         steam.Link,
+		})
+	}
+
+	return result
 }
 
 // CleanOldHistory 清理超过指定天数的历史数据
