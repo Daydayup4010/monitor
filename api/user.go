@@ -208,7 +208,19 @@ func RenewVipExpiry(c *gin.Context) {
 		return
 	}
 	// Days参数实际表示月数
-	newExpiry, code := models.RenewVIP(req.UserId, req.Days)
+	newExpiry, userEmail, code := models.RenewVIP(req.UserId, req.Days)
+
+	// 如果续费成功，发送邮件通知用户
+	if code == utils.SUCCESS && userEmail != "" {
+		go func() {
+			expiryStr := newExpiry.Format("2006-01-02 15:04:05")
+			emailCode := config.CONFIG.Email.SendVIPNotification(userEmail, req.Days, expiryStr)
+			if emailCode != utils.SUCCESS {
+				config.Log.Errorf("send vip notification email failed for user: %s", userEmail)
+			}
+		}()
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"code": code,
 		"msg":  "success",

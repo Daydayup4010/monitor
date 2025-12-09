@@ -224,13 +224,13 @@ func VerifyEmailCode(email, code string, c context.Context) (bool, int) {
 	return true, utils.SUCCESS
 }
 
-func RenewVIP(userID string, days int) (time.Time, int) {
+func RenewVIP(userID string, days int) (time.Time, string, int) {
 	// 获取当前VIP过期时间
 	var user User
 	var newExpiry time.Time
 	if err := config.DB.First(&user, "id = ?", userID).Error; err != nil {
 		config.Log.Errorf("query user fail: %v", err)
-		return newExpiry, utils.ErrCodeUserNotFound
+		return newExpiry, "", utils.ErrCodeUserNotFound
 	}
 
 	// 计算新的过期时间（days参数表示月数）
@@ -252,7 +252,7 @@ func RenewVIP(userID string, days int) (time.Time, int) {
 	err := config.DB.Model(&user).Updates(updates).Error
 	if err != nil {
 		config.Log.Errorf("update vip expiry fail: %v", err)
-		return newExpiry, utils.ErrCodeUpdateUser
+		return newExpiry, "", utils.ErrCodeUpdateUser
 	}
-	return newExpiry, utils.SUCCESS
+	return newExpiry, user.Email, utils.SUCCESS
 }
