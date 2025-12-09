@@ -1,7 +1,14 @@
 <template>
-  <div class="auth-page-wrapper">
-    <div class="auth-page">
-      <div class="auth-card">
+  <el-dialog
+    v-model="visible"
+    :title="null"
+    width="460px"
+    :close-on-click-modal="false"
+    :show-close="true"
+    class="login-dialog"
+    @close="handleClose"
+  >
+    <div class="auth-card-dialog">
       <div class="auth-header">
         <h2 class="auth-title">
           <img src="@/assets/icons/login.png" style="height: 36px; width: auto; vertical-align: middle; margin-right: 8px; object-fit: contain;" alt="登录" />
@@ -76,7 +83,7 @@
         </div>
 
         <div style="text-align: right; margin-bottom: 12px;">
-          <router-link to="/reset-password" style="color: #1890ff; font-size: 13px; text-decoration: none;">
+          <router-link to="/reset-password" style="color: #1890ff; font-size: 13px; text-decoration: none;" @click="handleClose">
             忘记密码？
           </router-link>
         </div>
@@ -142,26 +149,55 @@
       </el-form>
 
       <div class="auth-footer">
-        还没有账户？<router-link to="/register">立即注册</router-link>
-      </div>
+        还没有账户？<router-link to="/register" @click="handleClose">立即注册</router-link>
       </div>
     </div>
-    <Footer />
-  </div>
+  </el-dialog>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, watch, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { authApi, captchaApi } from '@/api'
 import { showMessage, debounce } from '@/utils'
 import type { FormInstance, FormRules } from 'element-plus'
 import type { LoginForm, EmailLoginForm } from '@/types'
-import Footer from '@/components/Footer.vue'
 
+const props = defineProps<{
+  modelValue: boolean
+}>()
+
+const emit = defineEmits<{
+  (e: 'update:modelValue', value: boolean): void
+  (e: 'success'): void
+}>()
+
+const visible = ref(props.modelValue)
 const router = useRouter()
 const userStore = useUserStore()
+
+watch(() => props.modelValue, (val) => {
+  visible.value = val
+  if (val) {
+    refreshCaptcha()
+  }
+})
+
+watch(visible, (val) => {
+  emit('update:modelValue', val)
+})
+
+const handleClose = () => {
+  visible.value = false
+  // 重置表单
+  passwordForm.email = ''
+  passwordForm.password = ''
+  passwordForm.captchaCode = ''
+  emailForm.email = ''
+  emailForm.code = ''
+  emailCheckResult.value = ''
+}
 
 const loginType = ref<'password' | 'email'>('password')
 
@@ -188,11 +224,6 @@ const refreshCaptcha = async () => {
     console.error('获取验证码失败:', error)
   }
 }
-
-// 页面加载时获取验证码
-onMounted(() => {
-  refreshCaptcha()
-})
 
 const passwordRules: FormRules = {
   email: [
@@ -327,6 +358,8 @@ const handlePasswordLogin = async () => {
     })
     if (success) {
       await new Promise(resolve => setTimeout(resolve, 100))
+      handleClose()
+      emit('success')
       if (userStore.isVip || userStore.isAdmin) {
         router.push('/app/ranking')
       } else {
@@ -353,6 +386,8 @@ const handleEmailLogin = async () => {
     const success = await userStore.emailLogin(emailForm)
     if (success) {
       await new Promise(resolve => setTimeout(resolve, 100))
+      handleClose()
+      emit('success')
       if (userStore.isVip || userStore.isAdmin) {
         router.push('/app/ranking')
       } else {
@@ -386,6 +421,17 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* 样式在 unified.css 中 */
-</style>
+/* 弹窗内容区域，复用auth样式 */
+.auth-card-dialog {
+  padding: 0;
+}
 
+/* 覆盖 el-dialog 样式 */
+:deep(.el-dialog__header) {
+  display: none;
+}
+
+:deep(.el-dialog__body) {
+  padding: 40px;
+}
+</style>

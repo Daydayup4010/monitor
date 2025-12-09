@@ -374,3 +374,66 @@ func GetLastIndex() int {
 
 	return newIndex
 }
+
+// PublicHomeData GetPublicHomeData 获取公开首页数据（不需要登录）
+// 包含：饰品榜单前10，挂刀搬砖利润率前10（使用管理员settings）
+type PublicHomeData struct {
+	RankingList []PriceIncreaseItem `json:"rankingList"` // 饰品涨幅榜前10
+	BrickMoving []Goods             `json:"brickMoving"` // 搬砖数据前10
+}
+
+func GetPublicHomeData() (*PublicHomeData, error) {
+	result := &PublicHomeData{}
+
+	// 1. 获取饰品涨幅榜前10
+	rankingList, err := GetPriceIncrease("YOUPIN", "", true, 10)
+	if err != nil {
+		config.Log.Errorf("GetPublicHomeData get ranking error: %v", err)
+		rankingList = []PriceIncreaseItem{}
+	}
+	result.RankingList = rankingList
+
+	// 2. 获取搬砖数据前10（使用管理员settings）
+	adminSettings, _ := GetAdminSetting()
+
+	var goods []Goods
+	// 默认 uu -> steam 的搬砖数据
+	sourceTable := "u"
+	targetTable := "steam"
+
+	query := config.DB.Model(&Buff{}).
+		Select(fmt.Sprintf("%s.id as id, %s.sell_count as sell_count, %s.turn_over as turn_over, %s.bidding_count as bidding_count, %s.bidding_price as bidding_price, base_goods.market_hash_name as market_hash_name, base_goods.name as name, base_goods.icon_url as image_url, %s.sell_price as target_price, %s.sell_price as source_price, (%s.sell_price - %s.sell_price) as price_diff, ROUND((%s.sell_price - %s.sell_price)/%s.sell_price,4) as profit_rate, %s.update_time as target_update_time, %s.update_time as source_update_time",
+			targetTable, targetTable, targetTable, targetTable, targetTable, targetTable, sourceTable, targetTable, sourceTable, targetTable, sourceTable, sourceTable, targetTable, sourceTable)).
+		Joins(fmt.Sprintf("join %s ON %s.market_hash_name = %s.market_hash_name", sourceTable, targetTable, sourceTable)).
+		Joins(fmt.Sprintf("join base_goods ON %s.market_hash_name = base_goods.market_hash_name", targetTable)).
+		Where(fmt.Sprintf("(%s.sell_price - %s.sell_price) > ? and %s.sell_count > ? and %s.sell_price < ? and %s.sell_price > ?",
+			targetTable, sourceTable, targetTable, sourceTable, sourceTable),
+			adminSettings.MinDiff, adminSettings.MinSellNum, adminSettings.MaxSellPrice, adminSettings.MinSellPrice).
+		Order("profit_rate DESC").
+		Limit(10)
+
+	err = query.Scan(&goods).Error
+	if err != nil {
+		config.Log.Errorf("GetPublicHomeData get brick moving error: %v", err)
+		goods = []Goods{}
+	}
+
+	// 获取平台列表
+	if len(goods) > 0 {
+		hashNames := make([]string, 0, len(goods))
+		for i := range goods {
+			hashNames = append(hashNames, goods[i].MarketHashName)
+		}
+		platformList := GetPlatformListBatch(hashNames)
+		for i := range goods {
+			goods[i].PlatformList = platformList[goods[i].MarketHashName]
+			for _, p := range goods[i].PlatformList {
+				p.PriceDiff = goods[i].TargetPrice - p.SellPrice
+				p.PriceDiff = math.Abs(math.Round(p.PriceDiff*100) / 100)
+			}
+		}
+	}
+	result.BrickMoving = goods
+
+	return result, nil
+}

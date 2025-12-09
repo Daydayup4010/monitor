@@ -101,3 +101,24 @@ func UpdateSetting(id string, setting Settings) int {
 	}
 	return utils.SUCCESS
 }
+
+// GetAdminSetting 获取管理员的设置（用于公开首页）
+func GetAdminSetting() (*SettingsResponse, int) {
+	var setting SettingsResponse
+	// 查找管理员用户的setting
+	err := config.DB.Model(&Settings{}).
+		Joins("JOIN users ON settings.user_id = users.id").
+		Where("users.role = ?", RoleAdmin).
+		First(&setting).Error
+	if err != nil {
+		config.Log.Errorf("get admin settings err: %s", err)
+		// 返回默认设置
+		return &SettingsResponse{
+			MinSellNum:   200,
+			MinDiff:      1,
+			MaxSellPrice: 10000,
+			MinSellPrice: 0,
+		}, utils.SUCCESS
+	}
+	return &setting, utils.SUCCESS
+}

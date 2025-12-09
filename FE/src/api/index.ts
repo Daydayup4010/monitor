@@ -201,10 +201,17 @@ api.interceptors.response.use(
   }
 )
 
+// 验证码响应类型
+export interface CaptchaResponse {
+  code: number
+  captcha_id: string
+  captcha_img: string
+}
+
 // 验证码API
 export const captchaApi = {
   // 获取图形验证码
-  getCaptcha: (): Promise<ApiResponse<{ captcha_id: string; captcha_img: string }>> =>
+  getCaptcha: (): Promise<CaptchaResponse> =>
     api.get('/captcha'),
 }
 
@@ -331,6 +338,47 @@ export interface GoodsDetailResponse {
   iconUrl: string
   priceHistory: Record<string, PriceHistoryItem[]>  // key: 平台名，value: 历史数据数组
   platformList: GoodsPlatformInfo[]
+}
+
+// 搬砖数据项类型
+export interface BrickMovingItem {
+  id: number
+  market_hash_name: string
+  name: string
+  image_url: string
+  target_price: number
+  source_price: number
+  price_diff: number
+  profit_rate: number
+  sell_count: number
+  turn_over: number
+  bidding_count: number
+  bidding_price: number
+  target_update_time: string
+  source_update_time: string
+  platform_list: Array<{
+    platform: string
+    platformName: string
+    sellPrice: number
+    sellCount: number
+    biddingPrice: number
+    biddingCount: number
+    link: string
+    priceDiff: number
+  }>
+}
+
+// 公开首页数据响应
+export interface PublicHomeData {
+  rankingList: PriceIncreaseItem[]
+  brickMoving: BrickMovingItem[]
+}
+
+// 公开API（无需登录）
+export const publicApi = {
+  // 获取公开首页数据
+  getHomeData: (): Promise<ApiResponse<PublicHomeData>> =>
+    api.get('/public/home'),
 }
 
 // 数据相关API（VIP用户）

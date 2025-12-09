@@ -181,6 +181,8 @@ const fetchGoodsDetail = async () => {
     })
     if (res.code === 1 && res.data) {
       goodsDetail.value = res.data
+      // 设置页面标题为饰品名称
+      document.title = res.data.name || '饰品详情'
       await nextTick()
       initChart()
     }
@@ -237,17 +239,18 @@ const initChart = () => {
     legend: {
       data: ['价格', '在售数量'],
       top: 5,
-      right: 100,
+      left: 'center',
       itemWidth: 18,
       itemHeight: 7,
+      itemGap: 30,
       textStyle: {
         fontSize: 14,
         color: '#666',
       },
     },
     grid: {
-      left: 60,
-      right: 60,
+      left: 80,
+      right: 100,
       top: 60,
       bottom: 60,
     },
@@ -415,7 +418,6 @@ onUnmounted(() => {
 .goods-image {
   width: 120px;
   height: 90px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-radius: 10px;
   display: flex;
   align-items: center;

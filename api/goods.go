@@ -162,3 +162,21 @@ func GetPriceIncreaseByU(c *gin.Context) {
 		"msg":  utils.ErrorMessage(utils.SUCCESS),
 	})
 }
+
+// GetPublicHomeData 获取公开首页数据（不需要登录）
+func GetPublicHomeData(c *gin.Context) {
+	data, err := models.GetPublicHomeData()
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"code": utils.ErrCodeGetGoods,
+			"msg":  "Failed to get public home data",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": utils.SUCCESS,
+		"data": data,
+		"msg":  utils.ErrorMessage(utils.SUCCESS),
+	})
+}

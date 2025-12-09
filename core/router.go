@@ -22,6 +22,20 @@ func InitRouter() *gin.Engine {
 		KeyPrefix:   "user:captcha",
 	}), api.GenerateCaptcha)
 
+	// 公开接口（无需登录）
+	public := v1.Group("public")
+	{
+		// 首页数据：每个IP每分钟最多30次
+		public.GET("home",
+			middleware.RateLimiterByIP(middleware.RateLimiterConfig{
+				Window:      60 * time.Second,
+				MaxRequests: 30,
+				KeyPrefix:   "public:home",
+			}),
+			api.GetPublicHomeData,
+		)
+	}
+
 	user := v1.Group("user")
 	{
 		// 注册接口：每个IP每分钟最多5次

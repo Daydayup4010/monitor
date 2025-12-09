@@ -60,7 +60,7 @@ const formatDate = (date: string) => {
 }
 
 const goToHome = () => {
-  router.push('/home')
+  router.push('/app/ranking')
 }
 
 const goToResetPassword = () => {

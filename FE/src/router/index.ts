@@ -7,6 +7,12 @@ const router = createRouter({
   history: createWebHistory('/'), // 去掉csgo前缀
   routes: [
     {
+      path: '/',
+      name: 'Landing',
+      component: () => import('@/pages/Landing.vue'),
+      meta: { title: 'CS2饰品搬砖平台', requiresAuth: false }
+    },
+    {
       path: '/login',
       name: 'Login',
       component: () => import('@/pages/Login.vue'),
@@ -37,9 +43,9 @@ const router = createRouter({
       meta: { title: '用户协议', requiresAuth: false, hideInMenu: true }
     },
     {
-      path: '/',
+      path: '/app',
       component: Layout,
-      redirect: '/ranking',
+      redirect: '/app/ranking',
       meta: { requiresAuth: true },
       children: [
         {
@@ -104,21 +110,21 @@ const router = createRouter({
 })
 
 // 路由守卫
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, _from, next) => {
   const userStore = useUserStore()
   
   // 动态设置页面标题
   const title = to.meta.title as string
   document.title = title ? `${title} - CS Goods` : 'CS Goods'
   
-  // 如果已登录且访问登录/注册页，重定向到首页
-  if ((to.path === '/login' || to.path === '/register') && userStore.isLoggedIn) {
-    next('/home')
+  // 如果已登录且访问登录/注册/公开首页，重定向到应用首页
+  if ((to.path === '/login' || to.path === '/register' || to.path === '/') && userStore.isLoggedIn) {
+    next('/app/ranking')
     return
   }
   
   // 公开页面允许所有人访问（不需要登录）
-  const publicPages = ['/reset-password', '/privacy-policy', '/user-agreement']
+  const publicPages = ['/', '/reset-password', '/privacy-policy', '/user-agreement']
   if (publicPages.includes(to.path)) {
     next()
     return
@@ -138,14 +144,14 @@ router.beforeEach((to, from, next) => {
     // 检查VIP权限
     if (to.meta.requiresVip && !userStore.isVip) {
       showMessage.warning('需要VIP权限才能访问')
-      next('/settings')
+      next('/app/settings')
       return
     }
     
     // 检查管理员权限
     if (to.meta.requiresAdmin && !userStore.isAdmin) {
       showMessage.error('需要管理员权限才能访问')
-      next('/home')
+      next('/app/ranking')
       return
     }
   }

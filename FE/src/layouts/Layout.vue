@@ -134,23 +134,23 @@ const getUserAvatarBg = () => {
 
 // 点击logo回到首页
 const goHome = () => {
-  router.push('/ranking')
+  router.push('/app/ranking')
 }
 
 // 处理下拉菜单命令
 const handleCommand = (command: string) => {
   switch (command) {
     case 'ranking':
-      router.push('/ranking')
+      router.push('/app/ranking')
       break
     case 'home':
-      router.push('/home')
+      router.push('/app/home')
       break
     case 'settings':
-      router.push('/settings')
+      router.push('/app/settings')
       break
     case 'admin':
-      router.push('/admin')
+      router.push('/app/admin')
       break
     case 'logout':
       userStore.logout()

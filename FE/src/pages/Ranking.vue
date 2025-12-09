@@ -192,10 +192,11 @@ const handleImageError = (e: Event) => {
 
 // 跳转到详情页
 const goToDetail = (marketHashName: string) => {
-  router.push({
-    path: '/detail',
+  const routeData = router.resolve({
+    path: '/app/detail',
     query: { market_hash_name: marketHashName }
   })
+  window.open(routeData.href, '_blank')
 }
 
 onMounted(() => {

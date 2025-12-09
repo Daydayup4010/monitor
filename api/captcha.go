@@ -85,4 +85,3 @@ func VerifyCaptcha(captchaId, captchaCode string) bool {
 	}
 	return CaptchaStore.Verify(captchaId, captchaCode, true)
 }
-
