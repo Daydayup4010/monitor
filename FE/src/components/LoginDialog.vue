@@ -88,8 +88,8 @@
           </router-link>
         </div>
 
-        <button type="submit" class="btn btn-primary" :disabled="userStore.loading || !captchaId">
-          {{ userStore.loading ? '登录中...' : '立即登录' }}
+        <button type="submit" class="btn btn-primary" :disabled="userStore.loading || !captchaId || isSubmitting">
+          {{ (userStore.loading || isSubmitting) ? '登录中...' : '立即登录' }}
         </button>
       </el-form>
 
@@ -200,6 +200,7 @@ const handleClose = () => {
 }
 
 const loginType = ref<'password' | 'email'>('password')
+const isSubmitting = ref(false) // 防止重复提交
 
 // 图形验证码
 const captchaId = ref('')
@@ -346,10 +347,14 @@ const handleSendCode = async () => {
 }
 
 const handlePasswordLogin = async () => {
-  if (!passwordFormRef.value) return
+  if (!passwordFormRef.value || isSubmitting.value) return
 
   try {
     await passwordFormRef.value.validate()
+    
+    // 防止重复提交
+    isSubmitting.value = true
+    
     const success = await userStore.login({
       email: passwordForm.email,
       password: passwordForm.password,
@@ -375,6 +380,8 @@ const handlePasswordLogin = async () => {
     // 登录失败，刷新验证码
     refreshCaptcha()
     passwordForm.captchaCode = ''
+  } finally {
+    isSubmitting.value = false
   }
 }
 
