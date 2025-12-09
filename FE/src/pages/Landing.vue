@@ -52,7 +52,7 @@
                   <div class="item-price">¥{{ formatPrice(item.todayPrice) }}</div>
                 </div>
                 <div class="item-rate" :class="item.increaseRate1D >= 0 ? 'rate-up' : 'rate-down'">
-                  {{ item.increaseRate1D >= 0 ? '+' : '' }}{{ (item.increaseRate1D * 100).toFixed(2) }}%
+                  {{ item.increaseRate1D >= 0 ? '+' : '' }}{{ item.increaseRate1D.toFixed(2) }}%
                 </div>
               </div>
             </div>
