@@ -2,7 +2,7 @@
   <div class="home-page">
     <div class="card">
       <div class="card-title">
-        <img src="@/assets/icons/data.png" style="height: 20px; width: auto; vertical-align: text-top; margin-right: 8px; object-fit: contain; position: relative; top: 2px;" alt="挂刀/搬砖" />
+        <img src="../assets/icons/data.png" style="height: 20px; width: auto; vertical-align: text-top; margin-right: 8px; object-fit: contain; position: relative; top: 2px;" alt="挂刀/搬砖" />
         挂刀/搬砖
       </div>
 

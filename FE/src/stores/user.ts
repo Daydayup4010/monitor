@@ -180,7 +180,7 @@ export const useUserStore = defineStore('user', () => {
     userInfo.value = null
     localStorage.removeItem('token')
     localStorage.removeItem('userInfo')
-    router.push('/login')
+    router.push('/')
     showMessage.info('已退出登录')
   }
 

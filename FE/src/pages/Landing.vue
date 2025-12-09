@@ -103,7 +103,7 @@
           </div>
           <div class="card-footer">
             <el-button type="primary" link @click="goToLoginWithTip">
-              登录查看更多搬砖商机 <el-icon><ArrowRight /></el-icon>
+              登录查看更多平台差价对比 <el-icon><ArrowRight /></el-icon>
             </el-button>
           </div>
         </div>
