@@ -19,7 +19,7 @@ var taskUU sync.Mutex
 var uuLimiter = rate.NewLimiter(3, 1) // 速率: 3 tokens/s, 突发容量: 1
 var buffLimiter = rate.NewLimiter(rate.Every(2000*time.Millisecond), 1)
 var RequestDelay = time.Second * 10
-var newLimiter = rate.NewLimiter(rate.Every(1000*time.Millisecond), 1)
+var newLimiter = rate.NewLimiter(rate.Every(310*time.Second), 1)
 
 func UpdateAllUUItems() {
 	_, total, _ := GetUUItems(20, 1)
