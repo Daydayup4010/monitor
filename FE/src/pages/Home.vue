@@ -336,7 +336,10 @@
               :persistent="false"
             >
               <template #reference>
-                <span style="color: #1890ff; cursor: pointer; font-size: 13px;">平台数据</span>
+                <div class="platform-data-cell">
+                  <div v-if="hasLowerPriceThanSource(row)" class="lower-platform-tip-inline">有更低价格平台</div>
+                  <span class="platform-data-link">平台数据</span>
+                </div>
               </template>
               <div style="padding: 8px; max-height: 500px; overflow-y: auto;">
                 <!-- 卖出平台数据（抬头） -->
@@ -740,6 +743,15 @@ const getOtherPlatforms = (row: any) => {
   return row.platform_list?.filter((p: any) => p.platformName !== targetName) || []
 }
 
+// 判断是否有平台价格低于买入平台价格
+const hasLowerPriceThanSource = (row: any) => {
+  if (!row.platform_list || !row.source_price || row.source_price <= 0) return false
+  // 检查是否有其他平台的卖出价低于买入平台的价格
+  return row.platform_list.some((p: any) => 
+    p.sellPrice > 0 && p.sellPrice < row.source_price
+  )
+}
+
 // 获取平台显示名称
 const getPlatformDisplayName = (platform: string) => {
   const platformNames: Record<string, string> = {
@@ -840,6 +852,35 @@ onMounted(async () => {
   width: 1800px;
   max-width: 100%;
   margin: 0 auto;
+}
+
+/* 平台数据单元格 */
+.platform-data-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.lower-platform-tip-inline {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
+  color: #fff;
+  text-align: center;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.platform-data-link {
+  color: #1890ff;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.platform-data-link:hover {
+  color: #40a9ff;
 }
 
 /* 饰品名称点击样式 */
