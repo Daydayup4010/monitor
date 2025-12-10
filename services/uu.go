@@ -204,9 +204,11 @@ func GetUUGoods(hashNames []string) []*models.UBaseInfo {
 
 	for _, item := range uuResp.Data {
 		infos = append(infos, &models.UBaseInfo{
-			Id:       item.SaleTemplateResponse.TemplateId,
-			HashName: item.SaleTemplateResponse.TemplateHashName,
-			IconUrl:  item.SaleTemplateResponse.IconUrl,
+			Id:          item.SaleTemplateResponse.TemplateId,
+			HashName:    item.SaleTemplateResponse.TemplateHashName,
+			IconUrl:     item.SaleTemplateResponse.IconUrl,
+			QualityName: item.SaleTemplateResponse.QualityName,
+			RarityName:  item.SaleTemplateResponse.RarityName,
 		})
 	}
 	return infos

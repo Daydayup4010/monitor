@@ -344,6 +344,8 @@ export interface GoodsDetailResponse {
   marketHashName: string
   name: string
   iconUrl: string
+  rarityName: string    // 品质名称
+  qualityName: string   // 类别名称
   priceHistory: Record<string, PriceHistoryItem[]>  // key: 平台名，value: 历史数据数组
   platformList: GoodsPlatformInfo[]
   priceChange: PriceChangeItem[]  // 悠悠平台的涨幅信息

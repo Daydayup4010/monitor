@@ -33,9 +33,11 @@ type UItemsInfo struct {
 }
 
 type UBaseInfo struct {
-	Id       int    `json:"item_id" gorm:"primaryKey"`
-	HashName string `json:"hash_name" gorm:"type:varchar(255);uniqueIndex;not null"`
-	IconUrl  string `json:"icon_url" gorm:"index"`
+	Id          int    `json:"item_id" gorm:"primaryKey"`
+	HashName    string `json:"hash_name" gorm:"type:varchar(255);uniqueIndex;not null"`
+	IconUrl     string `json:"icon_url" gorm:"index"`
+	RarityName  string `json:"rarity_name"`
+	QualityName string `json:"quality_name"`
 }
 
 func BatchAddUUItem(uu []*UItem) {

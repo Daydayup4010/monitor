@@ -44,6 +44,7 @@ func UpdateBaseGoodsScheduler() {
 }
 
 func UpdateIconScheduler() {
+	SafeGo(UpdateUUGoods)
 	ticker := time.NewTicker(1 * time.Hour)
 	defer ticker.Stop()
 	for range ticker.C {

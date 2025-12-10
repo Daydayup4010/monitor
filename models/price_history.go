@@ -87,6 +87,8 @@ type GoodsDetailResponse struct {
 	MarketHashName string                        `json:"marketHashName"`
 	Name           string                        `json:"name"`
 	IconUrl        string                        `json:"iconUrl"`
+	RarityName     string                        `json:"rarity_name"`
+	QualityName    string                        `json:"quality_name"`
 	PriceHistory   map[string][]PriceHistoryItem `json:"priceHistory"` // 所有平台的历史数据，key: 平台名
 	PlatformList   []*GoodsPlatformInfo          `json:"platformList"` // 各平台当前在售信息
 	PriceChange    []PriceChangeItem             `json:"priceChange"`  // 悠悠平台的涨幅信息（今日、本周、本月）
@@ -176,6 +178,9 @@ func GetGoodsDetail(marketHashName string, days int) (*GoodsDetailResponse, erro
 		return nil, err
 	}
 
+	var uBase UBaseInfo
+	config.DB.Where("hash_name = ?", marketHashName).First(&uBase)
+
 	// 2. 获取所有平台的历史数据
 	historyResponse, err := GetPriceHistoryByHashName(marketHashName, days)
 	if err != nil {
@@ -192,6 +197,8 @@ func GetGoodsDetail(marketHashName string, days int) (*GoodsDetailResponse, erro
 		MarketHashName: marketHashName,
 		Name:           baseGoods.Name,
 		IconUrl:        baseGoods.IconUrl,
+		RarityName:     uBase.RarityName,
+		QualityName:    uBase.QualityName,
 		PriceHistory:   historyResponse.Platforms,
 		PlatformList:   platformList,
 		PriceChange:    priceChange,

@@ -8,6 +8,17 @@
         </div>
         <div class="goods-info">
           <h1 class="goods-name">{{ goodsDetail.name }}</h1>
+          <div class="goods-meta">
+            <span class="meta-item">
+              <span class="meta-label">品质｜</span>
+              <span class="meta-value" :style="{ color: getRarityColor(goodsDetail.rarityName) }">{{ goodsDetail.rarityName || '-' }}</span>
+            </span>
+            <span class="meta-divider"></span>
+            <span class="meta-item">
+              <span class="meta-label">类别｜</span>
+              <span class="meta-value">{{ goodsDetail.qualityName || '-' }}</span>
+            </span>
+          </div>
         </div>
       </div>
 
@@ -241,6 +252,19 @@ const getPlatformLabel = (platform: string) => {
     'STEAM': 'Steam'
   }
   return labelMap[platform] || platform
+}
+
+// 获取品质对应的颜色
+const getRarityColor = (rarity: string) => {
+  const colorMap: Record<string, string> = {
+    '隐秘': '#8B0000',     // 深红色
+    '保密': '#FF69B4',     // 粉色
+    '受限': '#8B008B',     // 紫色
+    '军规级': '#00008B',   // 深蓝色
+    '工业级': '#4169E1',   // 浅蓝色
+    '消费级': '#808080',   // 灰色
+  }
+  return colorMap[rarity] || '#333333'  // 默认黑色
 }
 
 // 时间范围选项
@@ -665,6 +689,32 @@ onUnmounted(() => {
   font-weight: 500;
   color: #333;
   margin: 0 0 8px 0;
+}
+
+.goods-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 14px;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+}
+
+.meta-label {
+  color: #999;
+}
+
+.meta-value {
+  font-weight: 500;
+}
+
+.meta-divider {
+  width: 1px;
+  height: 14px;
+  background: #e0e0e0;
 }
 
 .goods-hash {
