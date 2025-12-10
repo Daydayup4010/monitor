@@ -13,7 +13,81 @@
 
       <!-- 主要内容区域 -->
       <div class="content-wrapper">
-        <!-- 左侧: 饰品走势 -->
+        <!-- 左侧: 价格信息和市场对比 -->
+        <div class="left-panel">
+          <!-- 价格涨幅卡片 -->
+          <div class="price-change-card" v-if="goodsDetail?.priceChange?.length">
+            <div class="price-change-nav">
+              <button 
+                class="nav-btn nav-btn-left" 
+                :disabled="priceChangeIndex === 0"
+                @click="priceChangeIndex = Math.max(0, priceChangeIndex - 1)"
+              >
+                <el-icon><ArrowLeft /></el-icon>
+              </button>
+              <div class="price-change-wrapper">
+                <div class="price-change-list" :style="{ transform: `translateX(-${priceChangeIndex * 197}px)` }">
+                  <div 
+                    class="price-change-item" 
+                    :class="{ 'is-up': item.isUp }"
+                    v-for="item in goodsDetail.priceChange" 
+                    :key="item.label"
+                  >
+                    <div class="change-label">
+                      {{ item.label }} 
+                      <span class="change-icon" :class="item.isUp ? 'icon-up' : 'icon-down'">
+                        {{ item.isUp ? '▲' : '▼' }}
+                      </span>
+                    </div>
+                    <div class="change-value" :class="item.isUp ? 'text-red' : 'text-green'">
+                      <span class="price-diff">¥{{ formatPriceDiff(item.priceDiff) }}</span>
+                      <span class="change-rate"> ({{ item.changeRate >= 0 ? '+' : '' }}{{ item.changeRate.toFixed(2) }}%)</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <button 
+                class="nav-btn nav-btn-right" 
+                :disabled="priceChangeIndex >= (goodsDetail?.priceChange?.length || 0) - 2"
+                @click="priceChangeIndex = Math.min((goodsDetail?.priceChange?.length || 0) - 2, priceChangeIndex + 1)"
+              >
+                <el-icon><ArrowRight /></el-icon>
+              </button>
+            </div>
+          </div>
+
+          <!-- 市场对比卡片 -->
+          <div class="market-compare-card">
+            <div class="card-title">市场对比</div>
+            <div class="market-list">
+              <div 
+                class="market-item" 
+                v-for="platform in goodsDetail?.platformList" 
+                :key="platform.platform"
+              >
+                <div class="market-item-header">
+                  <a :href="platform.link" target="_blank" class="platform-link">
+                    <img :src="getPlatformIcon(platform.platform)" class="platform-icon" />
+                    <span class="platform-name">{{ platform.platformName }}</span>
+                  </a>
+                  <div class="mini-chart-container" :ref="el => setMiniChartRef(platform.platform, el)"></div>
+                </div>
+                <div class="market-item-price">
+                  <a :href="platform.link" target="_blank" class="price-link">
+                    <span class="price-value">¥ {{ platform.sellPrice.toFixed(2) }}</span>
+                    <span class="lowest-badge" v-if="isLowestPrice(platform)">底</span>
+                  </a>
+                </div>
+                <div class="market-item-footer">
+                  <span class="sell-count">在售：{{ platform.sellCount }}</span>
+                  <span class="update-time">{{ formatUpdateTime(platform.updateTime) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右侧: 饰品走势 -->
         <div class="chart-card">
           <el-tabs v-model="activeTab" class="my-tabs">
             <el-tab-pane label="饰品走势" name="trend">
@@ -111,8 +185,8 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
-import { dataApi, type GoodsDetailResponse } from '@/api'
-import { ShoppingCart, Loading } from '@element-plus/icons-vue'
+import { dataApi, type GoodsDetailResponse, type GoodsPlatformInfo } from '@/api'
+import { ShoppingCart, Loading, ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
 import buffIcon from '@/assets/icons/buff.png'
 import uuIcon from '@/assets/icons/uu.png'
@@ -128,7 +202,16 @@ const activeTab = ref('trend')
 const selectedPlatform = ref('YOUPIN')
 const selectedDays = ref(30)
 const chartRef = ref<HTMLElement | null>(null)
+const priceChangeIndex = ref(0)  // 价格涨幅卡片当前索引
 let chartInstance: echarts.ECharts | null = null
+
+// 迷你图表引用
+const miniChartRefs = ref<Record<string, HTMLElement | null>>({})
+const miniChartInstances: Record<string, echarts.ECharts> = {}
+
+const setMiniChartRef = (platform: string, el: any) => {
+  miniChartRefs.value[platform] = el as HTMLElement
+}
 
 // 平台选项
 const platforms = [
@@ -168,6 +251,39 @@ const timeRanges = [
   { value: 365, label: '近1年' },
 ]
 
+// 判断是否是最低价
+const isLowestPrice = (platform: GoodsPlatformInfo) => {
+  if (!goodsDetail.value?.platformList) return false
+  const prices = goodsDetail.value.platformList
+    .filter(p => p.sellPrice > 0)
+    .map(p => p.sellPrice)
+  if (prices.length === 0) return false
+  const minPrice = Math.min(...prices)
+  return platform.sellPrice === minPrice && platform.sellPrice > 0
+}
+
+// 格式化价格差（下跌带负号，上涨不带+号）
+const formatPriceDiff = (priceDiff: number) => {
+  if (priceDiff < 0) {
+    return priceDiff.toFixed(2)  // 负数自带负号
+  }
+  return priceDiff.toFixed(2)  // 正数不带+号
+}
+
+// 格式化更新时间
+const formatUpdateTime = (timestamp: number) => {
+  if (!timestamp) return ''
+  const now = Date.now()
+  const diff = now - timestamp * 1000
+  const minutes = Math.floor(diff / 60000)
+  const hours = Math.floor(diff / 3600000)
+  
+  if (minutes < 1) return '刚刚'
+  if (minutes < 60) return `${minutes} 分钟前`
+  if (hours < 24) return `${hours} 小时前`
+  return `${Math.floor(hours / 24)} 天前`
+}
+
 // 获取商品详情
 const fetchGoodsDetail = async () => {
   const marketHashName = route.query.market_hash_name as string
@@ -185,12 +301,119 @@ const fetchGoodsDetail = async () => {
       document.title = res.data.name || '饰品详情'
       await nextTick()
       initChart()
+      initMiniCharts()
     }
   } catch (error) {
     console.error('获取商品详情失败:', error)
   } finally {
     loading.value = false
   }
+}
+
+// 初始化迷你图表
+const initMiniCharts = () => {
+  if (!goodsDetail.value?.platformList) return
+
+  goodsDetail.value.platformList.forEach(platform => {
+    const el = miniChartRefs.value[platform.platform]
+    if (!el) return
+
+    // 获取该平台7天的价格数据
+    const historyData = goodsDetail.value?.priceHistory[platform.platform] || []
+    const last7Days = historyData.slice(-7)
+    const prices = last7Days.map(item => item.sellPrice)
+
+    if (prices.length === 0) return
+
+    // 销毁旧实例
+    if (miniChartInstances[platform.platform]) {
+      miniChartInstances[platform.platform].dispose()
+    }
+
+    const chart = echarts.init(el)
+    miniChartInstances[platform.platform] = chart
+
+    // 判断涨跌趋势
+    const isUp = prices.length >= 2 && prices[prices.length - 1] >= prices[0]
+    const color = isUp ? '#F56C6C' : '#0DAB62'
+
+    const option: echarts.EChartsOption = {
+      tooltip: {
+        trigger: 'axis',
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        borderColor: '#eee',
+        borderWidth: 1,
+        padding: [8, 12],
+        textStyle: {
+          color: '#333',
+          fontSize: 12,
+        },
+        formatter: (params: any) => {
+          const data = params[0]
+          const date = data.axisValue
+          const price = data.value
+          return `<div style="font-size:12px;">
+            <div style="color:#999;margin-bottom:4px;">${date}</div>
+            <div style="color:${color};font-weight:500;">¥${price.toFixed(2)}</div>
+          </div>`
+        },
+        axisPointer: {
+          type: 'line',
+          lineStyle: {
+            color: '#ddd',
+            width: 1,
+          },
+        },
+      },
+      grid: {
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0,
+      },
+      xAxis: {
+        type: 'category',
+        show: false,
+        data: last7Days.map(item => item.date),
+      },
+      yAxis: {
+        type: 'value',
+        show: false,
+        min: Math.min(...prices) * 0.98,
+        max: Math.max(...prices) * 1.02,
+      },
+      series: [{
+        type: 'line',
+        data: prices,
+        smooth: true,
+        symbol: 'circle',
+        symbolSize: 4,
+        showSymbol: false,
+        lineStyle: {
+          color: color,
+          width: 1.5,
+        },
+        itemStyle: {
+          color: color,
+        },
+        emphasis: {
+          scale: true,
+          itemStyle: {
+            borderWidth: 2,
+            borderColor: '#fff',
+          },
+        },
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: isUp ? 'rgba(245, 108, 108, 0.3)' : 'rgba(13, 171, 98, 0.3)' },
+            { offset: 1, color: isUp ? 'rgba(245, 108, 108, 0.05)' : 'rgba(13, 171, 98, 0.05)' },
+          ]),
+        },
+      }],
+    }
+
+    chart.setOption(option)
+  })
 }
 
 // 初始化图表
@@ -370,6 +593,7 @@ const handleDaysChange = () => {
 // 窗口大小变化时调整图表
 const handleResize = () => {
   chartInstance?.resize()
+  Object.values(miniChartInstances).forEach(chart => chart?.resize())
 }
 
 // 监听activeTab变化，切换到走势时重新渲染图表
@@ -389,6 +613,7 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
   chartInstance?.dispose()
+  Object.values(miniChartInstances).forEach(chart => chart?.dispose())
 })
 </script>
 
@@ -400,7 +625,7 @@ onUnmounted(() => {
 }
 
 .detail-container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
 }
 
@@ -452,6 +677,219 @@ onUnmounted(() => {
 .content-wrapper {
   display: flex;
   gap: 20px;
+}
+
+/* 左侧面板 */
+.left-panel {
+  width: 486px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* 价格涨幅卡片 */
+.price-change-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 15px 10px;
+}
+
+.price-change-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.nav-btn {
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: #bbb;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.nav-btn:hover:not(:disabled) {
+  background: #f5f5f5;
+  color: #333;
+}
+
+.nav-btn:disabled {
+  color: #ddd;
+  cursor: not-allowed;
+}
+
+.nav-btn .el-icon {
+  font-size: 18px;
+}
+
+.price-change-wrapper {
+  width: 382px;  /* 两个卡片: 185*2 + 间距12 */
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.price-change-list {
+  display: flex;
+  gap: 12px;
+  transition: transform 0.3s ease;
+}
+
+.price-change-item {
+  flex-shrink: 0;
+  width: 185px;
+  height: 90px;
+  background: #F5F8FD;
+  border-radius: 10px;
+  padding: 16px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.price-change-item.is-up {
+  background: #FFF5F5;
+}
+
+.change-label {
+  font-size: 16px;
+  color: #666;
+  margin-bottom: 10px;
+}
+
+.change-icon {
+  font-size: 14px;
+  margin-left: 6px;
+}
+
+.change-icon.icon-up {
+  color: #F56C6C;
+}
+
+.change-icon.icon-down {
+  color: #0DAB62;
+}
+
+.change-value {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.price-diff {
+  font-weight: 600;
+}
+
+.text-red {
+  color: #F56C6C;
+}
+
+.text-green {
+  color: #0DAB62;
+}
+
+/* 市场对比卡片 */
+.market-compare-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  flex: 1;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 16px;
+}
+
+.market-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.market-item {
+  width: calc(50% - 6px);
+  background: #F5F8FD;
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.market-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.platform-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+}
+
+.platform-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+.platform-name {
+  font-size: 14px;
+  color: #999;
+}
+
+.mini-chart-container {
+  width: 60px;
+  height: 30px;
+}
+
+.market-item-price {
+  margin-bottom: 8px;
+}
+
+.price-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+}
+
+.price-value {
+  font-size: 18px;
+  font-weight: 500;
+  color: #ff6b00;
+  white-space: nowrap;
+}
+
+.lowest-badge {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  line-height: 20px;
+  text-align: center;
+  background: #0DAB62;
+  color: #fff;
+  font-size: 12px;
+  border-radius: 4px;
+}
+
+.market-item-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #999;
 }
 
 .chart-card {
@@ -558,11 +996,6 @@ onUnmounted(() => {
   object-fit: contain;
 }
 
-.platform-name {
-  font-size: 16px;
-  color: #262626;
-}
-
 .text-orange {
   color: #ff6b00;
 }
@@ -635,4 +1068,3 @@ onUnmounted(() => {
   background-color: #1890ff;
 }
 </style>
-

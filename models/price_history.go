@@ -74,6 +74,14 @@ type PriceHistoryResponse struct {
 	Platforms      map[string][]PriceHistoryItem `json:"platforms"` // key: platform name
 }
 
+// PriceChangeItem 价格变化项
+type PriceChangeItem struct {
+	Label      string  `json:"label"`      // 今日、本周、本月
+	PriceDiff  float64 `json:"priceDiff"`  // 价格差
+	ChangeRate float64 `json:"changeRate"` // 涨跌幅百分比
+	IsUp       bool    `json:"isUp"`       // 是否上涨
+}
+
 // GoodsDetailResponse 商品详情响应
 type GoodsDetailResponse struct {
 	MarketHashName string                        `json:"marketHashName"`
@@ -81,6 +89,7 @@ type GoodsDetailResponse struct {
 	IconUrl        string                        `json:"iconUrl"`
 	PriceHistory   map[string][]PriceHistoryItem `json:"priceHistory"` // 所有平台的历史数据，key: 平台名
 	PlatformList   []*GoodsPlatformInfo          `json:"platformList"` // 各平台当前在售信息
+	PriceChange    []PriceChangeItem             `json:"priceChange"`  // 悠悠平台的涨幅信息（今日、本周、本月）
 }
 
 // GoodsPlatformInfo 各平台在售信息
@@ -91,6 +100,7 @@ type GoodsPlatformInfo struct {
 	SellCount    int64   `json:"sellCount"`
 	BiddingPrice float64 `json:"biddingPrice"`
 	BiddingCount int64   `json:"biddingCount"`
+	UpdateTime   int64   `json:"updateTime"`
 	Link         string  `json:"link"`
 }
 
@@ -175,13 +185,73 @@ func GetGoodsDetail(marketHashName string, days int) (*GoodsDetailResponse, erro
 	// 3. 获取各平台当前在售信息
 	platformList := GetAllPlatformInfo(marketHashName)
 
+	// 4. 计算悠悠平台的涨幅信息
+	priceChange := calculatePriceChange(marketHashName)
+
 	return &GoodsDetailResponse{
 		MarketHashName: marketHashName,
 		Name:           baseGoods.Name,
 		IconUrl:        baseGoods.IconUrl,
 		PriceHistory:   historyResponse.Platforms,
 		PlatformList:   platformList,
+		PriceChange:    priceChange,
 	}, nil
+}
+
+// calculatePriceChange 计算悠悠平台的涨幅信息（今日、本周、本月）
+func calculatePriceChange(marketHashName string) []PriceChangeItem {
+	today := getLocalToday()
+	result := []PriceChangeItem{}
+
+	// 获取当前价格（最新一天的价格）
+	var currentHistory PriceHistory
+	err := config.DB.Where("market_hash_name = ? AND platform = ?", marketHashName, "YOUPIN").
+		Order("record_date DESC").First(&currentHistory).Error
+	if err != nil {
+		return result
+	}
+	currentPrice := currentHistory.SellPrice
+
+	// 计算今日涨幅（与昨天对比）
+	yesterday := today.AddDate(0, 0, -1)
+	result = append(result, calcPriceChangeItem("今日", marketHashName, currentPrice, yesterday))
+
+	// 计算本周涨幅（与7天前对比）
+	weekAgo := today.AddDate(0, 0, -7)
+	result = append(result, calcPriceChangeItem("本周", marketHashName, currentPrice, weekAgo))
+
+	// 计算本月涨幅（与30天前对比）
+	monthAgo := today.AddDate(0, 0, -30)
+	result = append(result, calcPriceChangeItem("本月", marketHashName, currentPrice, monthAgo))
+
+	return result
+}
+
+// calcPriceChangeItem 计算单个涨幅项
+func calcPriceChangeItem(label, marketHashName string, currentPrice float64, compareDate time.Time) PriceChangeItem {
+	var oldHistory PriceHistory
+	err := config.DB.Where("market_hash_name = ? AND platform = ? AND record_date <= ?",
+		marketHashName, "YOUPIN", compareDate).
+		Order("record_date DESC").First(&oldHistory).Error
+
+	if err != nil || oldHistory.SellPrice == 0 {
+		return PriceChangeItem{
+			Label:      label,
+			PriceDiff:  0,
+			ChangeRate: 0,
+			IsUp:       false,
+		}
+	}
+
+	priceDiff := currentPrice - oldHistory.SellPrice
+	changeRate := (priceDiff / oldHistory.SellPrice) * 100
+
+	return PriceChangeItem{
+		Label:      label,
+		PriceDiff:  priceDiff,
+		ChangeRate: changeRate,
+		IsUp:       priceDiff >= 0,
+	}
 }
 
 // GetAllPlatformInfo 获取指定商品在所有平台的当前在售信息
@@ -198,6 +268,7 @@ func GetAllPlatformInfo(marketHashName string) []*GoodsPlatformInfo {
 			SellCount:    u.SellCount,
 			BiddingPrice: u.BiddingPrice,
 			BiddingCount: u.BiddingCount,
+			UpdateTime:   u.UpdateTime,
 			Link:         u.Link,
 		})
 	}
@@ -212,6 +283,7 @@ func GetAllPlatformInfo(marketHashName string) []*GoodsPlatformInfo {
 			SellCount:    buff.SellCount,
 			BiddingPrice: buff.BiddingPrice,
 			BiddingCount: buff.BiddingCount,
+			UpdateTime:   buff.UpdateTime,
 			Link:         buff.Link,
 		})
 	}
@@ -226,6 +298,7 @@ func GetAllPlatformInfo(marketHashName string) []*GoodsPlatformInfo {
 			SellCount:    c5.SellCount,
 			BiddingPrice: c5.BiddingPrice,
 			BiddingCount: c5.BiddingCount,
+			UpdateTime:   c5.UpdateTime,
 			Link:         c5.Link,
 		})
 	}
@@ -240,6 +313,7 @@ func GetAllPlatformInfo(marketHashName string) []*GoodsPlatformInfo {
 			SellCount:    steam.SellCount,
 			BiddingPrice: steam.BiddingPrice,
 			BiddingCount: steam.BiddingCount,
+			UpdateTime:   steam.UpdateTime,
 			Link:         steam.Link,
 		})
 	}

@@ -332,12 +332,21 @@ export interface GoodsPlatformInfo {
 }
 
 // 商品详情响应
+// 价格涨幅项
+export interface PriceChangeItem {
+  label: string      // 今日、本周、本月
+  priceDiff: number  // 价格差
+  changeRate: number // 涨跌幅百分比
+  isUp: boolean      // 是否上涨
+}
+
 export interface GoodsDetailResponse {
   marketHashName: string
   name: string
   iconUrl: string
   priceHistory: Record<string, PriceHistoryItem[]>  // key: 平台名，value: 历史数据数组
   platformList: GoodsPlatformInfo[]
+  priceChange: PriceChangeItem[]  // 悠悠平台的涨幅信息
 }
 
 // 搬砖数据项类型
