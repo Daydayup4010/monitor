@@ -35,7 +35,6 @@ func StartUUFullUpdateScheduler() {
 }
 
 func UpdateBaseGoodsScheduler() {
-	SafeGo(UpdateBaseGoodsToDb)
 	ticker := time.NewTicker(24 * time.Hour)
 	defer ticker.Stop()
 	for range ticker.C {
