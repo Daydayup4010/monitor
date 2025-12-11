@@ -493,6 +493,9 @@ func inferQualityFromHashName(hashName string) string {
 	if strings.Contains(hashName, "StatTrak™") {
 		return "StatTrak™"
 	}
+	if strings.HasPrefix(hashName, "Souvenir ") {
+		return "纪念品"
+	}
 	if strings.HasPrefix(hashName, "★") {
 		return "★"
 	}
@@ -583,22 +586,46 @@ func GetRelatedWears(hashName string) (*RelatedWearsResponse, error) {
 			return nil, err
 		}
 	} else if currentWear != "" {
-		// 有磨损等级：需要查询所有品质版本（普通 + StatTrak™）
-		// 先去掉 StatTrak™ 前缀，得到真正的基础名称
-		pureBaseName := strings.TrimPrefix(baseName, "StatTrak™ ")
-		pureBaseName = strings.TrimSpace(pureBaseName)
+		// 有磨损等级：需要查询所有品质版本
+		config.Log.Infof("GetRelatedWears: hashName=%s, baseName=%s", hashName, baseName)
 
-		config.Log.Infof("GetRelatedWears: hashName=%s, baseName=%s, pureBaseName=%s", hashName, baseName, pureBaseName)
+		// 判断是否是刀具（以 ★ 开头）
+		if strings.HasPrefix(baseName, "★ ") {
+			// 刀具格式：★ Knife | Skin 或 ★ StatTrak™ Knife | Skin
+			// 提取纯刀具名称（去掉 ★ 和 StatTrak™）
+			pureKnifeName := baseName
+			pureKnifeName = strings.TrimPrefix(pureKnifeName, "★ StatTrak™ ")
+			pureKnifeName = strings.TrimPrefix(pureKnifeName, "★ ")
+			pureKnifeName = strings.TrimSpace(pureKnifeName)
 
-		// 查询普通版本和 StatTrak™ 版本
-		// 普通版本: "MP9 | Nexus (%"
-		// StatTrak™ 版本: "StatTrak™ MP9 | Nexus (%"
-		err := config.DB.Where("hash_name LIKE ? OR hash_name LIKE ?",
-			pureBaseName+" (%",
-			"StatTrak™ "+pureBaseName+" (%").Find(&baseInfos).Error
-		if err != nil {
-			config.Log.Errorf("GetRelatedWears query error: %v", err)
-			return nil, err
+			config.Log.Infof("GetRelatedWears (knife): pureKnifeName=%s", pureKnifeName)
+
+			// 查询普通★版本和★ StatTrak™版本
+			err := config.DB.Where("hash_name LIKE ? OR hash_name LIKE ?",
+				"★ "+pureKnifeName+" (%",
+				"★ StatTrak™ "+pureKnifeName+" (%").Find(&baseInfos).Error
+			if err != nil {
+				config.Log.Errorf("GetRelatedWears knife query error: %v", err)
+				return nil, err
+			}
+		} else {
+			// 普通武器：去掉 StatTrak™ 和 Souvenir 前缀
+			pureBaseName := baseName
+			pureBaseName = strings.TrimPrefix(pureBaseName, "StatTrak™ ")
+			pureBaseName = strings.TrimPrefix(pureBaseName, "Souvenir ")
+			pureBaseName = strings.TrimSpace(pureBaseName)
+
+			config.Log.Infof("GetRelatedWears (weapon): pureBaseName=%s", pureBaseName)
+
+			// 查询普通版本、StatTrak™ 版本和 Souvenir 版本
+			err := config.DB.Where("hash_name LIKE ? OR hash_name LIKE ? OR hash_name LIKE ?",
+				pureBaseName+" (%",
+				"StatTrak™ "+pureBaseName+" (%",
+				"Souvenir "+pureBaseName+" (%").Find(&baseInfos).Error
+			if err != nil {
+				config.Log.Errorf("GetRelatedWears query error: %v", err)
+				return nil, err
+			}
 		}
 	} else {
 		// 无磨损等级（如刀具）：查询同名但不同品质的版本

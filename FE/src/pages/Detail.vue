@@ -379,25 +379,42 @@ const otherQualityLabel = computed(() => {
     if (otherHashName.startsWith('Sticker Slab |')) return '贴纸板'
     // Sticker
     if (otherHashName.startsWith('Sticker |')) return '贴纸'
+    // Souvenir
+    if (otherHashName.startsWith('Souvenir ')) return '纪念品'
   }
   
   // 简化显示
   if (otherQ.includes('StatTrak')) return 'StatTrak™'
+  if (otherQ === '纪念品') return '纪念品'
   if (otherQ === '★') return '普通'
   if (otherQ === '自定义') return '贴纸板'
   return otherQ
 })
 
-// 其他品质的最低价格
+// 其他品质对应变体的价格
 const otherQualityMinPrice = computed(() => {
   if (!relatedWears.value) return 0
   const currentQ = selectedQuality.value || relatedWears.value.current_quality
   const otherQ = relatedWears.value.qualities.find(q => q !== currentQ)
   if (!otherQ) return 0
-  const wears = relatedWears.value.wears[otherQ] || []
-  if (wears.length === 0) return 0
-  const prices = wears.filter(w => w.price > 0).map(w => w.price)
-  return prices.length > 0 ? Math.min(...prices) : 0
+  const otherWears = relatedWears.value.wears[otherQ] || []
+  if (otherWears.length === 0) return 0
+  
+  // 找到当前选中饰品的变体类型
+  const marketHashName = route.query.market_hash_name as string
+  const currentWears = relatedWears.value.wears[currentQ] || []
+  const currentItem = currentWears.find(w => w.hash_name === marketHashName)
+  const currentWear = currentItem?.wear || ''
+  
+  // 找到其他品质中对应变体的饰品
+  const matchingItem = otherWears.find(w => w.wear === currentWear)
+  if (matchingItem && matchingItem.price > 0) {
+    return matchingItem.price
+  }
+  
+  // 如果没有对应变体，返回第一个有价格的
+  const firstWithPrice = otherWears.find(w => w.price > 0)
+  return firstWithPrice?.price || 0
 })
 
 // 切换磨损
