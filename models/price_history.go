@@ -484,7 +484,7 @@ func GetPriceIncrease(platform, sortBy string, isDesc bool, limit int) ([]PriceI
 				AND t.record_date = ?
 				AND s.sell_price > 0
 				AND t.sell_price > 1
-				AND t.sell_count > 20
+				AND t.sell_count > 100
 			ORDER BY increase_rate_1d ` + sortOrder + `
 			LIMIT ?
 		) AS top_items
