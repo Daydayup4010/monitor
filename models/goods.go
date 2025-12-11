@@ -3,6 +3,8 @@ package models
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"math"
@@ -398,6 +400,250 @@ func GetLastIndex() int {
 type PublicHomeData struct {
 	RankingList []PriceIncreaseItem `json:"rankingList"` // 饰品涨幅榜前10
 	BrickMoving []Goods             `json:"brickMoving"` // 搬砖数据前10
+}
+
+// RelatedWearItem 关联磨损项
+type RelatedWearItem struct {
+	HashName    string  `json:"hash_name"`
+	Wear        string  `json:"wear"`
+	WearShort   string  `json:"wear_short"`
+	IconUrl     string  `json:"icon_url"`
+	Price       float64 `json:"price"`
+	QualityName string  `json:"quality_name"`
+}
+
+// RelatedWearsResponse 关联磨损响应
+type RelatedWearsResponse struct {
+	CurrentWear    string                       `json:"current_wear"`
+	CurrentQuality string                       `json:"current_quality"`
+	Qualities      []string                     `json:"qualities"`
+	Wears          map[string][]RelatedWearItem `json:"wears"`
+}
+
+// 磨损等级映射
+var wearMap = map[string]struct {
+	Short string
+	Order int
+}{
+	"Factory New":    {"FN", 1},
+	"Minimal Wear":   {"MW", 2},
+	"Field-Tested":   {"FT", 3},
+	"Well-Worn":      {"WW", 4},
+	"Battle-Scarred": {"BS", 5},
+}
+
+// 磨损等级中文映射
+var wearCNMap = map[string]string{
+	"Factory New":    "崭新出厂",
+	"Minimal Wear":   "略有磨损",
+	"Field-Tested":   "久经沙场",
+	"Well-Worn":      "破损不堪",
+	"Battle-Scarred": "战痕累累",
+}
+
+// extractBaseName 从 hash_name 中提取基础名称（去掉磨损等级）
+func extractBaseName(hashName string) string {
+	// 磨损等级列表
+	wears := []string{"(Factory New)", "(Minimal Wear)", "(Field-Tested)", "(Well-Worn)", "(Battle-Scarred)"}
+	result := hashName
+	for _, wear := range wears {
+		if strings.HasSuffix(result, wear) {
+			result = strings.TrimSuffix(result, wear)
+			break
+		}
+	}
+	// 去掉末尾空格
+	result = strings.TrimSpace(result)
+	return result
+}
+
+// extractWear 从 hash_name 中提取磨损等级
+func extractWear(hashName string) string {
+	wears := []string{"Factory New", "Minimal Wear", "Field-Tested", "Well-Worn", "Battle-Scarred"}
+	for _, wear := range wears {
+		suffix := "(" + wear + ")"
+		if strings.HasSuffix(hashName, suffix) {
+			return wear
+		}
+	}
+	return ""
+}
+
+// extractKnifeBaseName 从刀具名称中提取基础名称（去掉 ★ 和 StatTrak™ 前缀）
+// 例如：★ StatTrak™ Butterfly Knife -> Butterfly Knife
+// 例如：★ Butterfly Knife -> Butterfly Knife
+func extractKnifeBaseName(hashName string) string {
+	result := hashName
+	// 去掉 ★ 前缀
+	result = strings.TrimPrefix(result, "★ ")
+	result = strings.TrimPrefix(result, "★")
+	// 去掉 StatTrak™ 前缀
+	result = strings.TrimPrefix(result, "StatTrak™ ")
+	result = strings.TrimPrefix(result, "StatTrak™")
+	result = strings.TrimSpace(result)
+	return result
+}
+
+// inferQualityFromHashName 从 hash_name 推断 quality_name
+// 如果数据库中 quality_name 为空，则根据 hash_name 推断
+func inferQualityFromHashName(hashName string) string {
+	if strings.Contains(hashName, "★ StatTrak™") {
+		return "★ StatTrak™"
+	}
+	if strings.Contains(hashName, "StatTrak™") {
+		return "StatTrak™"
+	}
+	if strings.HasPrefix(hashName, "★") {
+		return "★"
+	}
+	return "普通"
+}
+
+// GetRelatedWears 获取同款饰品的不同磨损和品质版本
+func GetRelatedWears(hashName string) (*RelatedWearsResponse, error) {
+	baseName := extractBaseName(hashName)
+	currentWear := extractWear(hashName)
+
+	if baseName == "" {
+		return nil, fmt.Errorf("invalid hash_name")
+	}
+
+	var baseInfos []UBaseInfo
+
+	// 判断当前饰品是否有磨损等级
+	if currentWear != "" {
+		// 有磨损等级：查询同基础名称的所有磨损版本
+		likePattern := baseName + " (%"
+		config.Log.Infof("GetRelatedWears: hashName=%s, baseName=%s, likePattern=%s", hashName, baseName, likePattern)
+		err := config.DB.Where("hash_name LIKE ?", likePattern).Find(&baseInfos).Error
+		if err != nil {
+			config.Log.Errorf("GetRelatedWears query error: %v", err)
+			return nil, err
+		}
+	} else {
+		// 无磨损等级（如刀具）：查询同名但不同品质的版本
+		// 例如：★ Butterfly Knife 和 ★ StatTrak™ Butterfly Knife
+		config.Log.Infof("GetRelatedWears (no wear): hashName=%s", hashName)
+
+		// 提取刀具基础名称（去掉 ★ 和 StatTrak™ 前缀）
+		knifeBaseName := extractKnifeBaseName(hashName)
+		if knifeBaseName != "" {
+			// 查询所有包含这个刀具名称的饰品
+			err := config.DB.Where("hash_name LIKE ?", "%"+knifeBaseName).Find(&baseInfos).Error
+			if err != nil {
+				config.Log.Errorf("GetRelatedWears knife query error: %v", err)
+				return nil, err
+			}
+		} else {
+			// 如果无法提取，直接查询完全匹配的
+			err := config.DB.Where("hash_name = ?", hashName).Find(&baseInfos).Error
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+	config.Log.Infof("GetRelatedWears: found %d items", len(baseInfos))
+
+	// 获取当前饰品的品质
+	var currentQuality string
+	for _, info := range baseInfos {
+		if info.HashName == hashName {
+			currentQuality = info.QualityName
+			if currentQuality == "" {
+				currentQuality = inferQualityFromHashName(info.HashName)
+			}
+			break
+		}
+	}
+
+	// 获取价格数据（从悠悠平台）
+	hashNames := make([]string, len(baseInfos))
+	for i, info := range baseInfos {
+		hashNames[i] = info.HashName
+	}
+	priceMap := make(map[string]float64)
+	if len(hashNames) > 0 {
+		var uList []U
+		config.DB.Where("market_hash_name IN ?", hashNames).Find(&uList)
+		for _, u := range uList {
+			priceMap[u.MarketHashName] = u.SellPrice
+		}
+	}
+
+	// 按品质分组
+	qualityMap := make(map[string][]RelatedWearItem)
+	qualitiesSet := make(map[string]bool)
+
+	for _, info := range baseInfos {
+		wear := extractWear(info.HashName)
+		wearShort := ""
+		wearOrder := 0
+
+		if wear != "" {
+			wearInfo := wearMap[wear]
+			wearShort = wearInfo.Short
+			wearOrder = wearInfo.Order
+		} else {
+			// 无磨损的饰品（如刀具），使用特殊标记
+			wear = "NO_WEAR"
+			wearShort = "-"
+			wearOrder = 0
+		}
+
+		// 处理空的 quality_name，从 hash_name 推断
+		qualityName := info.QualityName
+		if qualityName == "" {
+			qualityName = inferQualityFromHashName(info.HashName)
+		}
+
+		item := RelatedWearItem{
+			HashName:    info.HashName,
+			Wear:        wear,
+			WearShort:   wearShort,
+			IconUrl:     info.IconUrl,
+			Price:       priceMap[info.HashName],
+			QualityName: qualityName,
+		}
+
+		qualityMap[qualityName] = append(qualityMap[qualityName], item)
+		qualitiesSet[qualityName] = true
+		_ = wearOrder // 避免未使用警告
+	}
+
+	// 对每个品质的磨损列表按顺序排序
+	for quality := range qualityMap {
+		items := qualityMap[quality]
+		// 冒泡排序（简单实现）
+		for i := 0; i < len(items); i++ {
+			for j := i + 1; j < len(items); j++ {
+				orderI := 0
+				orderJ := 0
+				if items[i].Wear != "NO_WEAR" {
+					orderI = wearMap[items[i].Wear].Order
+				}
+				if items[j].Wear != "NO_WEAR" {
+					orderJ = wearMap[items[j].Wear].Order
+				}
+				if orderI > orderJ {
+					items[i], items[j] = items[j], items[i]
+				}
+			}
+		}
+		qualityMap[quality] = items
+	}
+
+	// 获取品质列表
+	qualities := make([]string, 0, len(qualitiesSet))
+	for q := range qualitiesSet {
+		qualities = append(qualities, q)
+	}
+
+	return &RelatedWearsResponse{
+		CurrentWear:    currentWear,
+		CurrentQuality: currentQuality,
+		Qualities:      qualities,
+		Wears:          qualityMap,
+	}, nil
 }
 
 func GetPublicHomeData() (*PublicHomeData, error) {

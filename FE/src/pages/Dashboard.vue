@@ -204,7 +204,7 @@ const doSearch = async () => {
   try {
     const res = await dataApi.searchGoods({ 
       keyword: searchKeyword.value.trim(),
-      limit: 10 
+      limit: 50 
     })
     if (res.code === 1 && res.data) {
       searchResults.value = res.data

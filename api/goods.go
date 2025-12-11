@@ -181,6 +181,33 @@ func GetPublicHomeData(c *gin.Context) {
 	})
 }
 
+// GetRelatedWears 获取同款饰品的不同磨损和品质版本
+func GetRelatedWears(c *gin.Context) {
+	marketHashName := c.Query("market_hash_name")
+	if marketHashName == "" {
+		c.JSON(http.StatusOK, gin.H{
+			"code": utils.ErrCodeInvalidParams,
+			"msg":  "market_hash_name is required",
+		})
+		return
+	}
+
+	result, err := models.GetRelatedWears(marketHashName)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"code": utils.ErrCodeGetGoods,
+			"msg":  "Failed to get related wears",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": utils.SUCCESS,
+		"data": result,
+		"msg":  utils.ErrorMessage(utils.SUCCESS),
+	})
+}
+
 // SearchGoods 搜索商品（根据名称模糊匹配）
 func SearchGoods(c *gin.Context) {
 	keyword := c.Query("keyword")

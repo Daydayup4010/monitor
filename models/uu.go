@@ -40,6 +40,11 @@ type UBaseInfo struct {
 	QualityName string `json:"quality_name"`
 }
 
+// TableName 指定表名为 u_base_info
+func (UBaseInfo) TableName() string {
+	return "u_base_info"
+}
+
 func BatchAddUUItem(uu []*UItem) {
 	err := config.DB.Clauses(clause.OnConflict{UpdateAll: true}).CreateInBatches(uu, 100).Error
 	if err != nil {

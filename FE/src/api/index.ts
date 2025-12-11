@@ -413,6 +413,10 @@ export const dataApi = {
   // 搜索商品
   searchGoods: (params: { keyword: string; limit?: number }): Promise<ApiResponse<SearchResult[]>> =>
     api.get('/vip/goods/search', { params }),
+  
+  // 获取同款饰品的不同磨损和品质版本
+  getRelatedWears: (params: { market_hash_name: string }): Promise<ApiResponse<RelatedWearsResponse>> =>
+    api.get('/vip/goods/related-wears', { params }),
 }
 
 // 搜索结果类型
@@ -420,6 +424,24 @@ export interface SearchResult {
   name: string
   marketHashName: string
   iconUrl: string
+}
+
+// 关联磨损项
+export interface RelatedWearItem {
+  hash_name: string
+  wear: string
+  wear_short: string
+  icon_url: string
+  price: number
+  quality_name: string
+}
+
+// 关联磨损响应
+export interface RelatedWearsResponse {
+  current_wear: string
+  current_quality: string
+  qualities: string[]
+  wears: Record<string, RelatedWearItem[]>
 }
 
 export default api

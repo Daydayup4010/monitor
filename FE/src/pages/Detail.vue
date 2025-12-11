@@ -19,6 +19,34 @@
               <span class="meta-value">{{ goodsDetail.qualityName || '-' }}</span>
             </span>
           </div>
+          
+          <!-- 磨损/品质切换 -->
+          <div class="wear-selector" v-if="relatedWears && (currentQualityWears.length > 1 || hasOtherQuality)">
+            <!-- 有磨损的饰品：显示磨损切换按钮 -->
+            <template v-if="hasWearOptions">
+              <div 
+                v-for="item in currentQualityWears" 
+                :key="item.hash_name"
+                class="wear-btn"
+                :class="{ active: isCurrentWear(item) }"
+                @click="switchWear(item.hash_name)"
+              >
+                {{ getWearLabel(item.wear) }}
+                <span class="price-unit">¥</span>{{ formatWearPrice(item.price) }}
+              </div>
+            </template>
+            
+            <!-- StatTrak™ 切换按钮（如果有其他品质） -->
+            <div 
+              v-if="hasOtherQuality"
+              class="wear-btn stattrak-btn"
+              @click="toggleQuality"
+            >
+              <span class="switch-icon">⇄</span>
+              {{ otherQualityLabel }}
+              <span class="price-unit">¥</span>{{ formatWearPrice(otherQualityMinPrice) }}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -194,9 +222,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
-import { useRoute } from 'vue-router'
-import { dataApi, type GoodsDetailResponse, type GoodsPlatformInfo } from '@/api'
+import { ref, onMounted, onUnmounted, watch, nextTick, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { dataApi, type GoodsDetailResponse, type GoodsPlatformInfo, type RelatedWearsResponse } from '@/api'
 import { ShoppingCart, Loading, ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
 import buffIcon from '@/assets/icons/buff.png'
@@ -205,9 +233,12 @@ import c5Icon from '@/assets/icons/c5.png'
 import steamIcon from '@/assets/icons/steam.png'
 
 const route = useRoute()
+const router = useRouter()
 
 // 数据
 const goodsDetail = ref<GoodsDetailResponse | null>(null)
+const relatedWears = ref<RelatedWearsResponse | null>(null)
+const selectedQuality = ref<string>('')  // 当前选中的品质
 const loading = ref(false)
 const activeTab = ref('trend')
 const selectedPlatform = ref('YOUPIN')
@@ -257,14 +288,131 @@ const getPlatformLabel = (platform: string) => {
 // 获取品质对应的颜色
 const getRarityColor = (rarity: string) => {
   const colorMap: Record<string, string> = {
-    '隐秘': '#8B0000',     // 深红色
-    '保密': '#FF69B4',     // 粉色
+    '隐秘': '#EB4B4B',     // 深红色
+    '保密': '#D32CE6',     // 粉色
     '受限': '#8B008B',     // 紫色
-    '军规级': '#00008B',   // 深蓝色
-    '工业级': '#4169E1',   // 浅蓝色
+    '军规级': '#4B69FF',   // 深蓝色
+    '工业级': '#5E98D9',   // 浅蓝色
     '消费级': '#808080',   // 灰色
   }
   return colorMap[rarity] || '#333333'  // 默认黑色
+}
+
+// 磨损等级中文映射
+const wearLabelMap: Record<string, string> = {
+  'Factory New': '崭新出厂',
+  'Minimal Wear': '略有磨损',
+  'Field-Tested': '久经沙场',
+  'Well-Worn': '破损不堪',
+  'Battle-Scarred': '战痕累累',
+}
+
+// 获取磨损中文标签
+const getWearLabel = (wear: string) => {
+  if (wear === 'NO_WEAR') return '无磨损'
+  return wearLabelMap[wear] || wear
+}
+
+// 格式化磨损价格
+const formatWearPrice = (price: number) => {
+  if (!price || price === 0) return '-'
+  return price.toFixed(2)
+}
+
+// 当前品质的磨损列表
+const currentQualityWears = computed(() => {
+  if (!relatedWears.value) return []
+  const quality = selectedQuality.value || relatedWears.value.current_quality
+  return relatedWears.value.wears[quality] || []
+})
+
+// 是否有磨损选项（排除无磨损的情况）
+const hasWearOptions = computed(() => {
+  const wears = currentQualityWears.value
+  // 如果只有一个且是 NO_WEAR，则没有磨损选项
+  if (wears.length === 1 && wears[0].wear === 'NO_WEAR') return false
+  // 如果有多个磨损选项，或者有磨损（非 NO_WEAR）
+  return wears.some(w => w.wear !== 'NO_WEAR')
+})
+
+// 判断是否是当前选中的磨损
+const isCurrentWear = (item: { hash_name: string; wear: string }) => {
+  // 直接用 hash_name 比较，这样切换后也能正确显示选中状态
+  const marketHashName = route.query.market_hash_name as string
+  return item.hash_name === marketHashName
+}
+
+// 是否有其他品质（如 StatTrak™）
+const hasOtherQuality = computed(() => {
+  if (!relatedWears.value) return false
+  return relatedWears.value.qualities.length > 1
+})
+
+// 其他品质标签
+const otherQualityLabel = computed(() => {
+  if (!relatedWears.value) return ''
+  const currentQ = selectedQuality.value || relatedWears.value.current_quality
+  const otherQ = relatedWears.value.qualities.find(q => q !== currentQ)
+  if (!otherQ) return ''
+  // 简化显示
+  if (otherQ.includes('StatTrak')) return 'StatTrak™'
+  if (otherQ === '★') return '普通'
+  return otherQ
+})
+
+// 其他品质的最低价格
+const otherQualityMinPrice = computed(() => {
+  if (!relatedWears.value) return 0
+  const currentQ = selectedQuality.value || relatedWears.value.current_quality
+  const otherQ = relatedWears.value.qualities.find(q => q !== currentQ)
+  if (!otherQ) return 0
+  const wears = relatedWears.value.wears[otherQ] || []
+  if (wears.length === 0) return 0
+  const prices = wears.filter(w => w.price > 0).map(w => w.price)
+  return prices.length > 0 ? Math.min(...prices) : 0
+})
+
+// 切换磨损
+const switchWear = (hashName: string) => {
+  if (!hashName) return
+  // 导航到新的详情页
+  router.push({
+    path: '/app/detail',
+    query: { market_hash_name: hashName }
+  })
+}
+
+// 切换品质（普通 / StatTrak™）
+const toggleQuality = () => {
+  if (!relatedWears.value) return
+  const currentQ = selectedQuality.value || relatedWears.value.current_quality
+  const otherQ = relatedWears.value.qualities.find(q => q !== currentQ)
+  if (!otherQ) return
+  
+  // 找到其他品质中对应磨损的饰品
+  const currentWear = relatedWears.value.current_wear
+  const otherWears = relatedWears.value.wears[otherQ] || []
+  const targetItem = otherWears.find(w => w.wear === currentWear) || otherWears[0]
+  
+  if (targetItem) {
+    switchWear(targetItem.hash_name)
+  }
+}
+
+// 获取关联磨损数据
+const fetchRelatedWears = async () => {
+  const marketHashName = route.query.market_hash_name as string
+  if (!marketHashName) return
+  
+  try {
+    const res = await dataApi.getRelatedWears({ market_hash_name: marketHashName })
+    if (res.code === 1 && res.data) {
+      relatedWears.value = res.data
+      selectedQuality.value = res.data.current_quality
+    }
+  } catch (error) {
+    console.error('获取关联磨损失败:', error)
+  }
 }
 
 // 时间范围选项
@@ -629,8 +777,28 @@ watch(activeTab, (val) => {
   }
 })
 
+// 监听路由变化（切换磨损时）
+watch(() => route.query.market_hash_name, (newVal, oldVal) => {
+  if (newVal && newVal !== oldVal) {
+    fetchGoodsDetail()
+    
+    // 检查新的 hash_name 是否在当前的 relatedWears 中
+    // 如果在，说明是同款饰品切换磨损，不需要重新请求 related-wears
+    const isInCurrentWears = relatedWears.value?.qualities.some(quality => {
+      const wears = relatedWears.value?.wears[quality] || []
+      return wears.some(w => w.hash_name === newVal)
+    })
+    
+    if (!isInCurrentWears) {
+      // 不同款饰品，需要重新获取关联数据
+      fetchRelatedWears()
+    }
+  }
+})
+
 onMounted(() => {
   fetchGoodsDetail()
+  fetchRelatedWears()
   window.addEventListener('resize', handleResize)
 })
 
@@ -709,6 +877,61 @@ onUnmounted(() => {
 
 .meta-value {
   font-weight: 500;
+}
+
+/* 磨损/品质切换 */
+.wear-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.wear-btn {
+  padding: 8px 16px;
+  background: #f5f5f5;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.wear-btn:hover {
+  background: #e8e8e8;
+  border-color: #d9d9d9;
+}
+
+.wear-btn.active {
+  background: #1890ff;
+  color: #fff;
+  border-color: #1890ff;
+}
+
+.wear-btn .price-unit {
+  font-size: 12px;
+  margin-left: 6px;
+  opacity: 0.8;
+}
+
+.stattrak-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #fff7e6;
+  border-color: #ffd591;
+  color: #d46b08;
+}
+
+.stattrak-btn:hover {
+  background: #ffe7ba;
+  border-color: #ffc069;
+}
+
+.switch-icon {
+  font-size: 14px;
+  font-weight: bold;
 }
 
 .meta-divider {
