@@ -238,7 +238,6 @@ const router = useRouter()
 // 数据
 const goodsDetail = ref<GoodsDetailResponse | null>(null)
 const relatedWears = ref<RelatedWearsResponse | null>(null)
-const selectedQuality = ref<string>('')  // 当前选中的品质
 const loading = ref(false)
 const activeTab = ref('trend')
 const selectedPlatform = ref('YOUPIN')
@@ -333,11 +332,23 @@ const formatWearPrice = (price: number) => {
   return price.toFixed(2)
 }
 
+// 获取当前饰品的品质
+const currentQuality = computed(() => {
+  if (!relatedWears.value) return ''
+  const marketHashName = route.query.market_hash_name as string
+  for (const quality of relatedWears.value.qualities) {
+    const wears = relatedWears.value.wears[quality] || []
+    if (wears.some(w => w.hash_name === marketHashName)) {
+      return quality
+    }
+  }
+  return relatedWears.value.current_quality || ''
+})
+
 // 当前品质的磨损列表
 const currentQualityWears = computed(() => {
   if (!relatedWears.value) return []
-  const quality = selectedQuality.value || relatedWears.value.current_quality
-  return relatedWears.value.wears[quality] || []
+  return relatedWears.value.wears[currentQuality.value] || []
 })
 
 // 是否有磨损/变体选项
@@ -367,8 +378,7 @@ const hasOtherQuality = computed(() => {
 // 其他品质标签
 const otherQualityLabel = computed(() => {
   if (!relatedWears.value) return ''
-  const currentQ = selectedQuality.value || relatedWears.value.current_quality
-  const otherQ = relatedWears.value.qualities.find(q => q !== currentQ)
+  const otherQ = relatedWears.value.qualities.find(q => q !== currentQuality.value)
   if (!otherQ) return ''
   
   // 根据其他品质的饰品名称来判断显示什么标签
@@ -381,12 +391,17 @@ const otherQualityLabel = computed(() => {
     if (otherHashName.startsWith('Sticker |')) return '贴纸'
     // Souvenir
     if (otherHashName.startsWith('Souvenir ')) return '纪念品'
+    // ★ StatTrak™
+    if (otherHashName.includes('★ StatTrak™')) return '★ StatTrak™'
+    // ★ 普通刀
+    if (otherHashName.startsWith('★ ') && !otherHashName.includes('StatTrak')) return '★'
   }
   
   // 简化显示
   if (otherQ.includes('StatTrak')) return 'StatTrak™'
   if (otherQ === '纪念品') return '纪念品'
-  if (otherQ === '★') return '普通'
+  if (otherQ === '★') return '★'
+  if (otherQ === '普通') return '普通'
   if (otherQ === '自定义') return '贴纸板'
   return otherQ
 })
@@ -394,15 +409,14 @@ const otherQualityLabel = computed(() => {
 // 其他品质对应变体的价格
 const otherQualityMinPrice = computed(() => {
   if (!relatedWears.value) return 0
-  const currentQ = selectedQuality.value || relatedWears.value.current_quality
-  const otherQ = relatedWears.value.qualities.find(q => q !== currentQ)
+  const otherQ = relatedWears.value.qualities.find(q => q !== currentQuality.value)
   if (!otherQ) return 0
   const otherWears = relatedWears.value.wears[otherQ] || []
   if (otherWears.length === 0) return 0
   
   // 找到当前选中饰品的变体类型
   const marketHashName = route.query.market_hash_name as string
-  const currentWears = relatedWears.value.wears[currentQ] || []
+  const currentWears = currentQualityWears.value
   const currentItem = currentWears.find(w => w.hash_name === marketHashName)
   const currentWear = currentItem?.wear || ''
   
@@ -427,15 +441,33 @@ const switchWear = (hashName: string) => {
   })
 }
 
-// 切换品质（普通 / StatTrak™）
+// 切换品质（普通 / StatTrak™ / 纪念品 等）
 const toggleQuality = () => {
   if (!relatedWears.value) return
-  const currentQ = selectedQuality.value || relatedWears.value.current_quality
+  
+  // 获取当前饰品的品质
+  const marketHashName = route.query.market_hash_name as string
+  let currentQ = ''
+  let currentWear = ''
+  
+  // 从所有品质中找到当前饰品，确定当前品质和磨损
+  for (const quality of relatedWears.value.qualities) {
+    const wears = relatedWears.value.wears[quality] || []
+    const found = wears.find(w => w.hash_name === marketHashName)
+    if (found) {
+      currentQ = quality
+      currentWear = found.wear
+      break
+    }
+  }
+  
+  if (!currentQ) return
+  
+  // 找到其他品质
   const otherQ = relatedWears.value.qualities.find(q => q !== currentQ)
   if (!otherQ) return
   
   // 找到其他品质中对应磨损的饰品
-  const currentWear = relatedWears.value.current_wear
   const otherWears = relatedWears.value.wears[otherQ] || []
   const targetItem = otherWears.find(w => w.wear === currentWear) || otherWears[0]
   
@@ -453,7 +485,6 @@ const fetchRelatedWears = async () => {
     const res = await dataApi.getRelatedWears({ market_hash_name: marketHashName })
     if (res.code === 1 && res.data) {
       relatedWears.value = res.data
-      selectedQuality.value = res.data.current_quality
     }
   } catch (error) {
     console.error('获取关联磨损失败:', error)
