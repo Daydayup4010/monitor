@@ -87,8 +87,8 @@ type GoodsDetailResponse struct {
 	MarketHashName string                        `json:"marketHashName"`
 	Name           string                        `json:"name"`
 	IconUrl        string                        `json:"iconUrl"`
-	RarityName     string                        `json:"rarity_name"`
-	QualityName    string                        `json:"quality_name"`
+	RarityName     string                        `json:"rarityName"`
+	QualityName    string                        `json:"qualityName"`
 	PriceHistory   map[string][]PriceHistoryItem `json:"priceHistory"` // 所有平台的历史数据，key: 平台名
 	PlatformList   []*GoodsPlatformInfo          `json:"platformList"` // 各平台当前在售信息
 	PriceChange    []PriceChangeItem             `json:"priceChange"`  // 悠悠平台的涨幅信息（今日、本周、本月）
