@@ -180,3 +180,39 @@ func GetPublicHomeData(c *gin.Context) {
 		"msg":  utils.ErrorMessage(utils.SUCCESS),
 	})
 }
+
+// SearchGoods 搜索商品（根据名称模糊匹配）
+func SearchGoods(c *gin.Context) {
+	keyword := c.Query("keyword")
+	if keyword == "" {
+		c.JSON(http.StatusOK, gin.H{
+			"code": utils.SUCCESS,
+			"data": []interface{}{},
+			"msg":  utils.ErrorMessage(utils.SUCCESS),
+		})
+		return
+	}
+
+	limitStr := c.Query("limit")
+	limit := 20 // 默认返回20条
+	if limitStr != "" {
+		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 && l <= 50 {
+			limit = l
+		}
+	}
+
+	results, err := models.SearchGoodsByKeyword(keyword, limit)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"code": utils.ErrCodeGetGoods,
+			"msg":  "Failed to search goods",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": utils.SUCCESS,
+		"data": results,
+		"msg":  utils.ErrorMessage(utils.SUCCESS),
+	})
+}

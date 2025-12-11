@@ -460,9 +460,19 @@ const skinStore = useSkinStore()
 const settingsStore = useSettingsStore()
 
 const searchKeyword = ref('')
-const sortOption = ref('default')
-const sourcePlatform = ref('buff')  // 买入平台，默认buff
-const targetPlatform = ref('uu')    // 卖出平台，默认uu
+// 使用 store 中的平台和排序设置（会自动持久化到 localStorage）
+const sortOption = computed({
+  get: () => skinStore.sortOption,
+  set: (val) => { skinStore.sortOption = val }
+})
+const sourcePlatform = computed({
+  get: () => skinStore.sourcePlatform,
+  set: (val) => { skinStore.sourcePlatform = val }
+})
+const targetPlatform = computed({
+  get: () => skinStore.targetPlatform,
+  set: (val) => { skinStore.targetPlatform = val }
+})
 
 // 筛选参数
 const filterParams = reactive({
@@ -515,28 +525,14 @@ const visiblePages = computed(() => {
 const handleSearch = debounce(() => {
   skinStore.getSkinItems({
     search: searchKeyword.value,
-    source: sourcePlatform.value,
-    target: targetPlatform.value,
     page_num: 1
   })
 }, 300)
 
 const handleSortChange = () => {
-  const sortMap: Record<string, { field: string; desc: boolean }> = {
-    'default': { field: '', desc: false },
-    'price_diff_asc': { field: 'price_diff', desc: false },
-    'price_diff_desc': { field: 'price_diff', desc: true },
-    'profit_rate_asc': { field: 'profit_rate', desc: false },
-    'profit_rate_desc': { field: 'profit_rate', desc: true },
-  }
-  
-  const config = sortMap[sortOption.value]
+  // 排序配置在 store 中管理，直接刷新数据
   skinStore.getSkinItems({
-    sort: config.field,
-    desc: config.desc,
     search: searchKeyword.value,
-    source: sourcePlatform.value,
-    target: targetPlatform.value,
     page_num: 1
   })
 }
@@ -549,11 +545,9 @@ const handleSourceChange = () => {
     targetPlatform.value = otherPlatforms[0]
   }
   
-  // 刷新数据
+  // 刷新数据（store 会自动使用保存的平台设置）
   skinStore.getSkinItems({ 
     search: searchKeyword.value,
-    source: sourcePlatform.value,
-    target: targetPlatform.value,
     page_num: 1
   })
 }
@@ -566,11 +560,9 @@ const handleTargetChange = () => {
     sourcePlatform.value = otherPlatforms[0]
   }
   
-  // 刷新数据
+  // 刷新数据（store 会自动使用保存的平台设置）
   skinStore.getSkinItems({
     search: searchKeyword.value,
-    source: sourcePlatform.value,
-    target: targetPlatform.value,
     page_num: 1
   })
 }
@@ -583,19 +575,13 @@ const refreshData = async () => {
     console.error('保存设置失败:', error)
   }
   
-  // 再刷新数据
-  await skinStore.getSkinItems({
-    source: sourcePlatform.value,
-    target: targetPlatform.value
-  })
+  // 再刷新数据（store 会自动使用保存的平台设置）
+  await skinStore.getSkinItems({})
 }
 
 // 仅刷新数据（不保存设置）
 const reloadData = async () => {
-  await skinStore.getSkinItems({
-    source: sourcePlatform.value,
-    target: targetPlatform.value
-  })
+  await skinStore.getSkinItems({})
 }
 
 // 获取筛选描述
@@ -622,20 +608,12 @@ const loadSettings = async () => {
 }
 
 const handleSizeChange = () => {
-  skinStore.getSkinItems({ 
-    page_num: 1,
-    source: sourcePlatform.value,
-    target: targetPlatform.value
-  })
+  skinStore.getSkinItems({ page_num: 1 })
 }
 
 const handleCurrentChange = (page: number) => {
   if (page >= 1 && page <= totalPages.value) {
-    skinStore.getSkinItems({ 
-      page_num: page,
-      source: sourcePlatform.value,
-      target: targetPlatform.value
-    })
+    skinStore.getSkinItems({ page_num: page })
   }
 }
 
@@ -838,10 +816,7 @@ const getProfitTagClass = (rate: number) => {
 
 onMounted(async () => {
   await loadSettings()
-  skinStore.getSkinItems({
-    source: sourcePlatform.value,
-    target: targetPlatform.value
-  })
+  skinStore.getSkinItems({})
 })
 </script>
 

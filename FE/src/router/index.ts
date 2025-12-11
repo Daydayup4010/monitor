@@ -45,9 +45,19 @@ const router = createRouter({
     {
       path: '/app',
       component: Layout,
-      redirect: '/app/ranking',
+      redirect: '/app/dashboard',
       meta: { requiresAuth: true },
       children: [
+        {
+          path: 'dashboard',
+          name: 'Dashboard',
+          component: () => import('@/pages/Dashboard.vue'),
+          meta: { 
+            title: '首页', 
+            icon: 'HomeFilled',
+            requiresAuth: true
+          }
+        },
         {
           path: 'ranking',
           name: 'Ranking',
@@ -119,7 +129,7 @@ router.beforeEach((to, _from, next) => {
   
   // 如果已登录且访问登录/注册/公开首页，重定向到应用首页
   if ((to.path === '/login' || to.path === '/register' || to.path === '/') && userStore.isLoggedIn) {
-    next('/app/ranking')
+    next('/app/dashboard')
     return
   }
   
@@ -151,7 +161,7 @@ router.beforeEach((to, _from, next) => {
     // 检查管理员权限
     if (to.meta.requiresAdmin && !userStore.isAdmin) {
       showMessage.error('需要管理员权限才能访问')
-      next('/app/ranking')
+      next('/app/dashboard')
       return
     }
   }

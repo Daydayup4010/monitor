@@ -409,6 +409,17 @@ export const dataApi = {
   // 获取商品详情
   getGoodsDetail: (params: { market_hash_name: string; days?: number }): Promise<ApiResponse<GoodsDetailResponse>> =>
     api.get('/vip/goods/detail', { params }),
+  
+  // 搜索商品
+  searchGoods: (params: { keyword: string; limit?: number }): Promise<ApiResponse<SearchResult[]>> =>
+    api.get('/vip/goods/search', { params }),
+}
+
+// 搜索结果类型
+export interface SearchResult {
+  name: string
+  marketHashName: string
+  iconUrl: string
 }
 
 export default api

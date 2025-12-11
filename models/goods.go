@@ -40,6 +40,24 @@ type BaseGoods struct {
 	//PlatformList   []*Platform `json:"platformList" gorm:"-"` // 数据库忽略该字段
 }
 
+// SearchResult 搜索结果
+type SearchResult struct {
+	Name           string `json:"name" gorm:"column:name"`
+	MarketHashName string `json:"marketHashName" gorm:"column:market_hash_name"`
+	IconUrl        string `json:"iconUrl" gorm:"column:icon_url"`
+}
+
+// SearchGoodsByKeyword 根据关键词搜索商品
+func SearchGoodsByKeyword(keyword string, limit int) ([]SearchResult, error) {
+	var results []SearchResult
+	err := config.DB.Model(&BaseGoods{}).
+		Select("name, market_hash_name, icon_url").
+		Where("name LIKE ?", "%"+keyword+"%").
+		Limit(limit).
+		Find(&results).Error
+	return results, err
+}
+
 type Platform struct {
 	Id           string  `json:"platformItemId"`
 	Name         string  `json:"platformName" gorm:"-"`

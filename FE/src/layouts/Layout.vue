@@ -44,6 +44,10 @@
               </div>
               <template #dropdown>
                 <el-dropdown-menu>
+                  <el-dropdown-item command="dashboard">
+                    <el-icon><HomeFilled /></el-icon>
+                    <span>首页</span>
+                  </el-dropdown-item>
                   <el-dropdown-item v-if="userStore.isVip" command="ranking">
                     <el-icon><TrendCharts /></el-icon>
                     <span>饰品榜单</span>
@@ -134,12 +138,15 @@ const getUserAvatarBg = () => {
 
 // 点击logo回到首页
 const goHome = () => {
-  router.push('/app/ranking')
+  router.push('/app/dashboard')
 }
 
 // 处理下拉菜单命令
 const handleCommand = (command: string) => {
   switch (command) {
+    case 'dashboard':
+      router.push('/app/dashboard')
+      break
     case 'ranking':
       router.push('/app/ranking')
       break
