@@ -499,6 +499,41 @@ func inferQualityFromHashName(hashName string) string {
 	return "普通"
 }
 
+// 贴纸变体类型列表
+var stickerVariants = []string{"(Holo)", "(Gold)", "(Foil)", "(Embroidered)", "(Champion)", "(Lenticular)"}
+
+// isSticker 判断是否是贴纸类饰品（包括 Sticker 和 Sticker Slab）
+func isSticker(hashName string) bool {
+	return strings.HasPrefix(hashName, "Sticker |") || strings.HasPrefix(hashName, "Sticker Slab |")
+}
+
+// extractStickerBaseName 提取贴纸基础名称（去掉变体类型和 Slab 前缀）
+// 例如：Sticker | The Mongolz (Holo) | Budapest 2025 -> The Mongolz | Budapest 2025
+// 例如：Sticker Slab | The Mongolz (Gold) | Budapest 2025 -> The Mongolz | Budapest 2025
+func extractStickerBaseName(hashName string) string {
+	result := hashName
+	// 去掉变体类型
+	for _, variant := range stickerVariants {
+		result = strings.Replace(result, " "+variant, "", 1)
+	}
+	// 去掉 Sticker Slab | 或 Sticker | 前缀，得到纯名称
+	result = strings.TrimPrefix(result, "Sticker Slab | ")
+	result = strings.TrimPrefix(result, "Sticker | ")
+	return result
+}
+
+// extractStickerVariant 提取贴纸变体类型
+// 返回 "Holo", "Gold", "普通" 等
+func extractStickerVariant(hashName string) string {
+	for _, variant := range stickerVariants {
+		if strings.Contains(hashName, variant) {
+			// 去掉括号，返回变体名称
+			return strings.Trim(variant, "()")
+		}
+	}
+	return "普通"
+}
+
 // GetRelatedWears 获取同款饰品的不同磨损和品质版本
 func GetRelatedWears(hashName string) (*RelatedWearsResponse, error) {
 	baseName := extractBaseName(hashName)
@@ -510,12 +545,57 @@ func GetRelatedWears(hashName string) (*RelatedWearsResponse, error) {
 
 	var baseInfos []UBaseInfo
 
-	// 判断当前饰品是否有磨损等级
-	if currentWear != "" {
-		// 有磨损等级：查询同基础名称的所有磨损版本
-		likePattern := baseName + " (%"
-		config.Log.Infof("GetRelatedWears: hashName=%s, baseName=%s, likePattern=%s", hashName, baseName, likePattern)
-		err := config.DB.Where("hash_name LIKE ?", likePattern).Find(&baseInfos).Error
+	// 判断饰品类型
+	if isSticker(hashName) {
+		// 贴纸类饰品：按变体类型分组（普通、Holo、Gold 等）
+		// 同时查询 Sticker 和 Sticker Slab 版本
+		stickerBaseName := extractStickerBaseName(hashName) // 例如：The Mongolz | Budapest 2025
+		config.Log.Infof("GetRelatedWears (sticker): hashName=%s, stickerBaseName=%s", hashName, stickerBaseName)
+
+		var conditions []string
+		var args []interface{}
+
+		// Sticker 和 Sticker Slab 两种前缀
+		prefixes := []string{"Sticker | ", "Sticker Slab | "}
+
+		for _, prefix := range prefixes {
+			// 普通版本（精确匹配）
+			conditions = append(conditions, "hash_name = ?")
+			args = append(args, prefix+stickerBaseName)
+
+			// 各种变体版本
+			for _, variant := range stickerVariants {
+				// 在名称中插入变体标识
+				// 例如：Sticker | The Mongolz (Holo) | Budapest 2025
+				parts := strings.SplitN(stickerBaseName, " |", 2)
+				if len(parts) == 2 {
+					variantName := prefix + parts[0] + " " + variant + " |" + parts[1]
+					conditions = append(conditions, "hash_name = ?")
+					args = append(args, variantName)
+				}
+			}
+		}
+
+		query := strings.Join(conditions, " OR ")
+		err := config.DB.Where(query, args...).Find(&baseInfos).Error
+		if err != nil {
+			config.Log.Errorf("GetRelatedWears sticker query error: %v", err)
+			return nil, err
+		}
+	} else if currentWear != "" {
+		// 有磨损等级：需要查询所有品质版本（普通 + StatTrak™）
+		// 先去掉 StatTrak™ 前缀，得到真正的基础名称
+		pureBaseName := strings.TrimPrefix(baseName, "StatTrak™ ")
+		pureBaseName = strings.TrimSpace(pureBaseName)
+
+		config.Log.Infof("GetRelatedWears: hashName=%s, baseName=%s, pureBaseName=%s", hashName, baseName, pureBaseName)
+
+		// 查询普通版本和 StatTrak™ 版本
+		// 普通版本: "MP9 | Nexus (%"
+		// StatTrak™ 版本: "StatTrak™ MP9 | Nexus (%"
+		err := config.DB.Where("hash_name LIKE ? OR hash_name LIKE ?",
+			pureBaseName+" (%",
+			"StatTrak™ "+pureBaseName+" (%").Find(&baseInfos).Error
 		if err != nil {
 			config.Log.Errorf("GetRelatedWears query error: %v", err)
 			return nil, err
@@ -574,20 +654,38 @@ func GetRelatedWears(hashName string) (*RelatedWearsResponse, error) {
 	qualityMap := make(map[string][]RelatedWearItem)
 	qualitiesSet := make(map[string]bool)
 
-	for _, info := range baseInfos {
-		wear := extractWear(info.HashName)
-		wearShort := ""
-		wearOrder := 0
+	// 判断是否是贴纸
+	isStickerItem := len(baseInfos) > 0 && isSticker(baseInfos[0].HashName)
 
-		if wear != "" {
-			wearInfo := wearMap[wear]
-			wearShort = wearInfo.Short
-			wearOrder = wearInfo.Order
+	for _, info := range baseInfos {
+		var wear, wearShort string
+		var wearOrder int
+
+		if isStickerItem {
+			// 贴纸：用变体类型代替磨损等级
+			variant := extractStickerVariant(info.HashName)
+			wear = variant
+			wearShort = variant
+			// 变体排序：普通 < 闪亮/刺绣 < 全息 < 金色
+			variantOrder := map[string]int{
+				"普通": 1, "Foil": 2, "Embroidered": 2, "Holo": 3, "Gold": 4, "Champion": 5, "Lenticular": 6,
+			}
+			wearOrder = variantOrder[variant]
+			if wearOrder == 0 {
+				wearOrder = 99
+			}
 		} else {
-			// 无磨损的饰品（如刀具），使用特殊标记
-			wear = "NO_WEAR"
-			wearShort = "-"
-			wearOrder = 0
+			wear = extractWear(info.HashName)
+			if wear != "" {
+				wearInfo := wearMap[wear]
+				wearShort = wearInfo.Short
+				wearOrder = wearInfo.Order
+			} else {
+				// 无磨损的饰品（如刀具），使用特殊标记
+				wear = "NO_WEAR"
+				wearShort = "-"
+				wearOrder = 0
+			}
 		}
 
 		// 处理空的 quality_name，从 hash_name 推断
@@ -610,20 +708,39 @@ func GetRelatedWears(hashName string) (*RelatedWearsResponse, error) {
 		_ = wearOrder // 避免未使用警告
 	}
 
-	// 对每个品质的磨损列表按顺序排序
+	// 对每个品质的磨损/变体列表按顺序排序
+	// 排序：普通 < 闪亮/刺绣 < 全息 < 金色
+	variantOrder := map[string]int{
+		"普通": 1, "Foil": 2, "Embroidered": 2, "Holo": 3, "Gold": 4, "Champion": 5, "Lenticular": 6,
+	}
+
 	for quality := range qualityMap {
 		items := qualityMap[quality]
 		// 冒泡排序（简单实现）
 		for i := 0; i < len(items); i++ {
 			for j := i + 1; j < len(items); j++ {
-				orderI := 0
-				orderJ := 0
-				if items[i].Wear != "NO_WEAR" {
-					orderI = wearMap[items[i].Wear].Order
+				var orderI, orderJ int
+
+				if isStickerItem {
+					// 贴纸用变体顺序
+					orderI = variantOrder[items[i].Wear]
+					orderJ = variantOrder[items[j].Wear]
+					if orderI == 0 {
+						orderI = 99
+					}
+					if orderJ == 0 {
+						orderJ = 99
+					}
+				} else {
+					// 普通饰品用磨损顺序
+					if items[i].Wear != "NO_WEAR" {
+						orderI = wearMap[items[i].Wear].Order
+					}
+					if items[j].Wear != "NO_WEAR" {
+						orderJ = wearMap[items[j].Wear].Order
+					}
 				}
-				if items[j].Wear != "NO_WEAR" {
-					orderJ = wearMap[items[j].Wear].Order
-				}
+
 				if orderI > orderJ {
 					items[i], items[j] = items[j], items[i]
 				}

@@ -307,9 +307,23 @@ const wearLabelMap: Record<string, string> = {
   'Battle-Scarred': '战痕累累',
 }
 
-// 获取磨损中文标签
+// 贴纸变体中文映射
+const stickerVariantMap: Record<string, string> = {
+  '普通': '普通',
+  'Holo': '全息',
+  'Gold': '金色',
+  'Foil': '闪亮',
+  'Embroidered': '刺绣',
+  'Champion': '冠军',
+  'Lenticular': '光栅',
+}
+
+// 获取磨损/变体中文标签
 const getWearLabel = (wear: string) => {
   if (wear === 'NO_WEAR') return '无磨损'
+  // 先检查是否是贴纸变体
+  if (stickerVariantMap[wear]) return stickerVariantMap[wear]
+  // 再检查是否是磨损等级
   return wearLabelMap[wear] || wear
 }
 
@@ -326,12 +340,14 @@ const currentQualityWears = computed(() => {
   return relatedWears.value.wears[quality] || []
 })
 
-// 是否有磨损选项（排除无磨损的情况）
+// 是否有磨损/变体选项
 const hasWearOptions = computed(() => {
   const wears = currentQualityWears.value
-  // 如果只有一个且是 NO_WEAR，则没有磨损选项
+  // 如果只有一个且是 NO_WEAR，则没有选项
   if (wears.length === 1 && wears[0].wear === 'NO_WEAR') return false
-  // 如果有多个磨损选项，或者有磨损（非 NO_WEAR）
+  // 如果有多个选项（包括贴纸变体），显示切换按钮
+  if (wears.length > 1) return true
+  // 如果有磨损等级（非 NO_WEAR）
   return wears.some(w => w.wear !== 'NO_WEAR')
 })
 
@@ -354,9 +370,21 @@ const otherQualityLabel = computed(() => {
   const currentQ = selectedQuality.value || relatedWears.value.current_quality
   const otherQ = relatedWears.value.qualities.find(q => q !== currentQ)
   if (!otherQ) return ''
+  
+  // 根据其他品质的饰品名称来判断显示什么标签
+  const otherWears = relatedWears.value.wears[otherQ] || []
+  if (otherWears.length > 0) {
+    const otherHashName = otherWears[0].hash_name
+    // Sticker Slab
+    if (otherHashName.startsWith('Sticker Slab |')) return '贴纸板'
+    // Sticker
+    if (otherHashName.startsWith('Sticker |')) return '贴纸'
+  }
+  
   // 简化显示
   if (otherQ.includes('StatTrak')) return 'StatTrak™'
   if (otherQ === '★') return '普通'
+  if (otherQ === '自定义') return '贴纸板'
   return otherQ
 })
 
