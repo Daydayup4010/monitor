@@ -1151,7 +1151,6 @@ onUnmounted(() => {
   background: #fff;
   border-radius: 10px;
   padding: 20px;
-  flex: 1;
 }
 
 .card-title {
@@ -1171,20 +1170,20 @@ onUnmounted(() => {
   width: calc(50% - 6px);
   background: #F5F8FD;
   border-radius: 10px;
-  padding: 12px;
+  padding: 10px;
 }
 
 .market-item-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
+  margin-bottom: 5px;
 }
 
 .platform-link {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   text-decoration: none;
 }
 
@@ -1195,30 +1194,30 @@ onUnmounted(() => {
 }
 
 .platform-name {
-  font-size: 14px;
-  color: #999;
+  font-size: 16px;
+  color: #9ca3af;
 }
 
 .mini-chart-container {
-  width: 60px;
-  height: 30px;
+  width: 80px;
+  height: 40px;
 }
 
 .market-item-price {
-  margin-bottom: 8px;
+  margin-bottom: 5px;
 }
 
 .price-link {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   text-decoration: none;
 }
 
 .price-value {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 500;
-  color: #ff6b00;
+  color: #f97316;
   white-space: nowrap;
 }
 
@@ -1226,19 +1225,20 @@ onUnmounted(() => {
   display: inline-block;
   width: 20px;
   height: 20px;
-  line-height: 20px;
+  line-height: 18px;
   text-align: center;
   background: #0DAB62;
   color: #fff;
   font-size: 12px;
   border-radius: 4px;
+  margin-left: 5px;
 }
 
 .market-item-footer {
   display: flex;
   justify-content: space-between;
-  font-size: 12px;
-  color: #999;
+  font-size: 14px;
+  color: #6b7280;
 }
 
 .chart-card {
