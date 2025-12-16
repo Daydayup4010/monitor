@@ -1,11 +1,12 @@
 package api
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
 	"uu/models"
 	"uu/utils"
+
+	"github.com/gin-gonic/gin"
 )
 
 func GetGoods(c *gin.Context) {
@@ -18,11 +19,11 @@ func GetGoods(c *gin.Context) {
 	userId := getUserIdFromContext(c)
 	sort := c.Query("sort")
 	desc, _ := strconv.ParseBool(c.Query("desc"))
-	//category := c.Query("category")
+	category := c.Query("category")
 	search := c.Query("search")
 	source := c.Query("source")
 	target := c.Query("target")
-	s, total, code := models.GetGoods(userId, pageSize, pageNum, desc, sort, search, source, target)
+	s, total, code := models.GetGoods(userId, pageSize, pageNum, desc, sort, search, source, target, category)
 	c.JSON(http.StatusOK, gin.H{
 		"code":  code,
 		"data":  s,

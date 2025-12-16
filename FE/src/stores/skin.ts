@@ -12,16 +12,19 @@ export const useSkinStore = defineStore('skin', () => {
   const savedSource = localStorage.getItem('brick_source') || 'buff'
   const savedTarget = localStorage.getItem('brick_target') || 'uu'
   const savedSort = localStorage.getItem('brick_sort') || 'default'
+  const savedCategory = localStorage.getItem('brick_category') || ''
 
   // 平台和排序设置（持久化）
   const sourcePlatform = ref(savedSource)
   const targetPlatform = ref(savedTarget)
   const sortOption = ref(savedSort)
+  const category = ref(savedCategory)
 
   // 监听变化，保存到 localStorage
   watch(sourcePlatform, (val) => localStorage.setItem('brick_source', val))
   watch(targetPlatform, (val) => localStorage.setItem('brick_target', val))
   watch(sortOption, (val) => localStorage.setItem('brick_sort', val))
+  watch(category, (val) => localStorage.setItem('brick_category', val))
 
   // 排序配置映射
   const sortMap: Record<string, { field: string; desc: boolean }> = {
@@ -64,6 +67,7 @@ export const useSkinStore = defineStore('skin', () => {
         desc: sortConfig.desc,
         source: sourcePlatform.value,
         target: targetPlatform.value,
+        category: category.value,
         ...params 
       }
       const response = await dataApi.getSkinItems(queryParams)
@@ -110,6 +114,7 @@ export const useSkinStore = defineStore('skin', () => {
     sourcePlatform,
     targetPlatform,
     sortOption,
+    category,
     getSortConfig,
     getSkinItems,
   }

@@ -5,33 +5,34 @@ import (
 	"fmt"
 	"strings"
 
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 	"math"
 	"strconv"
 	"time"
 	"uu/config"
 	"uu/utils"
+
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type Goods struct {
-	Id               int64   `json:"id"`
-	MarketHashName   string  `json:"market_hash_name"`
-	UserId           string  `json:"user_id"`
-	Name             string  `json:"name"`
-	SourcePrice      float64 `json:"source_price"`
-	TargetPrice      float64 `json:"target_price"`
-	SourceUpdateTime int64   `json:"source_update_time"`
-	TargetUpdateTime int64   `json:"target_update_time"`
-	BiddingPrice     float64 `json:"bidding_price"`
-	BiddingCount     int64   `json:"bidding_count"`
-	//Category    string  `json:"category"`
-	ImageUrl     string      `json:"image_url"`
-	PriceDiff    float64     `json:"price_diff"`
-	ProfitRate   float64     `json:"profit_rate"`
-	SellCount    int64       `json:"sell_count"`
-	TurnOver     int64       `json:"turn_over"`
-	PlatformList []*Platform `json:"platform_list" gorm:"-"`
+	Id               int64       `json:"id"`
+	MarketHashName   string      `json:"market_hash_name"`
+	UserId           string      `json:"user_id"`
+	Name             string      `json:"name"`
+	SourcePrice      float64     `json:"source_price"`
+	TargetPrice      float64     `json:"target_price"`
+	SourceUpdateTime int64       `json:"source_update_time"`
+	TargetUpdateTime int64       `json:"target_update_time"`
+	BiddingPrice     float64     `json:"bidding_price"`
+	BiddingCount     int64       `json:"bidding_count"`
+	TypeName         string      `json:"type_name"`
+	ImageUrl         string      `json:"image_url"`
+	PriceDiff        float64     `json:"price_diff"`
+	ProfitRate       float64     `json:"profit_rate"`
+	SellCount        int64       `json:"sell_count"`
+	TurnOver         int64       `json:"turn_over"`
+	PlatformList     []*Platform `json:"platform_list" gorm:"-"`
 }
 
 type BaseGoods struct {
@@ -258,7 +259,7 @@ func GetPlatformListBatch(marketHashNames []string) map[string][]*Platform {
 	return result
 }
 
-func GetGoods(userId string, pageSize, pageNum int, isDesc bool, sortField, search, source, target string) (*[]Goods, int64, int) {
+func GetGoods(userId string, pageSize, pageNum int, isDesc bool, sortField, search, source, target, category string) (*[]Goods, int64, int) {
 	var goods []Goods
 	var total int64
 	validFields := map[string]bool{
@@ -315,20 +316,23 @@ func GetGoods(userId string, pageSize, pageNum int, isDesc bool, sortField, sear
 	}
 
 	query1 := config.DB.Model(targetMap["model"]).
-		Select(fmt.Sprintf("%s.id as id, %s.sell_count as sell_count, %s.turn_over as turn_over, %s.bidding_count as bidding_count, %s.bidding_price as bidding_price, base_goods.market_hash_name as market_hash_name, base_goods.name as name, base_goods.icon_url as image_url, %s.sell_price as target_price, %s.sell_price as source_price, (%s.sell_price - %s.sell_price) as price_diff, ROUND((%s.sell_price - %s.sell_price)/%s.sell_price,4) as profit_rate, %s.update_time as target_update_time, %s.update_time as source_update_time", targetMap["table"], targetMap["table"], targetMap["table"], targetMap["table"], targetMap["table"], targetMap["table"], sourceTable, targetMap["table"], sourceTable, targetMap["table"], sourceTable, sourceTable, targetMap["table"], sourceTable)).
+		Select(fmt.Sprintf("%s.id as id, %s.sell_count as sell_count, %s.turn_over as turn_over, %s.bidding_count as bidding_count, %s.bidding_price as bidding_price, base_goods.market_hash_name as market_hash_name, base_goods.name as name, base_goods.icon_url as image_url, u_base_info.type_name as type_name, %s.sell_price as target_price, %s.sell_price as source_price, (%s.sell_price - %s.sell_price) as price_diff, ROUND((%s.sell_price - %s.sell_price)/%s.sell_price,4) as profit_rate, %s.update_time as target_update_time, %s.update_time as source_update_time", targetMap["table"], targetMap["table"], targetMap["table"], targetMap["table"], targetMap["table"], targetMap["table"], sourceTable, targetMap["table"], sourceTable, targetMap["table"], sourceTable, sourceTable, targetMap["table"], sourceTable)).
 		Joins(fmt.Sprintf("join %s ON %s.market_hash_name = %s.market_hash_name", sourceTable, targetMap["table"], sourceTable)).
 		Joins(fmt.Sprintf("join base_goods ON %s.market_hash_name = base_goods.market_hash_name", targetMap["table"])).
+		Joins(fmt.Sprintf("left join u_base_info ON %s.market_hash_name = u_base_info.hash_name", targetMap["table"])).
 		Where(fmt.Sprintf("(%s.sell_price - %s.sell_price) > ? and %s.sell_count > ? and %s.sell_price < ? and %s.sell_price > ?", targetMap["table"], sourceTable, targetMap["table"], sourceTable, sourceTable),
 			settings.MinDiff, settings.MinSellNum, settings.MaxSellPrice, settings.MinSellPrice)
 	query2 := config.DB.Model(targetMap["model"]).
 		Joins(fmt.Sprintf("join %s ON %s.market_hash_name = %s.market_hash_name", sourceTable, targetMap["table"], sourceTable)).
 		Joins(fmt.Sprintf("join base_goods ON %s.market_hash_name = base_goods.market_hash_name", targetMap["table"])).
+		Joins(fmt.Sprintf("left join u_base_info ON %s.market_hash_name = u_base_info.hash_name", targetMap["table"])).
 		Where(fmt.Sprintf("(%s.sell_price - %s.sell_price) > ? and %s.sell_count > ? and %s.sell_price < ? and %s.sell_price > ?", targetMap["table"], sourceTable, targetMap["table"], sourceTable, sourceTable),
 			settings.MinDiff, settings.MinSellNum, settings.MaxSellPrice, settings.MinSellPrice)
-	//if category != "" {
-	//	query1 = query1.Where(fmt.Sprintf("%s.type_name = ?", targetMap["table"]), category)
-	//	query2 = query2.Where(fmt.Sprintf("%s.type_name = ?", targetMap["table"]), category)
-	//}
+
+	if category != "" {
+		query1 = query1.Where("u_base_info.type_name = ?", category)
+		query2 = query2.Where("u_base_info.type_name = ?", category)
+	}
 
 	if search != "" {
 		query1 = query1.Where("name LIKE ?", "%"+search+"%")

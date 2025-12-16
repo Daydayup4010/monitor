@@ -157,7 +157,7 @@
           </div>
         </div>
 
-        <!-- 第三行 - 搜索和排序 -->
+        <!-- 第三行 - 搜索、类别和排序 -->
         <div style="display: flex; gap: 12px; align-items: flex-end; margin-bottom: 16px;">
           <div style="flex: 1; min-width: 200px; max-width: 500px;">
             <label style="display: block; margin-bottom: 8px; font-size: 14px; color: #595959; font-weight: 500;">搜索</label>
@@ -171,6 +171,33 @@
                 <el-icon><Search /></el-icon>
               </template>
             </el-input>
+          </div>
+
+          <div style="min-width: 120px;">
+            <label style="display: block; margin-bottom: 8px; font-size: 14px; color: #595959; font-weight: 500;">类别</label>
+            <el-select
+              v-model="category"
+              @change="handleCategoryChange"
+              style="width: 120px;"
+              clearable
+              placeholder="全部"
+            >
+              <el-option label="全部" value="" />
+              <el-option label="匕首" value="匕首" />
+              <el-option label="手套" value="手套" />
+              <el-option label="步枪" value="步枪" />
+              <el-option label="手枪" value="手枪" />
+              <el-option label="微型冲锋枪" value="微型冲锋枪" />
+              <el-option label="霰弹枪" value="霰弹枪" />
+              <el-option label="机枪" value="机枪" />
+              <el-option label="印花" value="印花" />
+              <el-option label="涂鸦" value="涂鸦" />
+              <el-option label="探员" value="探员" />
+              <el-option label="挂件" value="挂件" />
+              <el-option label="音乐盒" value="音乐盒" />
+              <el-option label="武器箱" value="武器箱" />
+              <el-option label="布章" value="布章" />
+            </el-select>
           </div>
 
           <div style="min-width: 160px;">
@@ -473,6 +500,10 @@ const targetPlatform = computed({
   get: () => skinStore.targetPlatform,
   set: (val) => { skinStore.targetPlatform = val }
 })
+const category = computed({
+  get: () => skinStore.category,
+  set: (val) => { skinStore.category = val }
+})
 
 // 筛选参数
 const filterParams = reactive({
@@ -531,6 +562,14 @@ const handleSearch = debounce(() => {
 
 const handleSortChange = () => {
   // 排序配置在 store 中管理，直接刷新数据
+  skinStore.getSkinItems({
+    search: searchKeyword.value,
+    page_num: 1
+  })
+}
+
+const handleCategoryChange = () => {
+  // 类别配置在 store 中管理，直接刷新数据
   skinStore.getSkinItems({
     search: searchKeyword.value,
     page_num: 1
@@ -597,8 +636,9 @@ const getFilterDescription = () => {
   const priceRange = `价格${filterParams.min_sell_price}-${filterParams.max_sell_price}元`
   const sellNum = filterParams.min_sell_num > 0 ? `，在售量大于${filterParams.min_sell_num}件` : ''
   const priceDiff = filterParams.min_diff > 0 ? `，价格差大于${filterParams.min_diff}元` : ''
+  const categoryDesc = category.value ? `，类别：${category.value}` : ''
   
-  return `从${sourceName}平台买入饰品，到${targetName}平台卖出（${priceRange}${sellNum}${priceDiff}）`
+  return `从${sourceName}平台买入饰品，到${targetName}平台卖出（${priceRange}${sellNum}${priceDiff}${categoryDesc}）`
 }
 
 // 加载用户设置
