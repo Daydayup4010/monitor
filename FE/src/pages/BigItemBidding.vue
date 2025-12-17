@@ -575,10 +575,6 @@ onMounted(() => {
   font-size: 14px;
   font-weight: 500;
   color: #1a1a2e;
-  max-width: 180px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .skin-name.clickable {
