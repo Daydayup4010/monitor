@@ -448,13 +448,13 @@ func GetBigItemBidding(pageSize, pageNum int, isDesc bool, sortField, search, pl
 		Select(selectFields).
 		Joins(fmt.Sprintf("JOIN base_goods ON %s.market_hash_name = base_goods.market_hash_name", platformTable)).
 		Joins(fmt.Sprintf("LEFT JOIN u_base_info ON %s.market_hash_name = u_base_info.hash_name", platformTable)).
-		Where(fmt.Sprintf("%s.bidding_price > 0 AND %s.sell_price > 0", platformTable, platformTable)).
+		Where(fmt.Sprintf("%s.bidding_price > 0 AND %s.sell_price > 0 AND %s.sell_count > 10", platformTable, platformTable, platformTable)).
 		Where(fmt.Sprintf("%s.sell_price > %s.bidding_price", platformTable, platformTable))
 
 	query2 := config.DB.Table(platformTable).
 		Joins(fmt.Sprintf("JOIN base_goods ON %s.market_hash_name = base_goods.market_hash_name", platformTable)).
 		Joins(fmt.Sprintf("LEFT JOIN u_base_info ON %s.market_hash_name = u_base_info.hash_name", platformTable)).
-		Where(fmt.Sprintf("%s.bidding_price > 0 AND %s.sell_price > 0", platformTable, platformTable)).
+		Where(fmt.Sprintf("%s.bidding_price > 0 AND %s.sell_price > 0 AND %s.sell_count > 10", platformTable, platformTable, platformTable)).
 		Where(fmt.Sprintf("%s.sell_price > %s.bidding_price", platformTable, platformTable))
 
 	// 类别筛选（默认手套和刀具）
