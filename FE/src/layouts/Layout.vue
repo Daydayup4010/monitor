@@ -23,8 +23,12 @@
               :key="route.path"
               :index="route.path"
               class="nav-item"
+              :class="{ 'has-badge': route.meta.isNew }"
             >
-              <span>{{ route.meta.title }}</span>
+              <div class="nav-item-wrapper">
+                <span>{{ route.meta.title }}</span>
+                <span v-if="route.meta.isNew" class="badge-new">NEW</span>
+              </div>
             </el-menu-item>
           </el-menu>
         </nav>
@@ -55,6 +59,10 @@
                   <el-dropdown-item v-if="userStore.isVip" command="home">
                     <el-icon><DataAnalysis /></el-icon>
                     <span>挂刀/搬砖</span>
+                  </el-dropdown-item>
+                  <el-dropdown-item v-if="userStore.isVip" command="big-item-bidding">
+                    <el-icon><ShoppingCart /></el-icon>
+                    <span>大件求购</span>
                   </el-dropdown-item>
                   <el-dropdown-item command="settings">
                     <el-icon><User /></el-icon>
@@ -152,6 +160,9 @@ const handleCommand = (command: string) => {
       break
     case 'home':
       router.push('/app/home')
+      break
+    case 'big-item-bidding':
+      router.push('/app/big-item-bidding')
       break
     case 'settings':
       router.push('/app/settings')
@@ -284,6 +295,36 @@ onMounted(() => {
 .nav-item.is-active {
   background: transparent;
   color: #1890ff;
+}
+
+.nav-item-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.badge-new {
+  position: absolute;
+  top: 6px;
+  right: -20px;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
+  color: #fff;
+  font-size: 9px !important;
+  font-weight: 500;
+  padding: 1px 4px;
+  border-radius: 3px;
+  line-height: 1.2;
+  white-space: nowrap;
+  animation: badge-pulse 2s infinite;
+  transform: scale(1);
+}
+
+@keyframes badge-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
 }
 
 .header-actions {

@@ -444,4 +444,50 @@ export interface RelatedWearsResponse {
   wears: Record<string, RelatedWearItem[]>
 }
 
+// 平台数据项
+export interface PlatformItem {
+  platform: string
+  platformName: string
+  sellPrice: number
+  sellCount: number
+  biddingPrice: number
+  biddingCount: number
+  link: string
+}
+
+// 大件求购数据项
+export interface BigItemBiddingItem {
+  id: number
+  market_hash_name: string
+  name: string
+  image_url: string
+  type_name: string
+  sell_price: number
+  sell_count: number
+  bidding_price: number
+  bidding_count: number
+  price_diff: number
+  profit_rate: number
+  update_time: number
+  platform_list: PlatformItem[]
+}
+
+// 大件求购API参数
+export interface BigItemBiddingParams {
+  page_num: number
+  page_size: number
+  sort?: string
+  desc?: boolean
+  search?: string
+  platform?: string
+  category?: string
+}
+
+// 大件求购API
+export const bigItemApi = {
+  // 获取大件求购数据
+  getBigItemBidding: (params: BigItemBiddingParams): Promise<ApiResponse<BigItemBiddingItem[]>> =>
+    api.get('/vip/goods/big-item-bidding', { params }),
+}
+
 export default api

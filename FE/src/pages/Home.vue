@@ -2,7 +2,7 @@
   <div class="home-page">
     <div class="card">
       <div class="card-title">
-        <img src="../assets/icons/data.png" style="height: 20px; width: auto; vertical-align: text-top; margin-right: 8px; object-fit: contain; position: relative; top: 2px;" alt="挂刀/搬砖" />
+        <el-icon :size="20" color="#1890ff"><DataAnalysis /></el-icon>
         挂刀/搬砖
       </div>
 
@@ -470,7 +470,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import { Search, QuestionFilled, Refresh } from '@element-plus/icons-vue'
+import { Search, QuestionFilled, Refresh, DataAnalysis } from '@element-plus/icons-vue'
 import { useSkinStore } from '@/stores/skin'
 import { useSettingsStore } from '@/stores/settings'
 import { dataApi } from '@/api'

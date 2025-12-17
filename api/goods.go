@@ -244,3 +244,32 @@ func SearchGoods(c *gin.Context) {
 		"msg":  utils.ErrorMessage(utils.SUCCESS),
 	})
 }
+
+// GetBigItemBidding 获取大件求购数据（手套和刀具的求购价差）
+func GetBigItemBidding(c *gin.Context) {
+	pageSize, _ := strconv.Atoi(c.Query("page_size"))
+	pageNum, _ := strconv.Atoi(c.Query("page_num"))
+	if pageNum == 0 || pageSize == 0 {
+		pageSize = 25
+		pageNum = 1
+	}
+
+	sort := c.Query("sort")
+	desc, _ := strconv.ParseBool(c.Query("desc"))
+	search := c.Query("search")
+	platform := c.Query("platform")
+	category := c.Query("category")
+
+	// 默认平台为悠悠
+	if platform == "" {
+		platform = "uu"
+	}
+
+	data, total, code := models.GetBigItemBidding(pageSize, pageNum, desc, sort, search, platform, category)
+	c.JSON(http.StatusOK, gin.H{
+		"code":  code,
+		"data":  data,
+		"total": total,
+		"msg":   utils.ErrorMessage(code),
+	})
+}

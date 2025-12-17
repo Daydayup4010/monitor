@@ -379,6 +379,131 @@ func GetCategory() (*[]string, int) {
 	return &category, utils.SUCCESS
 }
 
+// BigItemBidding 大件求购数据结构
+type BigItemBidding struct {
+	Id             int64       `json:"id"`
+	MarketHashName string      `json:"market_hash_name"`
+	Name           string      `json:"name"`
+	ImageUrl       string      `json:"image_url"`
+	TypeName       string      `json:"type_name"`
+	SellPrice      float64     `json:"sell_price"`
+	SellCount      int64       `json:"sell_count"`
+	BiddingPrice   float64     `json:"bidding_price"`
+	BiddingCount   int64       `json:"bidding_count"`
+	PriceDiff      float64     `json:"price_diff"`  // 价差 = sell_price - bidding_price
+	ProfitRate     float64     `json:"profit_rate"` // 利润率 = (sell_price - bidding_price) / bidding_price
+	UpdateTime     int64       `json:"update_time"`
+	PlatformList   []*Platform `json:"platform_list" gorm:"-"`
+}
+
+func GetBigItemBidding(pageSize, pageNum int, isDesc bool, sortField, search, platform, category string) (*[]BigItemBidding, int64, int) {
+	var items []BigItemBidding
+	var total int64
+
+	validFields := map[string]bool{
+		"price_diff":    true,
+		"profit_rate":   true,
+		"sell_price":    true,
+		"bidding_price": true,
+	}
+
+	tableMap := map[string]string{
+		"uu":   "u",
+		"buff": "buff",
+		"c5":   "c5",
+	}
+
+	platformTable, ok := tableMap[platform]
+	if !ok {
+		platformTable = "u" // 默认悠悠
+	}
+
+	if !validFields[sortField] {
+		sortField = "profit_rate" // 默认按利润率排序
+	}
+
+	order := sortField
+	if isDesc {
+		order += " DESC"
+	}
+
+	// 构建查询
+	selectFields := fmt.Sprintf(`
+		%s.id as id,
+		%s.market_hash_name as market_hash_name,
+		base_goods.name as name,
+		base_goods.icon_url as image_url,
+		u_base_info.type_name as type_name,
+		%s.sell_price as sell_price,
+		%s.sell_count as sell_count,
+		%s.bidding_price as bidding_price,
+		%s.bidding_count as bidding_count,
+		(%s.sell_price - %s.bidding_price) as price_diff,
+		ROUND((%s.sell_price - %s.bidding_price) / %s.bidding_price, 4) as profit_rate,
+		%s.update_time as update_time
+	`, platformTable, platformTable, platformTable, platformTable, platformTable, platformTable,
+		platformTable, platformTable, platformTable, platformTable, platformTable, platformTable)
+
+	query1 := config.DB.Table(platformTable).
+		Select(selectFields).
+		Joins(fmt.Sprintf("JOIN base_goods ON %s.market_hash_name = base_goods.market_hash_name", platformTable)).
+		Joins(fmt.Sprintf("LEFT JOIN u_base_info ON %s.market_hash_name = u_base_info.hash_name", platformTable)).
+		Where(fmt.Sprintf("%s.bidding_price > 0 AND %s.sell_price > 0", platformTable, platformTable)).
+		Where(fmt.Sprintf("%s.sell_price > %s.bidding_price", platformTable, platformTable))
+
+	query2 := config.DB.Table(platformTable).
+		Joins(fmt.Sprintf("JOIN base_goods ON %s.market_hash_name = base_goods.market_hash_name", platformTable)).
+		Joins(fmt.Sprintf("LEFT JOIN u_base_info ON %s.market_hash_name = u_base_info.hash_name", platformTable)).
+		Where(fmt.Sprintf("%s.bidding_price > 0 AND %s.sell_price > 0", platformTable, platformTable)).
+		Where(fmt.Sprintf("%s.sell_price > %s.bidding_price", platformTable, platformTable))
+
+	// 类别筛选（默认手套和刀具）
+	if category == "" || category == "all" {
+		query1 = query1.Where("u_base_info.type_name IN ?", []string{"手套", "匕首"})
+		query2 = query2.Where("u_base_info.type_name IN ?", []string{"手套", "匕首"})
+	} else {
+		query1 = query1.Where("u_base_info.type_name = ?", category)
+		query2 = query2.Where("u_base_info.type_name = ?", category)
+	}
+
+	// 搜索
+	if search != "" {
+		query1 = query1.Where("base_goods.name LIKE ?", "%"+search+"%")
+		query2 = query2.Where("base_goods.name LIKE ?", "%"+search+"%")
+	}
+
+	// 计算总数
+	err := query2.Count(&total).Error
+	if err != nil {
+		config.Log.Errorf("Get big item bidding total fail: %v", err)
+		return &items, 0, utils.ErrCodeGetGoods
+	}
+
+	// 查询数据
+	err = query1.
+		Order(order).
+		Limit(pageSize).
+		Offset((pageNum - 1) * pageSize).
+		Scan(&items).
+		Error
+	if err != nil {
+		config.Log.Errorf("Get big item bidding data fail: %v", err)
+		return &items, 0, utils.ErrCodeGetGoods
+	}
+
+	// 获取各平台数据
+	hashNames := make([]string, 0, len(items))
+	for i := range items {
+		hashNames = append(hashNames, items[i].MarketHashName)
+	}
+	platformList := GetPlatformListBatch(hashNames)
+	for i := range items {
+		items[i].PlatformList = platformList[items[i].MarketHashName]
+	}
+
+	return &items, total, utils.SUCCESS
+}
+
 func SetLastIndex(index int) {
 	ctx := context.Background()
 	err := config.RDB.Set(ctx, "hash_name_index", index, time.Minute*5).Err()

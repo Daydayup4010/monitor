@@ -81,6 +81,18 @@ const router = createRouter({
           }
         },
         {
+          path: 'big-item-bidding',
+          name: 'BigItemBidding',
+          component: () => import('@/pages/BigItemBidding.vue'),
+          meta: { 
+            title: '大件求购', 
+            icon: 'Coin',
+            requiresAuth: true,
+            requiresVip: true,
+            isNew: true
+          }
+        },
+        {
           path: 'detail',
           name: 'Detail',
           component: () => import('@/pages/Detail.vue'),
