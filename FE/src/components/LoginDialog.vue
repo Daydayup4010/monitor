@@ -365,11 +365,8 @@ const handlePasswordLogin = async () => {
       await new Promise(resolve => setTimeout(resolve, 100))
       handleClose()
       emit('success')
-      if (userStore.isVip || userStore.isAdmin) {
-        router.push('/app/ranking')
-      } else {
-        router.push('/app/settings')
-      }
+      // 刷新页面以更新状态，让路由守卫处理跳转
+      window.location.reload()
     } else {
       // 登录失败，刷新验证码
       refreshCaptcha()
@@ -395,11 +392,8 @@ const handleEmailLogin = async () => {
       await new Promise(resolve => setTimeout(resolve, 100))
       handleClose()
       emit('success')
-      if (userStore.isVip || userStore.isAdmin) {
-        router.push('/app/ranking')
-      } else {
-        router.push('/app/settings')
-      }
+      // 刷新页面以更新状态，让路由守卫处理跳转
+      window.location.reload()
     }
   } catch (error) {
     console.error('表单验证失败:', error)

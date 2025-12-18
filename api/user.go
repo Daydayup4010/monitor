@@ -53,7 +53,7 @@ func Register(c *gin.Context) {
 		return
 	}
 	uid, _ := uuid.NewV7()
-	newExpiry := time.Now().AddDate(0, 0, 7)
+	newExpiry := time.Now().AddDate(0, 0, 3) // 新用户免费3天VIP
 	var user = models.User{
 		ID:        uid,
 		UserName:  reg.Username,
@@ -118,6 +118,35 @@ func SendEmailCode(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"code": code,
 		"msg":  utils.ErrorMessage(code),
+	})
+}
+
+// VerifyEmailCode 验证邮箱验证码（不删除验证码，用于分步验证）
+func VerifyEmailCode(c *gin.Context) {
+	var req struct {
+		Email string `json:"email" binding:"required,email"`
+		Code  string `json:"code" binding:"required,len=6"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code": utils.InvalidParameter,
+			"msg":  utils.ErrorMessage(utils.InvalidParameter),
+		})
+		return
+	}
+
+	valid, code := models.CheckEmailCode(req.Email, req.Code, c.Request.Context())
+	if !valid {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code": code,
+			"msg":  utils.ErrorMessage(code),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": 1,
+		"msg":  "验证成功",
 	})
 }
 

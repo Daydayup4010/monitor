@@ -8,8 +8,38 @@
           <span class="logo-subtitle">CS2饰品搬砖网站</span>
         </div>
         <div class="header-actions">
-          <el-button type="primary" @click="showLoginDialog = true">登录</el-button>
-          <el-button @click="goToRegister">注册</el-button>
+          <template v-if="isLoggedIn">
+            <el-dropdown trigger="click" @command="handleCommand">
+              <div class="user-dropdown">
+                <div class="user-avatar" :style="{ backgroundImage: getUserAvatarBg() }"></div>
+                <div class="user-info-box">
+                  <div class="user-name">{{ userStore.username }}</div>
+                  <div class="user-type">{{ userStore.userTypeLabel }}</div>
+                </div>
+                <el-icon><ArrowDown /></el-icon>
+              </div>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item v-if="userStore.isVip || userStore.isAdmin" command="app">
+                    <el-icon><HomeFilled /></el-icon>
+                    <span>进入应用</span>
+                  </el-dropdown-item>
+                  <el-dropdown-item command="settings">
+                    <el-icon><User /></el-icon>
+                    <span>个人设置</span>
+                  </el-dropdown-item>
+                  <el-dropdown-item divided command="logout">
+                    <el-icon><SwitchButton /></el-icon>
+                    <span>退出登录</span>
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </template>
+          <template v-else>
+            <el-button type="primary" @click="showLoginDialog = true">登录</el-button>
+            <el-button @click="goToRegister">注册</el-button>
+          </template>
         </div>
       </div>
     </header>
@@ -59,8 +89,11 @@
             <el-empty v-else description="暂无数据" />
           </div>
           <div class="card-footer">
-            <el-button type="primary" link @click="goToLoginWithTip">
+            <el-button v-if="!isLoggedIn" type="primary" link @click="goToLoginWithTip">
               登录查看完整榜单 <el-icon><ArrowRight /></el-icon>
+            </el-button>
+            <el-button v-else type="primary" link @click="goToVip">
+              成为VIP查看完整榜单 <el-icon><ArrowRight /></el-icon>
             </el-button>
           </div>
         </div>
@@ -102,8 +135,11 @@
             <el-empty v-else description="暂无数据" />
           </div>
           <div class="card-footer">
-            <el-button type="primary" link @click="goToLoginWithTip">
+            <el-button v-if="!isLoggedIn" type="primary" link @click="goToLoginWithTip">
               登录查看更多平台差价对比 <el-icon><ArrowRight /></el-icon>
+            </el-button>
+            <el-button v-else type="primary" link @click="goToVip">
+              成为VIP查看完整榜单 <el-icon><ArrowRight /></el-icon>
             </el-button>
           </div>
         </div>
@@ -143,18 +179,35 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { TrendCharts, DataAnalysis, ArrowRight } from '@element-plus/icons-vue'
+import { TrendCharts, DataAnalysis, ArrowRight, ArrowDown, HomeFilled, User, SwitchButton } from '@element-plus/icons-vue'
 import { publicApi, type PublicHomeData } from '@/api'
 import { showMessage } from '@/utils/message'
 import LoginDialog from '@/components/LoginDialog.vue'
 import Footer from '@/components/Footer.vue'
+import { useUserStore } from '@/stores/user'
+import loginIcon from '@/assets/icons/login.png'
+import registerIcon from '@/assets/icons/register.png'
 
 const router = useRouter()
+const userStore = useUserStore()
 const loading = ref(false)
 const homeData = ref<PublicHomeData | null>(null)
 const showLoginDialog = ref(false)
+
+// 是否已登录
+const isLoggedIn = computed(() => userStore.isLoggedIn)
+
+// 获取用户头像背景图
+const getUserAvatarBg = () => {
+  // VIP或管理员用login.png，普通用户用register.png
+  if (userStore.isVip || userStore.isAdmin) {
+    return `url(${loginIcon})`
+  } else {
+    return `url(${registerIcon})`
+  }
+}
 
 // 获取首页数据
 const fetchHomeData = async () => {
@@ -201,7 +254,34 @@ const goToLoginWithTip = () => {
   showLoginDialog.value = true
 }
 
+// 跳转到VIP开通页面
+const goToVip = () => {
+  router.push('/app/settings')
+  showMessage.info('请开通VIP会员以查看完整内容')
+}
+
+// 处理下拉菜单命令
+const handleCommand = async (command: string) => {
+  switch (command) {
+    case 'app':
+      router.push('/app/dashboard')
+      break
+    case 'settings':
+      router.push('/app/settings')
+      break
+    case 'logout':
+      await userStore.logout()
+      showMessage.success('已退出登录')
+      break
+  }
+}
+
 onMounted(() => {
+  // 如果已登录且是VIP，自动跳转到 dashboard
+  if (userStore.isLoggedIn && (userStore.isVip || userStore.isAdmin)) {
+    router.push('/app/dashboard')
+    return
+  }
   fetchHomeData()
 })
 </script>
@@ -253,6 +333,48 @@ onMounted(() => {
 .header-actions {
   display: flex;
   gap: 12px;
+  align-items: center;
+}
+
+.user-dropdown {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.user-dropdown:hover {
+  background-color: #f5f5f5;
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1890ff, #40a9ff);
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.user-info-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.user-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #262626;
+}
+
+.user-type {
+  font-size: 12px;
+  color: #8c8c8c;
 }
 
 /* 主要内容 */

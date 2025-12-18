@@ -233,6 +233,10 @@ export const authApi = {
   sendEmailCode: (data: SendEmailCodeRequest): Promise<ApiResponse> => 
     api.post('/user/send-email', data),
   
+  // 验证邮箱验证码
+  verifyEmailCode: (data: { email: string; code: string }): Promise<ApiResponse> => 
+    api.post('/user/verify-email-code', data),
+  
   // 重置密码
   resetPassword: (data: ResetPasswordForm): Promise<ApiResponse> => 
     api.post('/user/reset-password', data),
@@ -488,6 +492,49 @@ export const bigItemApi = {
   // 获取大件求购数据
   getBigItemBidding: (params: BigItemBiddingParams): Promise<ApiResponse<BigItemBiddingItem[]>> =>
     api.get('/vip/goods/big-item-bidding', { params }),
+}
+
+// VIP价格信息
+export interface VipPriceInfo {
+  price: number
+  days: number
+  desc: string
+}
+
+// 支付订单
+export interface PaymentOrder {
+  order_no: string
+  qrcode_img: string  // base64二维码图片
+  amount: number
+  created_at: string
+}
+
+// 订单状态
+export interface OrderStatus {
+  order_no: string
+  amount: number
+  status: number  // 0=待支付, 1=已支付, 2=已取消
+  pay_time: string | null
+  created_at: string
+}
+
+// 支付API
+export const paymentApi = {
+  // 获取VIP价格
+  getVipPrice: (): Promise<ApiResponse<VipPriceInfo>> =>
+    api.get('/payment/vip-price'),
+  
+  // 创建支付订单
+  createOrder: (months: number = 1): Promise<ApiResponse<PaymentOrder>> =>
+    api.post('/payment/create', { months }),
+  
+  // 查询订单状态
+  queryOrder: (orderNo: string): Promise<ApiResponse<OrderStatus>> =>
+    api.get('/payment/query', { params: { order_no: orderNo } }),
+  
+  // 获取订单列表
+  getOrders: (params: { page_num: number; page_size: number }): Promise<ApiResponse<OrderStatus[]>> =>
+    api.get('/payment/orders', { params }),
 }
 
 export default api

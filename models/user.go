@@ -209,6 +209,7 @@ func SaveEmailCode(email, code string, c context.Context) int {
 	return utils.SUCCESS
 }
 
+// VerifyEmailCode 验证邮箱验证码并删除
 func VerifyEmailCode(email, code string, c context.Context) (bool, int) {
 	key := fmt.Sprintf("verify:%s", email)
 	saveCode, err := config.RDB.Get(c, key).Result()
@@ -221,6 +222,21 @@ func VerifyEmailCode(email, code string, c context.Context) (bool, int) {
 		return false, utils.ErrCodeInvalidEmailCode
 	}
 	config.RDB.Del(c, key)
+	return true, utils.SUCCESS
+}
+
+// CheckEmailCode 验证邮箱验证码但不删除（用于分步验证）
+func CheckEmailCode(email, code string, c context.Context) (bool, int) {
+	key := fmt.Sprintf("verify:%s", email)
+	saveCode, err := config.RDB.Get(c, key).Result()
+	if err == redis.Nil {
+		return false, utils.ErrCodeInvalidEmailCode
+	} else if err != nil {
+		return false, utils.ErrCodeInvalidEmailCode
+	}
+	if saveCode != code {
+		return false, utils.ErrCodeInvalidEmailCode
+	}
 	return true, utils.SUCCESS
 }
 

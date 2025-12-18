@@ -335,7 +335,7 @@ const handlePasswordLogin = async () => {
       if (userStore.isVip || userStore.isAdmin) {
         router.push('/app/ranking')
       } else {
-        router.push('/app/settings')
+        router.push('/')  // 非VIP用户跳转到公开首页
       }
     } else {
       // 登录失败，刷新验证码
@@ -363,7 +363,7 @@ const handleEmailLogin = async () => {
       if (userStore.isVip || userStore.isAdmin) {
         router.push('/app/ranking')
       } else {
-        router.push('/app/settings')
+        router.push('/')  // 非VIP用户跳转到公开首页
       }
     }
   } catch (error) {

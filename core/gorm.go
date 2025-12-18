@@ -1,13 +1,14 @@
 package core
 
 import (
+	"time"
+	"uu/config"
+	"uu/models"
+
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
-	"time"
-	"uu/config"
-	"uu/models"
 )
 
 func InitGorm() {
@@ -25,7 +26,7 @@ func InitGorm() {
 	if err != nil {
 		config.Log.Panicf("DB connect fail: %s", err)
 	}
-	err = db.AutoMigrate(&models.U{}, &models.BaseGoods{}, &models.User{}, &models.Settings{}, &models.APIKey{}, &models.Buff{}, &models.C5{}, &models.Steam{}, &models.UBaseInfo{}, &models.PriceHistory{}) // migrate schema
+	err = db.AutoMigrate(&models.U{}, &models.BaseGoods{}, &models.User{}, &models.Settings{}, &models.APIKey{}, &models.Buff{}, &models.C5{}, &models.Steam{}, &models.UBaseInfo{}, &models.PriceHistory{}, &models.PaymentOrder{}) // migrate schema
 	if err != nil {
 		config.Log.Panicf("migrate schema fail: %s", err)
 	}

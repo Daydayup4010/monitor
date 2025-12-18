@@ -16,6 +16,13 @@ type Config struct {
 	Email   *utils.EmailService `yaml:"email"`
 	Wechat  *Wechat             `yaml:"wechat"`
 	SteamDt *SteamDt            `yaml:"steamDt"`
+	Payment *Payment            `yaml:"payment"`
+}
+
+type Payment struct {
+	MchId     string `yaml:"mch_id"`     // YunGouOS商户号
+	ApiKey    string `yaml:"api_key"`    // API密钥
+	NotifyUrl string `yaml:"notify_url"` // 支付回调地址
 }
 
 type Wechat struct {

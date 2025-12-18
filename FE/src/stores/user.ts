@@ -41,6 +41,9 @@ export const useUserStore = defineStore('user', () => {
     return '普通用户'
   })
 
+  // 用户名
+  const username = computed(() => userInfo.value?.username || '')
+
   // 从本地存储加载用户信息
   const loadFromStorage = () => {
     const storedToken = localStorage.getItem('token')
@@ -119,7 +122,7 @@ export const useUserStore = defineStore('user', () => {
       const { confirmPassword, ...registerData } = form
       const response = await authApi.register(registerData)
       if (response.code === 1) {
-        showMessage.success('注册成功！新用户免费送7天试用时间，请登录')
+        showMessage.success('注册成功！新用户免费送3天VIP体验，请登录')
         return true
       }
       return false
@@ -226,6 +229,7 @@ export const useUserStore = defineStore('user', () => {
     isVip,
     isAdmin,
     userTypeLabel,
+    username,
     // 方法
     loadFromStorage,
     login,

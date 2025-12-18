@@ -557,68 +557,15 @@ onMounted(() => {
   border: 1px solid #e8e8e8;
 }
 
-.skin-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.skin-img {
-  width: 60px;
-  height: 60px;
-  object-fit: contain;
-  background: #f5f7fa;
-  border-radius: 8px;
-}
-
-.skin-name {
-  font-size: 14px;
-  font-weight: 500;
-  color: #1a1a2e;
-}
+/* 使用 unified.css 中的全局 .skin-info, .skin-img, .skin-name 样式 */
 
 .skin-name.clickable {
   cursor: pointer;
+  transition: color 0.2s;
 }
 
 .skin-name.clickable:hover {
-  color: #3b82f6;
-}
-
-.price-value {
-  font-size: 16px;
-  font-weight: 600;
-  color: #1a1a2e;
-}
-
-.price-value.bidding {
-  color: #f59e0b;
-}
-
-.count-info {
-  font-size: 12px;
-  color: #8c8c8c;
-  margin-top: 4px;
-}
-
-.diff-value {
-  font-size: 15px;
-  font-weight: 600;
-  color: #8c8c8c;
-}
-
-.diff-value.positive {
-  color: #10b981;
-}
-
-.rate-value {
-  font-size: 15px;
-  font-weight: 600;
-  color: #8c8c8c;
-}
-
-.rate-value.positive {
-  color: #10b981;
+  color: #1890ff;
 }
 
 .update-time {

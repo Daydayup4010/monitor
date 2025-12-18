@@ -153,7 +153,12 @@ const goHome = () => {
 const handleCommand = (command: string) => {
   switch (command) {
     case 'dashboard':
-      router.push('/app/dashboard')
+      // VIP用户跳转到VIP首页，非VIP用户跳转到公开首页
+      if (userStore.isVip || userStore.isAdmin) {
+        router.push('/app/dashboard')
+      } else {
+        router.push('/')
+      }
       break
     case 'ranking':
       router.push('/app/ranking')

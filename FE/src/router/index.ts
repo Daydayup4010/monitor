@@ -55,7 +55,8 @@ const router = createRouter({
           meta: { 
             title: '首页', 
             icon: 'HomeFilled',
-            requiresAuth: true
+            requiresAuth: true,
+            requiresVip: true
           }
         },
         {
@@ -139,9 +140,10 @@ router.beforeEach((to, _from, next) => {
   const title = to.meta.title as string
   document.title = title ? `${title} - CS Goods` : 'CS Goods'
   
-  // 如果已登录且访问登录/注册/公开首页，重定向到应用首页
-  if ((to.path === '/login' || to.path === '/register' || to.path === '/') && userStore.isLoggedIn) {
-    next('/app/dashboard')
+  // 如果已登录且访问登录/注册页面，根据VIP状态跳转
+  if ((to.path === '/login' || to.path === '/register') && userStore.isLoggedIn) {
+    // VIP用户跳转到dashboard，非VIP用户跳转到公开首页
+    next(userStore.isVip ? '/app/dashboard' : '/')
     return
   }
   
@@ -165,15 +167,15 @@ router.beforeEach((to, _from, next) => {
     
     // 检查VIP权限
     if (to.meta.requiresVip && !userStore.isVip) {
-      showMessage.warning('需要VIP权限才能访问')
-      next('/app/settings')
+      showMessage.warning('需要VIP权限才能访问该功能')
+      next('/')  // 非VIP用户重定向到公开首页
       return
     }
     
     // 检查管理员权限
     if (to.meta.requiresAdmin && !userStore.isAdmin) {
       showMessage.error('需要管理员权限才能访问')
-      next('/app/dashboard')
+      next('/')
       return
     }
   }

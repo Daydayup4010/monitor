@@ -38,3 +38,9 @@ wechat:
 
 steamDt:
   key: 98e162cfdb584e5fba8fe21ad306f5b1
+
+# YunGouOS支付配置
+payment:
+  mch_id: ""        # YunGouOS商户号
+  api_key: ""       # API密钥
+  notify_url: ""    # 支付回调地址，如 https://你的域名/api/v1/payment/notify

@@ -82,6 +82,15 @@ func InitRouter() *gin.Engine {
 			}),
 			api.ResetUserPassword,
 		)
+		// 验证邮箱验证码：每个IP每分钟最多10次
+		user.POST("verify-email-code",
+			middleware.RateLimiterByIP(middleware.RateLimiterConfig{
+				Window:      60 * time.Second,
+				MaxRequests: 10,
+				KeyPrefix:   "user:verify-email-code",
+			}),
+			api.VerifyEmailCode,
+		)
 		user.POST("email-exist", api.JudgeEmail)
 	}
 	authUser := user.Group("")
@@ -140,6 +149,20 @@ func InitRouter() *gin.Engine {
 	{
 		settings.GET("", api.GetSettings)
 		settings.PUT("", api.UpdateSetting)
+	}
+
+	// 支付相关API
+	// 支付回调（公开接口，无需登录）
+	v1.POST("payment/notify", api.PayNotify)
+
+	// 支付接口（需要登录）
+	payment := v1.Group("payment")
+	payment.Use(middleware.AuthMiddleware())
+	{
+		payment.GET("vip-price", api.GetVipPrice)  // 获取VIP价格
+		payment.POST("create", api.CreatePayOrder) // 创建支付订单
+		payment.GET("query", api.QueryPayOrder)    // 查询订单状态
+		payment.GET("orders", api.GetUserOrders)   // 获取订单列表
 	}
 
 	// 微信小程序相关API
