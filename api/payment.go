@@ -29,8 +29,8 @@ func CreatePayOrder(c *gin.Context) {
 	userID := c.GetString("user_id")
 	if userID == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"code": utils.ErrCodeNoPermission,
-			"msg":  utils.ErrorMessage(utils.ErrCodeNoPermission),
+			"code": utils.ErrCodePermissionDenied,
+			"msg":  utils.ErrorMessage(utils.ErrCodePermissionDenied),
 		})
 		return
 	}
@@ -106,7 +106,7 @@ func CreatePayOrder(c *gin.Context) {
 		"data": gin.H{
 			"order_no":   order.OutTradeNo,
 			"qrcode_img": payResp.Data, // base64二维码图片
-			"amount":     models.VipPrice,
+			"amount":     plan.Price,
 			"created_at": order.CreatedAt,
 		},
 	})
@@ -245,7 +245,7 @@ func QueryPayOrder(c *gin.Context) {
 	// 检查订单是否属于当前用户
 	if order.UserID != userID {
 		c.JSON(http.StatusForbidden, gin.H{
-			"code": utils.ErrCodeNoPermission,
+			"code": utils.ErrCodePermissionDenied,
 			"msg":  "无权查看该订单",
 		})
 		return

@@ -34,6 +34,7 @@ const (
 const (
 	SUCCESS                     = 1
 	InvalidParameter            = 0
+	ERROR                       = -1
 	ErrCodeFullUpdateRunning    = 2000
 	ErrCodeGetSettings          = 2001
 	ErrCodeGetGoodsTotal        = 2002
