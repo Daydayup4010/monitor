@@ -128,10 +128,10 @@ func PayNotify(c *gin.Context) {
 	payNo := c.PostForm("payNo")           // 微信支付单号
 	money := c.PostForm("money")           // 支付金额
 	mchId := c.PostForm("mchId")           // 商户号
-	payChannel := c.PostForm("payChannel") // 支付渠道
-	payTime := c.PostForm("time")          // 支付时间
-	attach := c.PostForm("attach")         // 附加数据（用户ID）
-	sign := c.PostForm("sign")             // 签名
+	//payChannel := c.PostForm("payChannel") // 支付渠道
+	payTime := c.PostForm("time")  // 支付时间
+	attach := c.PostForm("attach") // 附加数据（用户ID）
+	sign := c.PostForm("sign")     // 签名
 
 	config.Log.Infof("PayNotify: code=%s, orderNo=%s, outTradeNo=%s, payNo=%s, money=%s, mchId=%s, attach=%s",
 		code, orderNo, outTradeNo, payNo, money, mchId, attach)
@@ -144,10 +144,6 @@ func PayNotify(c *gin.Context) {
 		"payNo":      payNo,
 		"money":      money,
 		"mchId":      mchId,
-		"payChannel": payChannel,
-	}
-	if attach != "" {
-		params["attach"] = attach
 	}
 
 	// 验证签名
