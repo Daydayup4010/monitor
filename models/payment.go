@@ -23,10 +23,10 @@ type VipPlan struct {
 
 // VIP套餐列表
 var VipPlans = map[int]VipPlan{
-	1:  {Months: 1, Price: 0.1},
-	3:  {Months: 3, Price: 0.2},
-	6:  {Months: 6, Price: 0.3},
-	12: {Months: 12, Price: 0.4},
+	1:  {Months: 1, Price: 19.9},
+	3:  {Months: 3, Price: 49.9},
+	6:  {Months: 6, Price: 89.9},
+	12: {Months: 12, Price: 169.9},
 }
 
 // 获取VIP套餐
