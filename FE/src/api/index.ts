@@ -525,11 +525,15 @@ export const bigItemApi = {
     api.get('/vip/goods/big-item-bidding', { params }),
 }
 
+// VIP套餐
+export interface VipPlan {
+  months: number
+  price: number
+}
+
 // VIP价格信息
 export interface VipPriceInfo {
-  price: number
-  days: number
-  desc: string
+  plans: Record<number, VipPlan>
 }
 
 // 支付订单

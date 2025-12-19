@@ -33,8 +33,8 @@
         </div>
         <div class="vip-price">
           <span class="currency">￥</span>
-          <span class="amount">19.9</span>
-          <span class="period">/月</span>
+          <span class="amount">{{ lowestMonthlyPrice.toFixed(1) }}</span>
+          <span class="period">/月起</span>
         </div>
       </div>
       
@@ -88,7 +88,7 @@
       <div class="vip-action">
         <button 
           class="vip-btn" 
-          @click="showVipSelectDialog = true"
+          @click="handleOpenVipDialog"
           :disabled="isCreatingOrder"
         >
           <span v-if="userStore.isVip">续费会员</span>
@@ -350,19 +350,59 @@ const currentOrder = ref<PaymentOrder | null>(null)
 const selectedMonths = ref(12) // 默认选择12个月
 let pollingTimer: ReturnType<typeof setInterval> | null = null
 
-// 月份选项
-const monthOptions = [
+// 月份选项（从接口获取）
+interface MonthOption {
+  months: number
+  price: number
+  recommend: boolean
+}
+const monthOptions = ref<MonthOption[]>([
   { months: 1, price: 19.9, recommend: false },
   { months: 3, price: 49.9, recommend: false },
   { months: 6, price: 89.9, recommend: false },
   { months: 12, price: 169.9, recommend: true },
-]
+])
+const isLoadingPrice = ref(false)
+
+// 获取VIP价格
+const fetchVipPrice = async () => {
+  isLoadingPrice.value = true
+  try {
+    const res = await paymentApi.getVipPrice()
+    if (res.code === 1 && res.data?.plans) {
+      const plans = res.data.plans
+      monthOptions.value = [
+        { months: 1, price: plans[1]?.price || 19.9, recommend: false },
+        { months: 3, price: plans[3]?.price || 49.9, recommend: false },
+        { months: 6, price: plans[6]?.price || 89.9, recommend: false },
+        { months: 12, price: plans[12]?.price || 169.9, recommend: true },
+      ]
+    }
+  } catch (error) {
+    console.error('获取VIP价格失败:', error)
+  } finally {
+    isLoadingPrice.value = false
+  }
+}
 
 // 计算选中的价格
 const selectedPrice = computed(() => {
-  const option = monthOptions.find(o => o.months === selectedMonths.value)
+  const option = monthOptions.value.find(o => o.months === selectedMonths.value)
   return option ? option.price : 19.9
 })
+
+// 计算最低月均价格（用于显示"¥xx/月起"）
+const lowestMonthlyPrice = computed(() => {
+  if (monthOptions.value.length === 0) return 19.9
+  const prices = monthOptions.value.map(o => o.price / o.months)
+  return Math.min(...prices)
+})
+
+// 打开VIP选择弹窗
+const handleOpenVipDialog = async () => {
+  showVipSelectDialog.value = true
+  await fetchVipPrice()
+}
 
 // 创建订单
 const handleCreateOrder = async () => {

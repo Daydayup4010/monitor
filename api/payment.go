@@ -26,7 +26,7 @@ func GetVipPrice(c *gin.Context) {
 
 // 创建支付订单
 func CreatePayOrder(c *gin.Context) {
-	userID := c.GetString("user_id")
+	userID := c.GetString("userID")
 	if userID == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"code": utils.ErrCodePermissionDenied,
@@ -227,7 +227,7 @@ func PayNotify(c *gin.Context) {
 // 查询订单状态
 func QueryPayOrder(c *gin.Context) {
 	orderNo := c.Query("order_no")
-	userID := c.GetString("user_id")
+	userID := c.GetString("userID")
 
 	if orderNo == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -270,7 +270,7 @@ func QueryPayOrder(c *gin.Context) {
 
 // 获取用户订单列表
 func GetUserOrders(c *gin.Context) {
-	userID := c.GetString("user_id")
+	userID := c.GetString("userID")
 	pageSize := 10
 	pageNum := 1
 
