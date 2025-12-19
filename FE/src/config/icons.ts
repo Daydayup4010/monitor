@@ -1,6 +1,9 @@
 // 系统图标配置 - 集中管理所有图标
 // 你可以替换这里的emoji为自定义图标路径
 
+// VIP图标（使用图片）
+import vipIconPath from '@/assets/icons/vip.png'
+
 export const ICONS = {
   // 认证页面图标
   login: '🔐',           // 登录页面
@@ -14,11 +17,11 @@ export const ICONS = {
   
   // 统计卡片图标
   statUsers: '👥',       // 总用户数
-  statVip: '👑',         // VIP用户
+  statVip: vipIconPath,  // VIP用户（图片）
   
   // 用户类型标识
   userAdmin: '👨‍💼',     // 管理员
-  userVip: '👑',         // VIP会员
+  userVip: vipIconPath,  // VIP会员（图片）
   userNormal: '👤',      // 普通用户
   
   // 操作图标

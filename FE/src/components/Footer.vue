@@ -21,13 +21,13 @@
           </div>
           <div class="link-group">
             <h4>联系我们</h4>
-            <a href="mailto:goods.monitor@foxmail.com">
-              <span class="contact-icon">📧</span>
-              Email: goods.monitor@foxmail.com
+            <a href="mailto:goods.monitor@foxmail.com" class="contact-link">
+              <img :src="emailIcon" class="contact-icon-img" />
+              <span>goods.monitor@foxmail.com</span>
             </a>
-            <span class="contact-item">
-              <span class="contact-icon">💬</span>
-              QQ: 401026211
+            <span class="contact-link">
+              <img :src="qqIcon" class="contact-icon-img" />
+              <span>401026211</span>
             </span>
           </div>
         </div>
@@ -52,6 +52,9 @@
 </template>
 
 <script setup lang="ts">
+import emailIcon from '@/assets/icons/email.png'
+import qqIcon from '@/assets/icons/QQ.png'
+
 const currentYear = new Date().getFullYear()
 </script>
 
@@ -125,20 +128,28 @@ const currentYear = new Date().getFullYear()
   gap: 8px;
 }
 
-.contact-item {
+.contact-link {
   font-size: 20px;
   color: #a0a0a0;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.contact-link:hover {
+  color: #1890ff;
+}
+
+.contact-icon-img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
 }
 
 .link-group a:hover {
   color: #1890ff;
-}
-
-.contact-icon {
-  font-size: 21px;
 }
 
 /* 分割线 */

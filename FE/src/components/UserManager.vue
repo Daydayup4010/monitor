@@ -11,7 +11,7 @@
       </div>
 
       <div class="stat-card">
-        <div class="stat-icon green">👑</div>
+        <div class="stat-icon green"><img :src="vipIcon" class="stat-icon-img" /></div>
         <div class="stat-info">
           <div class="stat-value">{{ vipCount }}</div>
           <div class="stat-label">VIP用户</div>
@@ -168,6 +168,7 @@ import { showMessage } from '@/utils/message'
 import { debounce } from '@/utils'
 import type { UserListItem } from '@/types'
 import dayjs from 'dayjs'
+import vipIcon from '@/assets/icons/vip.png'
 
 const loading = ref(false)
 const userList = ref<UserListItem[]>([])

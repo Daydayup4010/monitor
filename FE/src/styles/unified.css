@@ -510,6 +510,12 @@ tr:hover {
 .stat-icon.green { background: #f6ffed; color: #52c41a; }
 .stat-icon.orange { background: #fff7e6; color: #faad14; }
 
+.stat-icon-img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+}
+
 .stat-info {
     flex: 1;
 }

@@ -15,7 +15,11 @@
         :style="{ backgroundImage: getUserAvatarBg(), backgroundSize: 'contain', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }"
       ></div>
       <div class="user-details">
-        <div class="user-badge"><span v-if="badgeIcon">{{ badgeIcon }} </span>{{ userStore.userTypeLabel }}</div>
+        <div class="user-badge">
+          <span v-if="userStore.isVip && !userStore.isAdmin" class="vip-text">VIP</span>
+          <template v-else-if="userStore.isAdmin">👨‍💼 {{ userStore.userTypeLabel }}</template>
+          <template v-else>{{ userStore.userTypeLabel }}</template>
+        </div>
         <h3>{{ userStore.userInfo?.username }}</h3>
         <p :style="{ opacity: userStore.isVip || userStore.isAdmin ? 0.9 : 1 }">{{ userStore.userInfo?.email }}</p>
         <p v-if="userStore.isVip && userStore.userInfo?.vip_expiry" style="opacity: 0.8; font-size: 13px; margin-top: 4px;">
@@ -29,12 +33,12 @@
       <!-- 左侧菜单栏 -->
       <div class="settings-sidebar">
         <div class="menu-item" :class="{ active: activeTab === 'security' }" @click="activeTab = 'security'">
-          <div class="menu-icon">🔐</div>
+          <div class="menu-icon"><img :src="idIcon" class="id-icon-img" /></div>
           <div class="menu-text">账号安全</div>
         </div>
         <div class="menu-item" :class="{ active: activeTab === 'vip' }" @click="activeTab = 'vip'">
-          <div class="menu-icon">👑</div>
-          <div class="menu-text">VIP会员服务</div>
+          <div class="menu-icon"><img :src="vipIcon" class="icon-img" /></div>
+          <div class="menu-text">VIP服务</div>
         </div>
         <div class="menu-item" :class="{ active: activeTab === 'records' }" @click="activeTab = 'records'">
           <div class="menu-icon">📋</div>
@@ -55,11 +59,11 @@
           </div>
         </div>
 
-        <!-- VIP会员服务 -->
+        <!-- VIP服务 -->
         <div v-else-if="activeTab === 'vip'" class="vip-card">
           <div class="vip-header">
             <div class="vip-title">
-              <span class="vip-icon">👑</span>
+              <img :src="vipIcon" class="vip-icon-img" />
               <span>VIP会员</span>
             </div>
             <div class="vip-price">
@@ -368,7 +372,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { paymentApi, authApi, type PaymentOrder, type VipRecord } from '@/api'
 import { showMessage } from '@/utils/message'
@@ -377,18 +381,16 @@ import type { FormInstance, FormRules } from 'element-plus'
 import dayjs from 'dayjs'
 import loginIcon from '@/assets/icons/login.png'
 import registerIcon from '@/assets/icons/register.png'
+import vipIcon from '@/assets/icons/vip.png'
+import idIcon from '@/assets/icons/id.png'
 
 const router = useRouter()
+const route = useRoute()
 const userStore = useUserStore()
 
 // 当前选中的Tab
 const activeTab = ref('security')
 
-const badgeIcon = computed(() => {
-  if (userStore.isAdmin) return '👨‍💼'
-  if (userStore.isVip) return '👑'
-  return ''
-})
 
 const formatDate = (date: string) => {
   return dayjs(date).format('YYYY-MM-DD')
@@ -569,8 +571,11 @@ const handleClosePayDialog = () => {
   currentOrder.value = null
 }
 
-const handleSuccessConfirm = () => {
+const handleSuccessConfirm = async () => {
   showSuccessDialog.value = false
+  // 先刷新 token 获取最新的 VIP 状态
+  await userStore.refreshToken()
+  // 再刷新页面
   window.location.reload()
 }
 
@@ -733,7 +738,12 @@ const resetPasswordForm = () => {
 }
 
 onMounted(() => {
-  // 默认加载VIP开通记录
+  // 检查URL参数，设置默认tab
+  const tab = route.query.tab as string
+  if (tab && ['security', 'vip', 'records'].includes(tab)) {
+    activeTab.value = tab
+  }
+  // 加载VIP开通记录
   fetchVipRecords()
 })
 
@@ -796,6 +806,18 @@ onUnmounted(() => {
 .menu-icon {
   font-size: 20px;
   line-height: 1;
+}
+
+.menu-icon .icon-img {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+}
+
+.menu-icon .id-icon-img {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
 }
 
 .menu-text {
@@ -965,6 +987,13 @@ onUnmounted(() => {
   color: #666;
 }
 
+.vip-text {
+  font-weight: 700;
+  font-style: italic;
+  color: #ffd700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
 /* VIP卡片样式 */
 .vip-card {
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
@@ -1004,8 +1033,10 @@ onUnmounted(() => {
   font-weight: 700;
 }
 
-.vip-icon {
-  font-size: 36px;
+.vip-icon-img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
 }
 
 .vip-price {

@@ -42,7 +42,10 @@
                 </div>
                 <div class="user-info">
                   <div class="user-name">{{ userStore.userInfo?.username }}</div>
-                  <div class="user-type">{{ userStore.userTypeLabel }}</div>
+                  <div class="user-type">
+                    <span v-if="userStore.isVip && !userStore.isAdmin" class="vip-label">VIP</span>
+                    <template v-else>{{ userStore.userTypeLabel }}</template>
+                  </div>
                 </div>
                 <el-icon><ArrowDown /></el-icon>
               </div>
@@ -91,22 +94,62 @@
       </div>
     </main>
 
+    <!-- 右侧悬浮侧边栏 -->
+    <div class="right-sidebar" :class="{ open: sidebarOpen }">
+      <div class="sidebar-toggle" @click="sidebarOpen = !sidebarOpen">
+        <el-icon v-if="sidebarOpen"><ArrowRight /></el-icon>
+        <el-icon v-else><ArrowLeft /></el-icon>
+      </div>
+      <div class="sidebar-content">
+        <el-popover
+          placement="left"
+          :width="240"
+          trigger="hover"
+          :show-arrow="true"
+        >
+          <template #reference>
+            <div class="sidebar-item">
+              <el-icon class="sidebar-icon"><Service /></el-icon>
+              <span class="sidebar-text">联系我们</span>
+            </div>
+          </template>
+          <div class="contact-popover">
+            <div class="contact-title">联系我们</div>
+            <div class="contact-item">
+              <img :src="emailIcon" class="contact-icon-img" />
+              <div class="contact-value">goods.monitor@foxmail.com</div>
+            </div>
+            <div class="contact-item">
+              <img :src="qqIcon" class="contact-icon-img" />
+              <div class="contact-value">401026211</div>
+            </div>
+          </div>
+        </el-popover>
+      </div>
+    </div>
+
     <!-- 页脚 -->
     <Footer />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import { ArrowLeft, ArrowRight, Service } from '@element-plus/icons-vue'
 import loginIcon from '@/assets/icons/login.png'
 import registerIcon from '@/assets/icons/register.png'
+import emailIcon from '@/assets/icons/email.png'
+import qqIcon from '@/assets/icons/QQ.png'
 import Footer from '@/components/Footer.vue'
 
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
+
+// 右侧悬浮栏状态
+const sidebarOpen = ref(true)
 
 // 菜单路由 - 根据权限过滤
 const menuRoutes = computed(() => {
@@ -386,6 +429,12 @@ onMounted(() => {
   line-height: 1.2;
 }
 
+.vip-label {
+  font-weight: 700;
+  font-style: italic;
+  color: #ffd700;
+}
+
 .main-content {
   flex: 1;
   padding: 20px;
@@ -494,5 +543,114 @@ onMounted(() => {
     width: 35px;
     height: 35px;
   }
+}
+
+/* 右侧悬浮侧边栏 */
+.right-sidebar {
+  position: fixed;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+}
+
+.sidebar-toggle {
+  width: 22px;
+  height: 50px;
+  background: #fff;
+  border-radius: 8px 0 0 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+  color: #999;
+  transition: all 0.3s;
+}
+
+.sidebar-toggle:hover {
+  color: #1890ff;
+  background: #f0f7ff;
+}
+
+.sidebar-content {
+  width: 0;
+  overflow: hidden;
+  background: #fff;
+  border-radius: 10px 0 0 10px;
+  box-shadow: -2px 0 12px rgba(0, 0, 0, 0.1);
+  transition: width 0.3s ease;
+  padding: 0;
+}
+
+.right-sidebar.open .sidebar-content {
+  width: 70px;
+  padding: 15px 0;
+}
+
+.sidebar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #666;
+}
+
+.sidebar-item:hover {
+  color: #1890ff;
+}
+
+.sidebar-icon {
+  font-size: 24px;
+  margin-bottom: 6px;
+}
+
+.sidebar-text {
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* 联系方式悬浮弹窗 */
+.contact-popover {
+  padding: 5px 0;
+}
+
+.contact-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: #f5f7fa;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.contact-item:last-child {
+  margin-bottom: 0;
+}
+
+.contact-icon-img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.contact-value {
+  font-size: 13px;
+  color: #333;
 }
 </style>
