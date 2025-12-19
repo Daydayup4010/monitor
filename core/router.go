@@ -160,10 +160,11 @@ func InitRouter() *gin.Engine {
 	payment := v1.Group("payment")
 	payment.Use(middleware.AuthMiddleware())
 	{
-		payment.GET("vip-price", api.GetVipPrice)  // 获取VIP价格
-		payment.POST("create", api.CreatePayOrder) // 创建支付订单
-		payment.GET("query", api.QueryPayOrder)    // 查询订单状态
-		payment.GET("orders", api.GetUserOrders)   // 获取订单列表
+		payment.GET("vip-price", api.GetVipPrice)         // 获取VIP价格
+		payment.POST("create", api.CreatePayOrder)        // 创建支付订单
+		payment.GET("query", api.QueryPayOrder)           // 查询订单状态
+		payment.GET("orders", api.GetUserOrders)          // 获取订单列表
+		payment.GET("vip-records", api.GetUserVipRecords) // 获取VIP开通记录
 	}
 
 	// 微信小程序相关API

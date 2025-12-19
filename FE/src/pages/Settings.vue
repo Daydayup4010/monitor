@@ -24,76 +24,153 @@
       </div>
     </div>
 
-    <!-- VIP会员卡片 -->
-    <div class="vip-card">
-      <div class="vip-header">
-        <div class="vip-title">
-          <span class="vip-icon">👑</span>
-          <span>VIP会员</span>
+    <!-- 主体布局：左侧菜单 + 右侧内容 -->
+    <div class="settings-layout">
+      <!-- 左侧菜单栏 -->
+      <div class="settings-sidebar">
+        <div class="menu-item" :class="{ active: activeTab === 'security' }" @click="activeTab = 'security'">
+          <div class="menu-icon">🔐</div>
+          <div class="menu-text">账号安全</div>
         </div>
-        <div class="vip-price">
-          <span class="currency">￥</span>
-          <span class="amount">{{ lowestMonthlyPrice.toFixed(1) }}</span>
-          <span class="period">/月起</span>
+        <div class="menu-item" :class="{ active: activeTab === 'vip' }" @click="activeTab = 'vip'">
+          <div class="menu-icon">👑</div>
+          <div class="menu-text">VIP会员服务</div>
         </div>
-      </div>
-      
-      <div class="vip-features">
-        <div class="feature-group">
-          <div class="feature-item">
-            <el-icon class="feature-icon"><Check /></el-icon>
-            <span>查看饰品最大7天的价格走势变化</span>
-          </div>
-          <div class="feature-item">
-            <el-icon class="feature-icon"><Check /></el-icon>
-            <span>查看各大平台实时价格对比</span>
-          </div>
-          <div class="feature-item">
-            <el-icon class="feature-icon"><Check /></el-icon>
-            <span>查看今日、7日、15日、30日涨跌榜单</span>
-          </div>
-        </div>
-        
-        <div class="feature-divider"></div>
-        
-        <div class="feature-group">
-          <div class="feature-item">
-            <el-icon class="feature-icon"><Check /></el-icon>
-            <span>搬砖比价功能使用特权</span>
-          </div>
-          <div class="feature-item">
-            <el-icon class="feature-icon"><Check /></el-icon>
-            <span>挂刀比价功能使用特权</span>
-          </div>
-          <div class="feature-item">
-            <el-icon class="feature-icon"><Check /></el-icon>
-            <span>大件求购功能使用特权</span>
-          </div>
-        </div>
-        
-        <div class="feature-divider"></div>
-        
-        <div class="feature-group">
-          <div class="feature-item">
-            <el-icon class="feature-icon"><Check /></el-icon>
-            <span>尊贵VIP会员身份标识</span>
-          </div>
-          <div class="feature-item">
-            <el-icon class="feature-icon"><Check /></el-icon>
-            <span>优先获得新功能体验资格</span>
-          </div>
+        <div class="menu-item" :class="{ active: activeTab === 'records' }" @click="activeTab = 'records'">
+          <div class="menu-icon">📋</div>
+          <div class="menu-text">VIP开通记录</div>
         </div>
       </div>
-      
-      <div class="vip-action">
-        <button 
-          class="vip-btn" 
-          @click="handleOpenVipDialog"
-          :disabled="isCreatingOrder"
-        >
-          <span v-if="userStore.isVip">续费会员</span>
-          <span v-else>立即开通</span>
-        </button>
+
+      <!-- 右侧内容区 -->
+      <div class="settings-content">
+        <!-- 账号安全 -->
+        <div v-if="activeTab === 'security'" class="content-card">
+          <div class="card-title">账号安全</div>
+          <div class="card-body">
+            <p class="security-tip">通过邮箱验证码修改您的登录密码</p>
+            <button class="btn btn-primary" @click="showPasswordDialog = true">
+              修改密码
+            </button>
+          </div>
+        </div>
+
+        <!-- VIP会员服务 -->
+        <div v-else-if="activeTab === 'vip'" class="vip-card">
+          <div class="vip-header">
+            <div class="vip-title">
+              <span class="vip-icon">👑</span>
+              <span>VIP会员</span>
+            </div>
+            <div class="vip-price">
+              <span class="currency">￥</span>
+              <span class="amount">{{ lowestMonthlyPrice.toFixed(1) }}</span>
+              <span class="period">/月起</span>
+            </div>
+          </div>
+          
+          <div class="vip-features">
+            <div class="feature-group">
+              <div class="feature-item">
+                <el-icon class="feature-icon"><Check /></el-icon>
+                <span>查看饰品最大7天的价格走势变化</span>
+              </div>
+              <div class="feature-item">
+                <el-icon class="feature-icon"><Check /></el-icon>
+                <span>查看各大平台实时价格对比</span>
+              </div>
+              <div class="feature-item">
+                <el-icon class="feature-icon"><Check /></el-icon>
+                <span>查看今日、7日、15日、30日涨跌榜单</span>
+              </div>
+            </div>
+            
+            <div class="feature-divider"></div>
+            
+            <div class="feature-group">
+              <div class="feature-item">
+                <el-icon class="feature-icon"><Check /></el-icon>
+                <span>搬砖比价功能使用特权</span>
+              </div>
+              <div class="feature-item">
+                <el-icon class="feature-icon"><Check /></el-icon>
+                <span>挂刀比价功能使用特权</span>
+              </div>
+              <div class="feature-item">
+                <el-icon class="feature-icon"><Check /></el-icon>
+                <span>大件求购功能使用特权</span>
+              </div>
+            </div>
+            
+            <div class="feature-divider"></div>
+            
+            <div class="feature-group">
+              <div class="feature-item">
+                <el-icon class="feature-icon"><Check /></el-icon>
+                <span>尊贵VIP会员身份标识</span>
+              </div>
+              <div class="feature-item">
+                <el-icon class="feature-icon"><Check /></el-icon>
+                <span>优先获得新功能体验资格</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="vip-action">
+            <button 
+              class="vip-btn" 
+              @click="handleOpenVipDialog"
+              :disabled="isCreatingOrder"
+            >
+              <span v-if="userStore.isVip">续费会员</span>
+              <span v-else>立即开通</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- VIP开通记录 -->
+        <div v-else-if="activeTab === 'records'" class="content-card">
+          <div class="card-title">VIP开通记录</div>
+          <div class="card-body">
+            <el-table :data="vipRecords" v-loading="loadingRecords" style="width: 100%">
+              <el-table-column prop="out_trade_no" label="订单号" min-width="180">
+                <template #default="{ row }">
+                  <span class="order-no">{{ row.out_trade_no }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column label="套餐" width="100" align="center">
+                <template #default="{ row }">
+                  <span class="months-tag">{{ row.months }}个月</span>
+                </template>
+              </el-table-column>
+              <el-table-column label="金额" width="100" align="right">
+                <template #default="{ row }">
+                  <span class="amount-text">¥{{ row.amount.toFixed(2) }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column label="支付时间" width="170">
+                <template #default="{ row }">
+                  <span class="time-text">{{ formatDateTime(row.pay_time) }}</span>
+                </template>
+              </el-table-column>
+            </el-table>
+            
+            <div class="pagination-wrapper" v-if="recordsTotal > 0">
+              <div class="pagination-info">共 {{ recordsTotal }} 条记录</div>
+              <el-pagination
+                v-model:current-page="recordsPageNum"
+                v-model:page-size="recordsPageSize"
+                :page-sizes="[10, 20, 50]"
+                :total="recordsTotal"
+                layout="sizes, prev, pager, next"
+                @size-change="fetchVipRecords"
+                @current-change="fetchVipRecords"
+              />
+            </div>
+            
+            <el-empty v-if="!loadingRecords && vipRecords.length === 0" description="暂无开通记录" />
+          </div>
+        </div>
       </div>
     </div>
 
@@ -134,19 +211,6 @@
         </el-button>
       </template>
     </el-dialog>
-
-    <!-- 修改密码 -->
-    <div class="card">
-      <div class="card-title">🔐 账号安全</div>
-      <div style="padding: 24px;">
-        <p style="font-size: 14px; color: #666; margin-bottom: 16px;">
-          通过邮箱验证码修改您的登录密码
-        </p>
-        <button class="btn btn-primary" @click="showPasswordDialog = true">
-          修改密码
-        </button>
-      </div>
-    </div>
 
     <!-- 修改密码弹窗 -->
     <el-dialog
@@ -294,7 +358,7 @@
         <h3>恭喜您成为VIP会员！</h3>
         <p>您的VIP权益已生效</p>
         <button class="btn btn-primary" @click="handleSuccessConfirm" style="margin-top: 20px;">
-          开始体验
+          关闭
         </button>
       </div>
     </el-dialog>
@@ -303,10 +367,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onUnmounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { paymentApi, authApi, type PaymentOrder } from '@/api'
+import { paymentApi, authApi, type PaymentOrder, type VipRecord } from '@/api'
 import { showMessage } from '@/utils/message'
 import { DataAnalysis, Check, Loading } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules } from 'element-plus'
@@ -317,14 +381,22 @@ import registerIcon from '@/assets/icons/register.png'
 const router = useRouter()
 const userStore = useUserStore()
 
+// 当前选中的Tab
+const activeTab = ref('security')
+
 const badgeIcon = computed(() => {
   if (userStore.isAdmin) return '👨‍💼'
   if (userStore.isVip) return '👑'
-  return ''  // 普通用户不显示图标
+  return ''
 })
 
 const formatDate = (date: string) => {
   return dayjs(date).format('YYYY-MM-DD')
+}
+
+const formatDateTime = (date: string) => {
+  if (!date) return '-'
+  return dayjs(date).format('YYYY-MM-DD HH:mm:ss')
 }
 
 const goToHome = () => {
@@ -340,6 +412,31 @@ const getUserAvatarBg = () => {
   }
 }
 
+// VIP开通记录
+const vipRecords = ref<VipRecord[]>([])
+const loadingRecords = ref(false)
+const recordsTotal = ref(0)
+const recordsPageNum = ref(1)
+const recordsPageSize = ref(10)
+
+const fetchVipRecords = async () => {
+  loadingRecords.value = true
+  try {
+    const res = await paymentApi.getVipRecords({
+      page_num: recordsPageNum.value,
+      page_size: recordsPageSize.value,
+    })
+    if (res.code === 1) {
+      vipRecords.value = res.data || []
+      recordsTotal.value = res.total || 0
+    }
+  } catch (error) {
+    console.error('获取开通记录失败:', error)
+  } finally {
+    loadingRecords.value = false
+  }
+}
+
 // 支付相关状态
 const showVipSelectDialog = ref(false)
 const showPayDialog = ref(false)
@@ -347,12 +444,12 @@ const showSuccessDialog = ref(false)
 const isCreatingOrder = ref(false)
 const isPolling = ref(false)
 const currentOrder = ref<PaymentOrder | null>(null)
-const selectedMonths = ref(12) // 默认选择12个月
+const selectedMonths = ref(12)
 let pollingTimer: ReturnType<typeof setInterval> | null = null
 let pollingStartTime: number | null = null
-const POLLING_TIMEOUT = 5 * 60 * 1000 // 5分钟超时
+const POLLING_TIMEOUT = 5 * 60 * 1000
 
-// 月份选项（从接口获取）
+// 月份选项
 interface MonthOption {
   months: number
   price: number
@@ -366,7 +463,6 @@ const monthOptions = ref<MonthOption[]>([
 ])
 const isLoadingPrice = ref(false)
 
-// 获取VIP价格
 const fetchVipPrice = async () => {
   isLoadingPrice.value = true
   try {
@@ -387,26 +483,22 @@ const fetchVipPrice = async () => {
   }
 }
 
-// 计算选中的价格
 const selectedPrice = computed(() => {
   const option = monthOptions.value.find(o => o.months === selectedMonths.value)
   return option ? option.price : 19.9
 })
 
-// 计算最低月均价格（用于显示"¥xx/月起"）
 const lowestMonthlyPrice = computed(() => {
   if (monthOptions.value.length === 0) return 19.9
   const prices = monthOptions.value.map(o => o.price / o.months)
   return Math.min(...prices)
 })
 
-// 打开VIP选择弹窗
 const handleOpenVipDialog = async () => {
   showVipSelectDialog.value = true
   await fetchVipPrice()
 }
 
-// 创建订单
 const handleCreateOrder = async () => {
   isCreatingOrder.value = true
   try {
@@ -415,7 +507,6 @@ const handleCreateOrder = async () => {
       currentOrder.value = res.data
       showVipSelectDialog.value = false
       showPayDialog.value = true
-      // 开始轮询订单状态
       startPolling(res.data.order_no)
     } else {
       showMessage.error(res.msg || '创建订单失败')
@@ -427,13 +518,10 @@ const handleCreateOrder = async () => {
   }
 }
 
-// 开始轮询订单状态
 const startPolling = (orderNo: string) => {
   isPolling.value = true
   pollingStartTime = Date.now()
-  // 每3秒查询一次订单状态
   pollingTimer = setInterval(async () => {
-    // 检查是否超时
     if (pollingStartTime && Date.now() - pollingStartTime > POLLING_TIMEOUT) {
       stopPolling()
       showPayDialog.value = false
@@ -445,11 +533,9 @@ const startPolling = (orderNo: string) => {
       const res = await paymentApi.queryOrder(orderNo)
       if (res.code === 1 && res.data) {
         if (res.data.status === 1) {
-          // 支付成功
           stopPolling()
           showPayDialog.value = false
           showSuccessDialog.value = true
-          // 刷新用户信息
           await userStore.getUserInfo()
         }
       }
@@ -459,18 +545,16 @@ const startPolling = (orderNo: string) => {
   }, 3000)
 }
 
-// 获取二维码URL（兼容URL、带前缀base64、纯base64）
 const getQrcodeUrl = (qrcode: string) => {
   if (qrcode.startsWith('http://') || qrcode.startsWith('https://')) {
-    return qrcode // 直接是URL
+    return qrcode
   }
   if (qrcode.startsWith('data:')) {
-    return qrcode // 已包含base64前缀
+    return qrcode
   }
-  return 'data:image/png;base64,' + qrcode // 纯base64
+  return 'data:image/png;base64,' + qrcode
 }
 
-// 停止轮询
 const stopPolling = () => {
   isPolling.value = false
   pollingStartTime = null
@@ -480,24 +564,19 @@ const stopPolling = () => {
   }
 }
 
-// 关闭支付弹窗
 const handleClosePayDialog = () => {
   stopPolling()
   currentOrder.value = null
 }
 
-// 支付成功确认
 const handleSuccessConfirm = () => {
   showSuccessDialog.value = false
-  // 如果之前不是VIP，跳转到首页
-  if (userStore.isVip) {
-    router.push('/app/dashboard')
-  }
+  window.location.reload()
 }
 
 // 修改密码相关状态
 const showPasswordDialog = ref(false)
-const passwordStep = ref(1) // 1: 验证邮箱, 2: 设置密码
+const passwordStep = ref(1)
 const verifyFormRef = ref<FormInstance>()
 const passwordFormRef = ref<FormInstance>()
 const isVerifyingCode = ref(false)
@@ -512,7 +591,6 @@ const passwordForm = reactive({
   confirmPassword: '',
 })
 
-// 步骤1验证规则
 const verifyRules: FormRules = {
   code: [
     { required: true, message: '请输入验证码', trigger: 'blur' },
@@ -520,7 +598,6 @@ const verifyRules: FormRules = {
   ],
 }
 
-// 密码验证规则
 const validatePassword = (_rule: any, value: any, callback: any) => {
   if (!value) {
     callback(new Error('请输入新密码'))
@@ -543,7 +620,6 @@ const validateConfirmPassword = (_rule: any, value: any, callback: any) => {
   }
 }
 
-// 步骤2密码规则
 const passwordRules: FormRules = {
   password: [
     { required: true, validator: validatePassword, trigger: 'blur' },
@@ -553,7 +629,6 @@ const passwordRules: FormRules = {
   ],
 }
 
-// 发送验证码
 const handleSendPasswordCode = async () => {
   const email = userStore.userInfo?.email
   if (!email) {
@@ -582,7 +657,6 @@ const handleSendPasswordCode = async () => {
   }
 }
 
-// 验证验证码（步骤1 -> 步骤2）
 const handleVerifyCode = async () => {
   if (!verifyFormRef.value) return
 
@@ -597,14 +671,12 @@ const handleVerifyCode = async () => {
     
     isVerifyingCode.value = true
     
-    // 调用验证接口验证验证码
     const response = await authApi.verifyEmailCode({ 
       email, 
       code: passwordForm.code 
     })
     
     if (response.code === 1) {
-      // 验证通过，进入步骤2
       passwordStep.value = 2
     } else {
       showMessage.error(response.msg || '验证码错误')
@@ -616,7 +688,6 @@ const handleVerifyCode = async () => {
   }
 }
 
-// 重置密码
 const handleResetPassword = async () => {
   if (!passwordFormRef.value) return
 
@@ -649,7 +720,6 @@ const handleResetPassword = async () => {
   }
 }
 
-// 重置表单
 const resetPasswordForm = () => {
   passwordStep.value = 1
   passwordForm.code = ''
@@ -662,7 +732,11 @@ const resetPasswordForm = () => {
   passwordCountdown.value = 0
 }
 
-// 组件卸载时停止轮询
+onMounted(() => {
+  // 默认加载VIP开通记录
+  fetchVipRecords()
+})
+
 onUnmounted(() => {
   stopPolling()
   if (passwordCountdownTimer) {
@@ -674,8 +748,137 @@ onUnmounted(() => {
 <style scoped>
 .settings-page {
   padding: 20px;
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
+}
+
+/* 主体布局 */
+.settings-layout {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+/* 左侧菜单栏 */
+.settings-sidebar {
+  width: 200px;
+  background: white;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  flex-shrink: 0;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 8px;
+}
+
+.menu-item:last-child {
+  margin-bottom: 0;
+}
+
+.menu-item:hover {
+  background: #f5f7fa;
+}
+
+.menu-item.active {
+  background: #e6f7ff;
+  color: #1890ff;
+}
+
+.menu-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.menu-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: #262626;
+}
+
+.menu-item.active .menu-text {
+  color: #1890ff;
+  font-weight: 600;
+}
+
+/* 右侧内容区 */
+.settings-content {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 内容卡片 */
+.content-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #262626;
+  padding: 16px 24px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.card-body {
+  padding: 24px;
+}
+
+.security-tip {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 16px;
+}
+
+/* VIP开通记录表格样式 */
+.order-no {
+  font-family: monospace;
+  font-size: 13px;
+  color: #1890ff;
+}
+
+.months-tag {
+  background: #e6f7ff;
+  color: #1890ff;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.amount-text {
+  font-weight: 600;
+  color: #52c41a;
+  font-size: 14px;
+}
+
+.time-text {
+  font-size: 13px;
+  color: #595959;
+}
+
+.pagination-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.pagination-info {
+  font-size: 14px;
+  color: #595959;
 }
 
 /* 密码修改步骤指示器 */
@@ -767,7 +970,6 @@ onUnmounted(() => {
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
   border-radius: 16px;
   padding: 32px;
-  margin-bottom: 24px;
   color: #fff;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
   position: relative;
@@ -825,13 +1027,6 @@ onUnmounted(() => {
 .vip-price .period {
   font-size: 16px;
   color: rgba(255, 255, 255, 0.7);
-}
-
-.vip-price .original-price {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.5);
-  text-decoration: line-through;
-  margin-top: 4px;
 }
 
 .vip-features {
@@ -894,12 +1089,6 @@ onUnmounted(() => {
 .vip-btn:disabled {
   opacity: 0.7;
   cursor: not-allowed;
-}
-
-.vip-tip {
-  margin-top: 12px;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.6);
 }
 
 /* 支付弹窗样式 */
@@ -1095,12 +1284,6 @@ onUnmounted(() => {
   color: #ff6b00;
 }
 
-.option-price .original-price {
-  font-size: 14px;
-  color: #999;
-  text-decoration: line-through;
-}
-
 .option-unit {
   font-size: 12px;
   color: #999;
@@ -1126,5 +1309,30 @@ onUnmounted(() => {
   font-weight: 700;
   color: #ff6b00;
   font-style: normal;
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .settings-layout {
+    flex-direction: column;
+  }
+
+  .settings-sidebar {
+    width: 100%;
+    display: flex;
+    overflow-x: auto;
+  }
+
+  .menu-item {
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 0;
+    margin-right: 8px;
+    min-width: 80px;
+  }
+
+  .menu-text {
+    font-size: 12px;
+  }
 }
 </style>

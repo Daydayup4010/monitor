@@ -295,6 +295,8 @@ export interface OrderListParams {
   page_num?: number
   status?: number
   keyword?: string
+  start_time?: string
+  end_time?: string
 }
 
 // 订单管理API（管理员）
@@ -553,6 +555,17 @@ export interface OrderStatus {
   created_at: string
 }
 
+// VIP开通记录
+export interface VipRecord {
+  id: number
+  out_trade_no: string
+  amount: number
+  months: number
+  status: number
+  pay_time: string
+  created_at: string
+}
+
 // 支付API
 export const paymentApi = {
   // 获取VIP价格
@@ -570,6 +583,10 @@ export const paymentApi = {
   // 获取订单列表
   getOrders: (params: { page_num: number; page_size: number }): Promise<ApiResponse<OrderStatus[]>> =>
     api.get('/payment/orders', { params }),
+
+  // 获取VIP开通记录（只返回已支付的）
+  getVipRecords: (params: { page_num: number; page_size: number }): Promise<ApiResponse<VipRecord[]>> =>
+    api.get('/payment/vip-records', { params }),
 }
 
 export default api

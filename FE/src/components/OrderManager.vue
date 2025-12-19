@@ -7,9 +7,9 @@
       <div class="filter-bar">
         <el-input
           v-model="keyword"
-          placeholder="搜索订单号、用户名或邮箱"
+          placeholder="搜索订单号或邮箱"
           clearable
-          style="width: 280px;"
+          style="width: 200px;"
           @input="handleSearch"
         >
           <template #prefix>
@@ -17,13 +17,24 @@
           </template>
         </el-input>
 
-        <el-select v-model="statusFilter" placeholder="订单状态" style="width: 140px;" @change="fetchOrders">
+        <el-select v-model="statusFilter" placeholder="订单状态" style="width: 120px;" @change="fetchOrders">
           <el-option label="全部状态" :value="-1" />
           <el-option label="待支付" :value="0" />
           <el-option label="已支付" :value="1" />
-          <el-option label="已取消" :value="2" />
-          <el-option label="已退款" :value="3" />
         </el-select>
+
+        <el-date-picker
+          v-model="dateRange"
+          type="daterange"
+          range-separator="至"
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+          format="YYYY-MM-DD"
+          value-format="YYYY-MM-DD"
+          style="width: 260px;"
+          @change="handleDateChange"
+          clearable
+        />
 
         <el-button type="primary" @click="fetchOrders" :loading="loading">
           <el-icon style="margin-right: 4px;"><Refresh /></el-icon>
@@ -40,12 +51,9 @@
             </template>
           </el-table-column>
           
-          <el-table-column label="用户" width="200">
+          <el-table-column label="邮箱" width="200">
             <template #default="{ row }">
-              <div class="user-info">
-                <div class="username">{{ row.username || '-' }}</div>
-                <div class="email">{{ row.email || '-' }}</div>
-              </div>
+              <span class="email">{{ row.email || '-' }}</span>
             </template>
           </el-table-column>
           
@@ -123,6 +131,7 @@ const pageNum = ref(1)
 const pageSize = ref(20)
 const statusFilter = ref(-1)
 const keyword = ref('')
+const dateRange = ref<[string, string] | null>(null)
 
 // 获取订单列表
 const fetchOrders = async () => {
@@ -133,6 +142,8 @@ const fetchOrders = async () => {
       page_num: pageNum.value,
       status: statusFilter.value,
       keyword: keyword.value,
+      start_time: dateRange.value?.[0] || '',
+      end_time: dateRange.value?.[1] || '',
     })
     if (res.code === 1) {
       orders.value = res.data || []
@@ -143,6 +154,12 @@ const fetchOrders = async () => {
   } finally {
     loading.value = false
   }
+}
+
+// 日期变化
+const handleDateChange = () => {
+  pageNum.value = 1
+  fetchOrders()
 }
 
 // 搜索防抖
@@ -156,8 +173,6 @@ const getStatusText = (status: number) => {
   const statusMap: Record<number, string> = {
     0: '待支付',
     1: '已支付',
-    2: '已取消',
-    3: '已退款',
   }
   return statusMap[status] || '未知'
 }
@@ -167,8 +182,6 @@ const getStatusType = (status: number) => {
   const typeMap: Record<number, string> = {
     0: 'warning',
     1: 'success',
-    2: 'info',
-    3: 'danger',
   }
   return typeMap[status] || 'info'
 }
@@ -233,20 +246,9 @@ onMounted(() => {
   color: #1890ff;
 }
 
-.user-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.username {
-  font-weight: 500;
-  color: #262626;
-}
-
 .email {
-  font-size: 12px;
-  color: #8c8c8c;
+  font-size: 13px;
+  color: #595959;
 }
 
 .months-tag {

@@ -296,6 +296,46 @@ func GetUserOrders(c *gin.Context) {
 	})
 }
 
+// 获取用户VIP开通记录
+func GetUserVipRecords(c *gin.Context) {
+	userID := getUserIdFromContext(c)
+	if userID == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"code": utils.ErrCodePermissionDenied,
+			"msg":  utils.ErrorMessage(utils.ErrCodePermissionDenied),
+		})
+		return
+	}
+
+	pageSize := 10
+	pageNum := 1
+
+	if ps := c.Query("page_size"); ps != "" {
+		fmt.Sscanf(ps, "%d", &pageSize)
+	}
+	if pn := c.Query("page_num"); pn != "" {
+		fmt.Sscanf(pn, "%d", &pageNum)
+	}
+
+	orders, total, err := models.GetUserPaidOrders(userID, pageSize, pageNum)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": utils.ERROR,
+			"msg":  "查询记录失败",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":      utils.SUCCESS,
+		"msg":       utils.ErrorMessage(utils.SUCCESS),
+		"data":      orders,
+		"total":     total,
+		"page_size": pageSize,
+		"page_num":  pageNum,
+	})
+}
+
 // 获取所有订单（管理员）
 func GetAllOrders(c *gin.Context) {
 	pageSize := 20
@@ -312,8 +352,10 @@ func GetAllOrders(c *gin.Context) {
 		fmt.Sscanf(s, "%d", &status)
 	}
 	keyword := c.Query("keyword")
+	startTime := c.Query("start_time")
+	endTime := c.Query("end_time")
 
-	orders, total, err := models.GetAllPaymentOrders(pageSize, pageNum, status, keyword)
+	orders, total, err := models.GetAllPaymentOrders(pageSize, pageNum, status, keyword, startTime, endTime)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": utils.ERROR,

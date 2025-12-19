@@ -121,6 +121,22 @@ func GetUserPaymentOrders(userID string, pageSize, pageNum int) ([]PaymentOrder,
 	return orders, total, nil
 }
 
+// 获取用户已支付的VIP开通记录
+func GetUserPaidOrders(userID string, pageSize, pageNum int) ([]PaymentOrder, int64, error) {
+	var orders []PaymentOrder
+	var total int64
+
+	db := config.DB.Model(&PaymentOrder{}).Where("user_id = ? AND status = ?", userID, PaymentStatusPaid)
+	db.Count(&total)
+
+	offset := (pageNum - 1) * pageSize
+	if err := db.Order("pay_time DESC").Offset(offset).Limit(pageSize).Find(&orders).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return orders, total, nil
+}
+
 // 订单详情（包含用户信息）
 type PaymentOrderDetail struct {
 	PaymentOrder
@@ -129,31 +145,39 @@ type PaymentOrderDetail struct {
 }
 
 // 获取所有支付订单列表（管理员用）
-func GetAllPaymentOrders(pageSize, pageNum int, status int, keyword string) ([]PaymentOrderDetail, int64, error) {
+func GetAllPaymentOrders(pageSize, pageNum int, status int, keyword string, startTime, endTime string) ([]PaymentOrderDetail, int64, error) {
 	var orders []PaymentOrderDetail
 	var total int64
 
-	query := config.DB.Table("payment_orders").
-		Select("payment_orders.*, users.username, users.email").
-		Joins("LEFT JOIN users ON payment_orders.user_id = users.id")
+	query := config.DB.Model(&PaymentOrder{}).
+		Select("payment_order.*, user.email").
+		Joins("LEFT JOIN user ON payment_order.user_id = user.id")
 
 	// 状态筛选：-1表示全部
 	if status >= 0 {
-		query = query.Where("payment_orders.status = ?", status)
+		query = query.Where("payment_order.status = ?", status)
 	}
 
-	// 关键词搜索（订单号或用户名或邮箱）
+	// 关键词搜索（订单号或邮箱）
 	if keyword != "" {
 		query = query.Where(
-			"payment_orders.out_trade_no LIKE ? OR users.username LIKE ? OR users.email LIKE ?",
-			"%"+keyword+"%", "%"+keyword+"%", "%"+keyword+"%",
+			"payment_order.out_trade_no LIKE ? OR user.email LIKE ?",
+			"%"+keyword+"%", "%"+keyword+"%",
 		)
+	}
+
+	// 时间范围筛选
+	if startTime != "" {
+		query = query.Where("payment_order.created_at >= ?", startTime)
+	}
+	if endTime != "" {
+		query = query.Where("payment_order.created_at <= ?", endTime+" 23:59:59")
 	}
 
 	query.Count(&total)
 
 	offset := (pageNum - 1) * pageSize
-	if err := query.Order("payment_orders.created_at DESC").Offset(offset).Limit(pageSize).Find(&orders).Error; err != nil {
+	if err := query.Order("payment_order.created_at DESC").Offset(offset).Limit(pageSize).Find(&orders).Error; err != nil {
 		return nil, 0, err
 	}
 
