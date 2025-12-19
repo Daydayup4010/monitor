@@ -92,3 +92,20 @@ func (es *EmailService) SendVIPNotification(toEmail string, months int, expiryDa
 	}
 	return SUCCESS
 }
+
+// SendErrorAlert 发送错误告警邮件
+func (es *EmailService) SendErrorAlert(recipients []string, subject, body string) error {
+	if len(recipients) == 0 {
+		return fmt.Errorf("no recipients specified")
+	}
+
+	m := gomail.NewMessage()
+	m.SetHeader("From", es.FromEmail)
+	m.SetHeader("To", recipients...)
+	m.SetHeader("Subject", subject)
+	m.SetBody("text/html", body)
+
+	d := gomail.NewDialer(es.SMTPHost, es.SMTPPort, es.FromEmail, es.FromPassword)
+
+	return d.DialAndSend(m)
+}

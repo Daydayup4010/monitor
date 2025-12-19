@@ -1,13 +1,5 @@
 <template>
   <div class="settings-page">
-    <!-- 返回按钮 -->
-    <div v-if="userStore.isVip" style="text-align: right; margin-bottom: 16px;">
-      <button class="btn btn-primary" @click="goToHome" style="display: inline-flex; align-items: center; gap: 6px;">
-        <el-icon><DataAnalysis /></el-icon>
-        <span>返回饰品数据</span>
-      </button>
-    </div>
-
     <!-- 用户信息横幅 -->
     <div class="user-banner" :class="{ 'user-banner-normal': !userStore.isVip && !userStore.isAdmin }">
       <div 
@@ -372,11 +364,11 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { paymentApi, authApi, type PaymentOrder, type VipRecord } from '@/api'
 import { showMessage } from '@/utils/message'
-import { DataAnalysis, Check, Loading } from '@element-plus/icons-vue'
+import { Check, Loading } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import dayjs from 'dayjs'
 import loginIcon from '@/assets/icons/login.png'
@@ -384,7 +376,6 @@ import registerIcon from '@/assets/icons/register.png'
 import vipIcon from '@/assets/icons/vip.png'
 import idIcon from '@/assets/icons/id.png'
 
-const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 
@@ -399,10 +390,6 @@ const formatDate = (date: string) => {
 const formatDateTime = (date: string) => {
   if (!date) return '-'
   return dayjs(date).format('YYYY-MM-DD HH:mm:ss')
-}
-
-const goToHome = () => {
-  router.push('/app/ranking')
 }
 
 // 获取用户头像背景图
@@ -714,9 +701,11 @@ const handleResetPassword = async () => {
     })
     
     if (response.code === 1) {
-      showMessage.success('密码修改成功')
+      showMessage.success('密码修改成功，请重新登录')
       showPasswordDialog.value = false
       resetPasswordForm()
+      // 退出登录
+      userStore.logout()
     }
   } catch (error) {
     console.error('修改密码失败:', error)

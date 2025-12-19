@@ -328,7 +328,7 @@ onMounted(() => {
 
 :deep(.el-menu--horizontal .el-menu-item span) {
   font-size: 18px;
-  font-weight: normal;
+  font-weight: 600;
 }
 
 .nav-item {
@@ -433,6 +433,27 @@ onMounted(() => {
   font-weight: 700;
   font-style: italic;
   color: #ffd700;
+}
+
+/* 右上角下拉菜单字体 */
+:deep(.el-dropdown-menu) {
+  padding: 8px 0;
+}
+
+:deep(.el-dropdown-menu__item) {
+  font-size: 18px !important;
+  padding: 10px 20px !important;
+  line-height: 1.5;
+  transition: none !important;
+}
+
+:deep(.el-dropdown-menu__item .el-icon) {
+  font-size: 18px !important;
+  margin-right: 10px;
+}
+
+:deep(.el-dropdown-menu__item span) {
+  font-size: 18px !important;
 }
 
 .main-content {

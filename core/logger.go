@@ -125,4 +125,13 @@ func InitLogger() {
 	}
 	mLog.SetLevel(parseLevel) // 设置level
 	config.Log = mLog
+
+	// 添加错误邮件通知钩子
+	if config.CONFIG.ErrorAlert != nil && config.CONFIG.ErrorAlert.Enabled {
+		errorHook := NewErrorEmailHook(config.CONFIG.Email, config.CONFIG.ErrorAlert)
+		if errorHook != nil {
+			mLog.AddHook(errorHook)
+			fmt.Println("错误邮件通知钩子已启用")
+		}
+	}
 }

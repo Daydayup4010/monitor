@@ -44,3 +44,13 @@ payment:
   mch_id: "1103465065"
   api_key: "12E47C3ECA304923BAA0F697D5894562"
   notify_url: "https://www.csgoods.com.cn/api/v1/payment/notify"    # 支付回调地址
+
+# 错误告警配置
+errorAlert:
+  enabled: true                           # 是否启用错误告警
+  recipients:                             # 接收告警邮件的邮箱列表
+    - goods.monitor@foxmail.com
+  min_level: error                        # 最低告警级别: error, fatal, panic
+  rate_limit: 10                          # 每分钟最多发送的告警邮件数量
+  cooldown: 300                           # 相同错误的冷却时间（秒），默认5分钟
+  batch_window: 60                        # 批量发送窗口（秒），0表示立即发送，60表示每分钟汇总发送一次
