@@ -19,15 +19,14 @@ const (
 type VipPlan struct {
 	Months int     `json:"months"`
 	Price  float64 `json:"price"`
-	Days   int     `json:"days"`
 }
 
 // VIP套餐列表
 var VipPlans = map[int]VipPlan{
-	1:  {Months: 1, Price: 19.9, Days: 30},
-	3:  {Months: 3, Price: 49.9, Days: 90},
-	6:  {Months: 6, Price: 89.9, Days: 180},
-	12: {Months: 12, Price: 169.9, Days: 365},
+	1:  {Months: 1, Price: 0.1},
+	3:  {Months: 3, Price: 0.2},
+	6:  {Months: 6, Price: 0.3},
+	12: {Months: 12, Price: 0.4},
 }
 
 // 获取VIP套餐
@@ -76,19 +75,18 @@ func GetPaymentOrderByOutTradeNo(outTradeNo string) (*PaymentOrder, error) {
 }
 
 // 更新订单为已支付
-func UpdatePaymentOrderPaid(outTradeNo, yunOrderNo string) error {
-	now := time.Now()
+func UpdatePaymentOrderPaid(outTradeNo, yunOrderNo string, payTime time.Time) error {
 	return config.DB.Model(&PaymentOrder{}).
 		Where("out_trade_no = ? AND status = ?", outTradeNo, PaymentStatusPending).
 		Updates(map[string]interface{}{
 			"status":       PaymentStatusPaid,
-			"pay_time":     now,
+			"pay_time":     payTime,
 			"yun_order_no": yunOrderNo,
 		}).Error
 }
 
-// 更新用户VIP状态
-func UpdateUserVipAfterPayment(userID string, days int) error {
+// 更新用户VIP状态（按月份计算）
+func UpdateUserVipAfterPayment(userID string, months int) error {
 	var user User
 	if err := config.DB.Where("id = ?", userID).First(&user).Error; err != nil {
 		return err
@@ -99,7 +97,7 @@ func UpdateUserVipAfterPayment(userID string, days int) error {
 	if user.VipExpiry.After(baseTime) {
 		baseTime = user.VipExpiry
 	}
-	newExpiry := baseTime.AddDate(0, 0, days)
+	newExpiry := baseTime.AddDate(0, months, 0) // 按月份计算
 
 	return config.DB.Model(&user).Updates(map[string]interface{}{
 		"role":       RoleVip,
@@ -117,6 +115,45 @@ func GetUserPaymentOrders(userID string, pageSize, pageNum int) ([]PaymentOrder,
 
 	offset := (pageNum - 1) * pageSize
 	if err := db.Order("created_at DESC").Offset(offset).Limit(pageSize).Find(&orders).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return orders, total, nil
+}
+
+// 订单详情（包含用户信息）
+type PaymentOrderDetail struct {
+	PaymentOrder
+	Username string `json:"username"`
+	Email    string `json:"email"`
+}
+
+// 获取所有支付订单列表（管理员用）
+func GetAllPaymentOrders(pageSize, pageNum int, status int, keyword string) ([]PaymentOrderDetail, int64, error) {
+	var orders []PaymentOrderDetail
+	var total int64
+
+	query := config.DB.Table("payment_orders").
+		Select("payment_orders.*, users.username, users.email").
+		Joins("LEFT JOIN users ON payment_orders.user_id = users.id")
+
+	// 状态筛选：-1表示全部
+	if status >= 0 {
+		query = query.Where("payment_orders.status = ?", status)
+	}
+
+	// 关键词搜索（订单号或用户名或邮箱）
+	if keyword != "" {
+		query = query.Where(
+			"payment_orders.out_trade_no LIKE ? OR users.username LIKE ? OR users.email LIKE ?",
+			"%"+keyword+"%", "%"+keyword+"%", "%"+keyword+"%",
+		)
+	}
+
+	query.Count(&total)
+
+	offset := (pageNum - 1) * pageSize
+	if err := query.Order("payment_orders.created_at DESC").Offset(offset).Limit(pageSize).Find(&orders).Error; err != nil {
 		return nil, 0, err
 	}
 

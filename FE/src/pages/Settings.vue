@@ -347,7 +347,7 @@ const showSuccessDialog = ref(false)
 const isCreatingOrder = ref(false)
 const isPolling = ref(false)
 const currentOrder = ref<PaymentOrder | null>(null)
-const selectedMonths = ref(3) // 默认选择3个月
+const selectedMonths = ref(12) // 默认选择12个月
 let pollingTimer: ReturnType<typeof setInterval> | null = null
 
 // 月份选项

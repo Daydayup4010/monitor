@@ -30,6 +30,7 @@ type RequestOptions struct {
 	QueryParams map[string]string
 	Headers     map[string]string
 	Body        interface{}
+	FormData    map[string]string // 表单数据（application/x-www-form-urlencoded）
 	Result      interface{}
 	Error       interface{}
 }
@@ -56,6 +57,11 @@ func (h *HttpClient) DoRequest(method, path string, opts RequestOptions) (*resty
 	// 设置请求体
 	if opts.Body != nil {
 		request.SetBody(opts.Body)
+	}
+
+	// 设置表单数据
+	if opts.FormData != nil {
+		request.SetFormData(opts.FormData)
 	}
 
 	// 设置结果解析

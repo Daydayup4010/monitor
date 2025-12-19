@@ -41,6 +41,6 @@ steamDt:
 
 # YunGouOS支付配置
 payment:
-  mch_id: ""        # YunGouOS商户号
-  api_key: ""       # API密钥
-  notify_url: ""    # 支付回调地址，如 https://你的域名/api/v1/payment/notify
+  mch_id: "1103465065"
+  api_key: "12E47C3ECA304923BAA0F697D5894562"
+  notify_url: "https://www.csgoods.com.cn/api/v1/payment/notify"    # 支付回调地址

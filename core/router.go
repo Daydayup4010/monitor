@@ -134,6 +134,7 @@ func InitRouter() *gin.Engine {
 		admin.GET("users", api.GetUserList)
 		admin.DELETE("user", api.DeleteUser)
 		admin.POST("vip-expiry", api.RenewVipExpiry)
+		admin.GET("orders", api.GetAllOrders)
 	}
 
 	tokens := admin.Group("tokens")

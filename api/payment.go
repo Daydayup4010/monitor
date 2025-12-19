@@ -80,7 +80,7 @@ func CreatePayOrder(c *gin.Context) {
 		outTradeNo,
 		plan.Price,
 		body,
-		fmt.Sprintf("%s|%d", userID, plan.Days), // 附加用户ID和天数，回调时使用
+		fmt.Sprintf("%s|%d", userID, plan.Months), // 附加用户ID和月数，回调时使用
 	)
 	if err != nil {
 		config.Log.Errorf("CreatePayOrder: call native pay failed: %v", err)
@@ -136,7 +136,7 @@ func PayNotify(c *gin.Context) {
 	config.Log.Infof("PayNotify: code=%s, orderNo=%s, outTradeNo=%s, payNo=%s, money=%s, mchId=%s, attach=%s",
 		code, orderNo, outTradeNo, payNo, money, mchId, attach)
 
-	// 构建验签参数（不包含sign）
+	// 构建验签参数（根据文档，sign和time不参与签名）
 	params := map[string]string{
 		"code":       code,
 		"orderNo":    orderNo,
@@ -145,7 +145,6 @@ func PayNotify(c *gin.Context) {
 		"money":      money,
 		"mchId":      mchId,
 		"payChannel": payChannel,
-		"time":       payTime,
 	}
 	if attach != "" {
 		params["attach"] = attach
@@ -180,39 +179,44 @@ func PayNotify(c *gin.Context) {
 		return
 	}
 
+	// 解析支付时间
+	payTimeValue, err := time.Parse("2006-01-02 15:04:05", payTime)
+	if err != nil {
+		config.Log.Warnf("PayNotify: parse pay time failed, use now: %v", err)
+		payTimeValue = time.Now()
+	}
+
 	// 更新订单状态
-	if err := models.UpdatePaymentOrderPaid(outTradeNo, orderNo); err != nil {
+	if err := models.UpdatePaymentOrderPaid(outTradeNo, orderNo, payTimeValue); err != nil {
 		config.Log.Errorf("PayNotify: update order failed, err=%v", err)
 		c.String(http.StatusOK, "FAIL")
 		return
 	}
 
-	// 解析附加数据：userID|days
+	// 解析附加数据：userID|months
 	var userID string
-	var days int
+	var months int
 	if attach != "" {
 		parts := strings.Split(attach, "|")
 		userID = parts[0]
 		if len(parts) > 1 {
-			fmt.Sscanf(parts[1], "%d", &days)
+			fmt.Sscanf(parts[1], "%d", &months)
 		}
 	}
 	if userID == "" {
 		userID = order.UserID
 	}
-	if days == 0 {
-		// 从订单中获取天数
-		plan, ok := models.GetVipPlan(order.Months)
-		if ok {
-			days = plan.Days
-		} else {
-			days = 30 // 默认30天
+	if months == 0 {
+		// 从订单中获取月数
+		months = order.Months
+		if months == 0 {
+			months = 1 // 默认1个月
 		}
 	}
 
-	// 更新用户VIP状态
-	if err := models.UpdateUserVipAfterPayment(userID, days); err != nil {
-		config.Log.Errorf("PayNotify: update user vip failed, userID=%s, days=%d, err=%v", userID, days, err)
+	// 更新用户VIP状态（按月份计算）
+	if err := models.UpdateUserVipAfterPayment(userID, months); err != nil {
+		config.Log.Errorf("PayNotify: update user vip failed, userID=%s, months=%d, err=%v", userID, months, err)
 		// 这里不返回FAIL，因为订单已经更新成功，VIP状态可以后续补偿
 	}
 
@@ -278,6 +282,42 @@ func GetUserOrders(c *gin.Context) {
 	}
 
 	orders, total, err := models.GetUserPaymentOrders(userID, pageSize, pageNum)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": utils.ERROR,
+			"msg":  "查询订单失败",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":      utils.SUCCESS,
+		"msg":       utils.ErrorMessage(utils.SUCCESS),
+		"data":      orders,
+		"total":     total,
+		"page_size": pageSize,
+		"page_num":  pageNum,
+	})
+}
+
+// 获取所有订单（管理员）
+func GetAllOrders(c *gin.Context) {
+	pageSize := 20
+	pageNum := 1
+	status := -1 // -1 表示全部
+
+	if ps := c.Query("page_size"); ps != "" {
+		fmt.Sscanf(ps, "%d", &pageSize)
+	}
+	if pn := c.Query("page_num"); pn != "" {
+		fmt.Sscanf(pn, "%d", &pageNum)
+	}
+	if s := c.Query("status"); s != "" {
+		fmt.Sscanf(s, "%d", &status)
+	}
+	keyword := c.Query("keyword")
+
+	orders, total, err := models.GetAllPaymentOrders(pageSize, pageNum, status, keyword)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": utils.ERROR,

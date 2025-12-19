@@ -579,6 +579,43 @@ onMounted(() => {
   margin-top: 2px;
 }
 
+/* 价格相关样式 - 与Home.vue保持一致 */
+.price-value {
+  color: #52c41a;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.price-value.bidding {
+  color: #ff4d4f;
+}
+
+.count-info {
+  font-size: 12px;
+  color: #8c8c8c;
+  margin-top: 2px;
+}
+
+.diff-value {
+  color: #faad14;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.diff-value.positive {
+  color: #52c41a;
+}
+
+.rate-value {
+  font-weight: 600;
+  font-size: 15px;
+  color: #595959;
+}
+
+.rate-value.positive {
+  color: #52c41a;
+}
+
 /* 平台数据单元格 */
 .platform-data-cell {
   display: flex;

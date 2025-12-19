@@ -7,11 +7,16 @@
           <div class="menu-icon">👥</div>
           <div class="menu-text">用户管理</div>
         </div>
+        <div class="menu-item" :class="{ active: activeTab === 'orders' }" @click="activeTab = 'orders'">
+          <div class="menu-icon">📋</div>
+          <div class="menu-text">订单管理</div>
+        </div>
       </div>
 
       <!-- 右侧内容区 -->
       <div class="admin-content">
         <UserManager v-if="activeTab === 'users'" />
+        <OrderManager v-else-if="activeTab === 'orders'" />
       </div>
     </div>
   </div>
@@ -20,6 +25,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import UserManager from '@/components/UserManager.vue'
+import OrderManager from '@/components/OrderManager.vue'
 
 const activeTab = ref('users')
 </script>

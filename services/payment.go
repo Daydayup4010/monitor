@@ -3,18 +3,21 @@ package services
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
-	"net/url"
 	"sort"
 	"strings"
 	"uu/config"
+	"uu/utils"
 )
 
-// NativePayURL YunGouOS Native支付API地址
-const NativePayURL = "https://api.pay.yungouos.com/api/pay/wxpay/nativePay"
+// YunGouOS API 基础地址
+const YunGouOSBaseURL = "https://api.pay.yungouos.com"
+
+// Native支付路径
+const NativePayPath = "/api/pay/wxpay/nativePay"
+
+// 支付请求客户端
+var payClient = utils.CreateClient(YunGouOSBaseURL)
 
 // NativePayResponse Native支付响应
 type NativePayResponse struct {
@@ -60,12 +63,12 @@ func PayGenerateSign(params map[string]string, apiKey string) string {
 	return strings.ToUpper(hex.EncodeToString(hash[:]))
 }
 
-// 验证回调签名
+// VerifySign 验证回调签名
 func VerifySign(params map[string]string, sign, apiKey string) bool {
 	return PayGenerateSign(params, apiKey) == sign
 }
 
-// 发起Native支付
+// CreateNativePay 发起Native支付
 // outTradeNo: 商户订单号
 // totalFee: 支付金额（元）
 // body: 商品描述
@@ -76,49 +79,48 @@ func CreateNativePay(outTradeNo string, totalFee float64, body, attach string) (
 		return nil, fmt.Errorf("payment config not found")
 	}
 
-	params := map[string]string{
+	// 参与签名的参数（根据文档：out_trade_no, total_fee, mch_id, body, attach 参与签名）
+	signParams := map[string]string{
 		"out_trade_no": outTradeNo,
 		"total_fee":    fmt.Sprintf("%.2f", totalFee),
 		"mch_id":       paymentConfig.MchId,
 		"body":         body,
-		"type":         "2", // type=2 返回二维码base64图片
-		"notify_url":   paymentConfig.NotifyUrl,
 	}
 	if attach != "" {
-		params["attach"] = attach
+		signParams["attach"] = attach
 	}
 
 	// 生成签名
-	params["sign"] = PayGenerateSign(params, paymentConfig.ApiKey)
+	sign := PayGenerateSign(signParams, paymentConfig.ApiKey)
 
-	// 发起POST请求
-	formData := url.Values{}
-	for k, v := range params {
-		formData.Set(k, v)
+	// 完整请求参数（包含不参与签名的参数：type, notify_url）
+	requestParams := map[string]string{
+		"out_trade_no": outTradeNo,
+		"total_fee":    fmt.Sprintf("%.2f", totalFee),
+		"mch_id":       paymentConfig.MchId,
+		"body":         body,
+		"type":         "2",                     // type=2 返回二维码base64图片（不参与签名）
+		"notify_url":   paymentConfig.NotifyUrl, // 不参与签名
+		"sign":         sign,
+	}
+	if attach != "" {
+		requestParams["attach"] = attach
 	}
 
 	config.Log.Infof("NativePay request: out_trade_no=%s, total_fee=%.2f, body=%s", outTradeNo, totalFee, body)
 
-	resp, err := http.PostForm(NativePayURL, formData)
+	var result NativePayResponse
+	resp, err := payClient.DoRequest("POST", NativePayPath, utils.RequestOptions{
+		FormData: requestParams,
+		Result:   &result,
+	})
+
 	if err != nil {
 		config.Log.Errorf("NativePay request failed: %v", err)
 		return nil, err
 	}
-	defer resp.Body.Close()
 
-	respBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		config.Log.Errorf("NativePay read response failed: %v", err)
-		return nil, err
-	}
-
-	config.Log.Infof("NativePay response: %s", string(respBody))
-
-	var result NativePayResponse
-	if err := json.Unmarshal(respBody, &result); err != nil {
-		config.Log.Errorf("NativePay parse response failed: %v", err)
-		return nil, err
-	}
+	config.Log.Infof("NativePay response: %s", resp.String())
 
 	return &result, nil
 }

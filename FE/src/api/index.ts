@@ -273,6 +273,37 @@ export const userApi = {
     api.post('/admin/vip-expiry', data),
 }
 
+// 订单详情类型
+export interface PaymentOrderItem {
+  id: string
+  user_id: string
+  out_trade_no: string
+  yun_order_no: string
+  amount: number
+  months: number
+  status: number
+  pay_time: string | null
+  created_at: string
+  updated_at: string
+  username: string
+  email: string
+}
+
+// 订单查询参数
+export interface OrderListParams {
+  page_size?: number
+  page_num?: number
+  status?: number
+  keyword?: string
+}
+
+// 订单管理API（管理员）
+export const orderApi = {
+  // 获取所有订单
+  getAllOrders: (params: OrderListParams): Promise<ApiResponse<PaymentOrderItem[]>> => 
+    api.get('/admin/orders', { params }),
+}
+
 // 设置相关API（VIP用户）
 export const settingsApi = {
   // 获取设置
