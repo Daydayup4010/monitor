@@ -264,7 +264,7 @@
         </div>
         
         <div class="qrcode-container" v-if="currentOrder?.qrcode_img">
-          <img :src="'data:image/png;base64,' + currentOrder.qrcode_img" alt="支付二维码" />
+          <img :src="getQrcodeUrl(currentOrder.qrcode_img)" alt="支付二维码" />
         </div>
         <div class="qrcode-loading" v-else>
           <el-icon class="is-loading"><Loading /></el-icon>
@@ -349,6 +349,8 @@ const isPolling = ref(false)
 const currentOrder = ref<PaymentOrder | null>(null)
 const selectedMonths = ref(12) // 默认选择12个月
 let pollingTimer: ReturnType<typeof setInterval> | null = null
+let pollingStartTime: number | null = null
+const POLLING_TIMEOUT = 5 * 60 * 1000 // 5分钟超时
 
 // 月份选项（从接口获取）
 interface MonthOption {
@@ -428,8 +430,17 @@ const handleCreateOrder = async () => {
 // 开始轮询订单状态
 const startPolling = (orderNo: string) => {
   isPolling.value = true
+  pollingStartTime = Date.now()
   // 每3秒查询一次订单状态
   pollingTimer = setInterval(async () => {
+    // 检查是否超时
+    if (pollingStartTime && Date.now() - pollingStartTime > POLLING_TIMEOUT) {
+      stopPolling()
+      showPayDialog.value = false
+      showMessage.warning('支付超时，请重新下单')
+      return
+    }
+    
     try {
       const res = await paymentApi.queryOrder(orderNo)
       if (res.code === 1 && res.data) {
@@ -448,9 +459,21 @@ const startPolling = (orderNo: string) => {
   }, 3000)
 }
 
+// 获取二维码URL（兼容URL、带前缀base64、纯base64）
+const getQrcodeUrl = (qrcode: string) => {
+  if (qrcode.startsWith('http://') || qrcode.startsWith('https://')) {
+    return qrcode // 直接是URL
+  }
+  if (qrcode.startsWith('data:')) {
+    return qrcode // 已包含base64前缀
+  }
+  return 'data:image/png;base64,' + qrcode // 纯base64
+}
+
 // 停止轮询
 const stopPolling = () => {
   isPolling.value = false
+  pollingStartTime = null
   if (pollingTimer) {
     clearInterval(pollingTimer)
     pollingTimer = null

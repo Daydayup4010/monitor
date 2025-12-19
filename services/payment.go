@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
+	"net/url"
 	"sort"
 	"strings"
 	"uu/config"
@@ -33,34 +34,24 @@ type NativePayResponse struct {
 // 3. 在最后拼接 &key=商户密钥
 // 4. 对拼接后的字符串进行MD5加密
 // 5. 将MD5结果转换为大写
-func PayGenerateSign(params map[string]string, apiKey string) string {
-	// 1. 参数按ASCII码排序
-	keys := make([]string, 0, len(params))
-	for k := range params {
-		if params[k] != "" { // 空值不参与签名
-			keys = append(keys, k)
+func PayGenerateSign(order map[string]string, key string) string {
+	data := url.Values{}
+	for k, v := range order {
+		data.Add(k, v)
+	}
+	keys := make([]string, 0, 0)
+	for key := range data {
+		if data.Get(key) != "" {
+			keys = append(keys, key)
 		}
 	}
 	sort.Strings(keys)
-
-	// 2. 拼接参数
-	var buf strings.Builder
-	for i, k := range keys {
-		if i > 0 {
-			buf.WriteString("&")
-		}
-		buf.WriteString(k)
-		buf.WriteString("=")
-		buf.WriteString(params[k])
-	}
-
-	// 3. 拼接密钥
-	buf.WriteString("&key=")
-	buf.WriteString(apiKey)
-
-	// 4. MD5加密并转大写
-	hash := md5.Sum([]byte(buf.String()))
-	return strings.ToUpper(hex.EncodeToString(hash[:]))
+	body := data.Encode()
+	d, _ := url.QueryUnescape(body)
+	d += "&key=" + key
+	h := md5.New()
+	h.Write([]byte(d))
+	return strings.ToUpper(hex.EncodeToString(h.Sum(nil)))
 }
 
 // VerifySign 验证回调签名
@@ -86,9 +77,6 @@ func CreateNativePay(outTradeNo string, totalFee float64, body, attach string) (
 		"mch_id":       paymentConfig.MchId,
 		"body":         body,
 	}
-	if attach != "" {
-		signParams["attach"] = attach
-	}
 
 	// 生成签名
 	sign := PayGenerateSign(signParams, paymentConfig.ApiKey)
@@ -102,6 +90,7 @@ func CreateNativePay(outTradeNo string, totalFee float64, body, attach string) (
 		"type":         "2",                     // type=2 返回二维码base64图片（不参与签名）
 		"notify_url":   paymentConfig.NotifyUrl, // 不参与签名
 		"sign":         sign,
+		"attach":       attach,
 	}
 	if attach != "" {
 		requestParams["attach"] = attach
