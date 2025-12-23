@@ -87,7 +87,6 @@
               type="password"
               placeholder="再次输入密码"
               show-password
-              @keyup.enter="handleRegister"
             />
           </el-form-item>
         </div>

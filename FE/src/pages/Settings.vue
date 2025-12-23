@@ -727,8 +727,8 @@ const resetPasswordForm = () => {
 }
 
 onMounted(() => {
-  // 检查URL参数，设置默认tab
-  const tab = route.query.tab as string
+  // 检查URL参数或路由meta，设置默认tab
+  const tab = (route.query.tab as string) || (route.meta.defaultTab as string)
   if (tab && ['security', 'vip', 'records'].includes(tab)) {
     activeTab.value = tab
   }

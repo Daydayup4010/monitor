@@ -153,7 +153,7 @@ const sidebarOpen = ref(true)
 
 // 菜单路由 - 根据权限过滤
 const menuRoutes = computed(() => {
-  return router.getRoutes()
+  const routes = router.getRoutes()
     .filter(route => {
       if (!route.meta?.title || route.path === '/') return false
       
@@ -175,6 +175,16 @@ const menuRoutes = computed(() => {
       path: route.path,
       meta: route.meta
     }))
+  
+  // 非VIP用户添加首页链接（指向公开首页）
+  if (!userStore.isVip) {
+    routes.unshift({
+      path: '/',
+      meta: { title: '首页', icon: 'HomeFilled' }
+    })
+  }
+  
+  return routes
 })
 
 // 获取用户头像背景图

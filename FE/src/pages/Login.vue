@@ -48,7 +48,6 @@
               type="password"
               placeholder="请输入密码"
               show-password
-              @keyup.enter="handlePasswordLogin"
             />
           </el-form-item>
         </div>
@@ -61,7 +60,6 @@
                 v-model="passwordForm.captchaCode"
                 placeholder="请输入验证码"
                 style="flex: 1;"
-                @keyup.enter="handlePasswordLogin"
               />
               <img 
                 v-if="captchaImg" 
@@ -121,7 +119,6 @@
                 v-model="emailForm.code"
                 placeholder="请输入验证码"
                 style="flex: 1;"
-                @keyup.enter="handleEmailLogin"
               />
               <button
                 type="button"
@@ -333,9 +330,9 @@ const handlePasswordLogin = async () => {
     if (success) {
       await new Promise(resolve => setTimeout(resolve, 100))
       if (userStore.isVip || userStore.isAdmin) {
-        router.push('/app/ranking')
+        router.push('/app/dashboard')
       } else {
-        router.push('/')  // 非VIP用户跳转到公开首页
+        router.push('/app/vip')  // 非VIP用户跳转到VIP服务页
       }
     } else {
       // 登录失败，刷新验证码
@@ -361,9 +358,9 @@ const handleEmailLogin = async () => {
     if (success) {
       await new Promise(resolve => setTimeout(resolve, 100))
       if (userStore.isVip || userStore.isAdmin) {
-        router.push('/app/ranking')
+        router.push('/app/dashboard')
       } else {
-        router.push('/')  // 非VIP用户跳转到公开首页
+        router.push('/app/vip')  // 非VIP用户跳转到VIP服务页
       }
     }
   } catch (error) {

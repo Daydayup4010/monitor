@@ -77,7 +77,6 @@
               type="password"
               placeholder="再次输入新密码"
               show-password
-              @keyup.enter="handleResetPassword"
             />
           </el-form-item>
         </div>

@@ -55,7 +55,6 @@
               type="password"
               placeholder="请输入密码"
               show-password
-              @keyup.enter="handlePasswordLogin"
             />
           </el-form-item>
         </div>
@@ -68,7 +67,6 @@
                 v-model="passwordForm.captchaCode"
                 placeholder="请输入验证码"
                 style="flex: 1;"
-                @keyup.enter="handlePasswordLogin"
               />
               <img 
                 v-if="captchaImg" 
@@ -128,7 +126,6 @@
                 v-model="emailForm.code"
                 placeholder="请输入验证码"
                 style="flex: 1;"
-                @keyup.enter="handleEmailLogin"
               />
               <button
                 type="button"
@@ -143,8 +140,8 @@
           </el-form-item>
         </div>
 
-        <button type="submit" class="btn btn-primary" :disabled="userStore.loading">
-          {{ userStore.loading ? '登录中...' : '立即登录' }}
+        <button type="submit" class="btn btn-primary" :disabled="userStore.loading || isEmailSubmitting">
+          {{ (userStore.loading || isEmailSubmitting) ? '登录中...' : '立即登录' }}
         </button>
       </el-form>
 
@@ -200,7 +197,8 @@ const handleClose = () => {
 }
 
 const loginType = ref<'password' | 'email'>('password')
-const isSubmitting = ref(false) // 防止重复提交
+const isSubmitting = ref(false) // 防止重复提交（密码登录）
+const isEmailSubmitting = ref(false) // 防止重复提交（验证码登录）
 
 // 图形验证码
 const captchaId = ref('')
@@ -365,8 +363,12 @@ const handlePasswordLogin = async () => {
       await new Promise(resolve => setTimeout(resolve, 100))
       handleClose()
       emit('success')
-      // 刷新页面以更新状态，让路由守卫处理跳转
-      window.location.reload()
+      // 根据VIP状态跳转到不同页面
+      if (userStore.isVip) {
+        window.location.href = '/app/dashboard'
+      } else {
+        window.location.href = '/app/vip'
+      }
     } else {
       // 登录失败，刷新验证码
       refreshCaptcha()
@@ -383,20 +385,30 @@ const handlePasswordLogin = async () => {
 }
 
 const handleEmailLogin = async () => {
-  if (!emailFormRef.value) return
+  if (!emailFormRef.value || isEmailSubmitting.value) return
 
   try {
     await emailFormRef.value.validate()
+    
+    // 防止重复提交
+    isEmailSubmitting.value = true
+    
     const success = await userStore.emailLogin(emailForm)
     if (success) {
       await new Promise(resolve => setTimeout(resolve, 100))
       handleClose()
       emit('success')
-      // 刷新页面以更新状态，让路由守卫处理跳转
-      window.location.reload()
+      // 根据VIP状态跳转到不同页面
+      if (userStore.isVip) {
+        window.location.href = '/app/dashboard'
+      } else {
+        window.location.href = '/app/vip'
+      }
     }
   } catch (error) {
     console.error('表单验证失败:', error)
+  } finally {
+    isEmailSubmitting.value = false
   }
 }
 

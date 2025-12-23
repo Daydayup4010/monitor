@@ -117,6 +117,18 @@ const router = createRouter({
           }
         },
         {
+          path: 'vip',
+          name: 'VipService',
+          component: () => import('@/pages/Settings.vue'),
+          meta: { 
+            title: 'VIP服务', 
+            icon: 'Medal',
+            requiresAuth: true,
+            defaultTab: 'vip'  // 用于设置默认tab
+            // 不需要requiresVip，让非VIP用户也能访问
+          }
+        },
+        {
           path: 'admin',
           name: 'Admin',
           component: () => import('@/pages/Admin.vue'),

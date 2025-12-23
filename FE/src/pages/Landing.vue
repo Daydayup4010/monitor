@@ -309,7 +309,6 @@ const handleCommand = async (command: string) => {
       break
     case 'logout':
       await userStore.logout()
-      showMessage.success('已退出登录')
       break
   }
 }
