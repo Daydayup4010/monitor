@@ -53,7 +53,7 @@ func Register(c *gin.Context) {
 		return
 	}
 	uid, _ := uuid.NewV7()
-	newExpiry := time.Now().AddDate(0, 0, 3) // 新用户免费3天VIP
+	newExpiry := time.Now().AddDate(0, 0, 2) // 新用户免费3天VIP
 	var user = models.User{
 		ID:        uid,
 		UserName:  reg.Username,
