@@ -4,6 +4,7 @@
     <header class="landing-header">
       <div class="header-content">
         <div class="logo">
+          <img :src="logoIcon" alt="CS Goods" class="logo-icon" />
           <span class="logo-text">CS Goods</span>
           <span class="logo-subtitle">CS2饰品搬砖网站</span>
         </div>
@@ -258,6 +259,7 @@ import loginIcon from '@/assets/icons/login.png'
 import registerIcon from '@/assets/icons/register.png'
 import emailIcon from '@/assets/icons/email.png'
 import qqIcon from '@/assets/icons/QQ.png'
+import logoIcon from '@/assets/icons/logo.jpeg'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -460,7 +462,15 @@ onUnmounted(() => {
 
 .logo {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-icon {
+  width: 55px;
+  height: 55px;
+  border-radius: 10px;
+  object-fit: cover;
 }
 
 .logo-text {
@@ -472,7 +482,7 @@ onUnmounted(() => {
 .logo-subtitle {
   font-size: 12px;
   color: #8c8c8c;
-  margin-top: 2px;
+  display: none;
 }
 
 .header-actions {

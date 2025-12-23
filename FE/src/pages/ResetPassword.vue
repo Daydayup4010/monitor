@@ -4,7 +4,7 @@
       <div class="auth-card">
       <div class="auth-header">
         <h2 class="auth-title">
-          <img src="@/assets/icons/register.png" style="height: 36px; width: auto; vertical-align: middle; margin-right: 8px; object-fit: contain;" alt="重置密码" />
+          <img src="@/assets/icons/logo.jpeg" style="height: 55px; width: 55px; vertical-align: middle; margin-right: 8px; object-fit: cover; border-radius: 10px;" alt="重置密码" />
           重置密码
         </h2>
         <p class="auth-subtitle">通过邮箱验证码重置密码</p>

@@ -4,7 +4,7 @@
       <div class="auth-card">
       <div class="auth-header">
         <h2 class="auth-title">
-          <img src="@/assets/icons/register.png" style="height: 36px; width: auto; vertical-align: middle; margin-right: 8px; object-fit: contain;" alt="注册" />
+          <img src="@/assets/icons/logo.jpeg" style="height: 55px; width: 55px; vertical-align: middle; margin-right: 8px; object-fit: cover; border-radius: 10px;" alt="注册" />
           注册
         </h2>
         <p class="auth-subtitle">创建新账户，开始使用系统</p>

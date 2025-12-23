@@ -5,7 +5,7 @@
       <div class="header-content">
         <div class="brand" @click="goHome" style="cursor: pointer;">
           <div class="brand-icon">
-            <el-icon size="28" color="white"><TrendCharts /></el-icon>
+            <img :src="logoIcon" alt="CS Goods" class="brand-logo" />
           </div>
           <h1 class="brand-title">CS Goods</h1>
         </div>
@@ -142,6 +142,7 @@ import loginIcon from '@/assets/icons/login.png'
 import registerIcon from '@/assets/icons/register.png'
 import emailIcon from '@/assets/icons/email.png'
 import qqIcon from '@/assets/icons/QQ.png'
+import logoIcon from '@/assets/icons/logo.jpeg'
 import Footer from '@/components/Footer.vue'
 
 const router = useRouter()
@@ -281,11 +282,17 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 45px;
-  height: 45px;
-  background: linear-gradient(135deg, #1890ff, #40a9ff);
+  width: 55px;
+  height: 55px;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
+  overflow: hidden;
+}
+
+.brand-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
 }
 
 .brand-title {

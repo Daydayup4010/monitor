@@ -11,7 +11,7 @@
     <div class="auth-card-dialog">
       <div class="auth-header">
         <h2 class="auth-title">
-          <img src="@/assets/icons/login.png" style="height: 36px; width: auto; vertical-align: middle; margin-right: 8px; object-fit: contain;" alt="登录" />
+          <img src="@/assets/icons/logo.jpeg" style="height: 55px; width: 55px; vertical-align: middle; margin-right: 8px; object-fit: cover; border-radius: 10px;" alt="登录" />
           登录
         </h2>
         <p class="auth-subtitle">选择登录方式进入系统</p>
