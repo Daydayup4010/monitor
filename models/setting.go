@@ -55,8 +55,8 @@ import (
 type Settings struct {
 	gorm.Model
 	UserId       string  `json:"user_id" gorm:"type:char(36);uniqueIndex:idx_user_setting"`
-	MinSellNum   int     `json:"min_sell_num" gorm:"default:200"`
-	MinDiff      float64 `json:"min_diff" gorm:"default:1"`
+	MinSellNum   int     `json:"min_sell_num" gorm:"default:100"`
+	MinDiff      float64 `json:"min_diff" gorm:"default:0.8"`
 	MaxSellPrice float64 `json:"max_sell_price" gorm:"default:10000"`
 	MinSellPrice float64 `json:"min_sell_price" gorm:"default:0"`
 }
