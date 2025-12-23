@@ -6,6 +6,7 @@ import (
 	"uu/config"
 	"uu/middleware"
 
+	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 )
 
@@ -13,6 +14,9 @@ func InitRouter() *gin.Engine {
 	gin.SetMode(config.CONFIG.Server.Env)
 	r := gin.Default()
 	r.Use(gin.Recovery(), middleware.Cors(), middleware.Logger())
+
+	// Gzip 压缩（节省带宽，压缩 JSON 响应）
+	r.Use(gzip.Gzip(gzip.DefaultCompression))
 	v1 := r.Group("api/v1")
 
 	v1.GET("captcha", middleware.RateLimiterByIP(middleware.RateLimiterConfig{

@@ -7,7 +7,7 @@ mysql:
   log_level: dev
   config: charset=utf8mb4&parseTime=True&loc=Asia%2FShanghai
   maxIdleConns: 10
-  maxOpenConns: 25
+  maxOpenConns: 50
 
 logger:
   level: error
