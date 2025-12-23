@@ -50,12 +50,19 @@ type SearchResult struct {
 	IconUrl        string `json:"iconUrl" gorm:"column:icon_url"`
 }
 
-// SearchGoodsByKeyword 根据关键词搜索商品
+// SearchGoodsByKeyword 根据关键词搜索商品（支持模糊匹配）
+// 将关键词拆分为字符，按顺序匹配，例如 "蝴蝶刀蓝钢" -> "%蝴%蝶%刀%蓝%钢%"
 func SearchGoodsByKeyword(keyword string, limit int) ([]SearchResult, error) {
 	var results []SearchResult
+
+	// 将关键词转为字符顺序匹配模式
+	// 例如: "蝴蝶刀蓝钢" -> "%蝴%蝶%刀%蓝%钢%"
+	chars := strings.Split(keyword, "")
+	pattern := "%" + strings.Join(chars, "%") + "%"
+
 	err := config.DB.Model(&BaseGoods{}).
 		Select("name, market_hash_name, icon_url").
-		Where("name LIKE ?", "%"+keyword+"%").
+		Where("name LIKE ?", pattern).
 		Limit(limit).
 		Find(&results).Error
 	return results, err

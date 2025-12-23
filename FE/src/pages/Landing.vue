@@ -55,6 +55,39 @@
         <p class="hero-subtitle">提供专业的饰品数据变化分析、各平台搬砖比价数据</p>
       </section>
 
+      <!-- 搜索框（登录用户可用） -->
+      <div class="search-section" v-if="isLoggedIn">
+        <div class="search-box">
+          <el-input
+            v-model="searchKeyword"
+            placeholder="搜索饰品名称..."
+            size="large"
+            clearable
+            @input="handleSearchInput"
+            @clear="clearSearch"
+          >
+            <template #prefix>
+              <el-icon><Search /></el-icon>
+            </template>
+          </el-input>
+          <!-- 搜索结果下拉 -->
+          <div class="search-results" v-if="showSearchResults && searchResults.length > 0">
+            <div 
+              class="search-result-item" 
+              v-for="item in searchResults" 
+              :key="item.marketHashName"
+              @click="goToDetail(item)"
+            >
+              <img :src="item.iconUrl" :alt="item.name" class="result-image" @error="handleSearchImageError" />
+              <span class="result-name">{{ item.name }}</span>
+            </div>
+          </div>
+          <div class="search-results" v-else-if="showSearchResults && searchKeyword && !searchLoading">
+            <div class="no-results">未找到相关饰品</div>
+          </div>
+        </div>
+      </div>
+
       <!-- 数据展示区域 -->
       <div class="data-section">
         <!-- 饰品涨幅榜 -->
@@ -213,10 +246,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { TrendCharts, DataAnalysis, ArrowRight, ArrowDown, ArrowLeft, HomeFilled, User, SwitchButton, Service } from '@element-plus/icons-vue'
-import { publicApi, type PublicHomeData } from '@/api'
+import { TrendCharts, DataAnalysis, ArrowRight, ArrowDown, ArrowLeft, HomeFilled, User, SwitchButton, Service, Search } from '@element-plus/icons-vue'
+import { publicApi, dataApi, type PublicHomeData, type SearchResult } from '@/api'
 import { showMessage } from '@/utils/message'
 import LoginDialog from '@/components/LoginDialog.vue'
 import Footer from '@/components/Footer.vue'
@@ -231,6 +264,13 @@ const userStore = useUserStore()
 const loading = ref(false)
 const homeData = ref<PublicHomeData | null>(null)
 const showLoginDialog = ref(false)
+
+// 搜索相关
+const searchKeyword = ref('')
+const searchResults = ref<SearchResult[]>([])
+const showSearchResults = ref(false)
+const searchLoading = ref(false)
+let searchTimer: number | null = null
 
 // 右侧悬浮栏状态
 const sidebarOpen = ref(true)
@@ -298,6 +338,68 @@ const goToVip = () => {
   router.push('/app/settings?tab=vip')
 }
 
+// 搜索输入处理（防抖）
+const handleSearchInput = () => {
+  if (searchTimer) {
+    clearTimeout(searchTimer)
+  }
+  
+  if (!searchKeyword.value.trim()) {
+    searchResults.value = []
+    showSearchResults.value = false
+    return
+  }
+  
+  searchTimer = window.setTimeout(async () => {
+    await doSearch()
+  }, 300)
+}
+
+// 执行搜索
+const doSearch = async () => {
+  if (!searchKeyword.value.trim()) return
+  
+  searchLoading.value = true
+  showSearchResults.value = true
+  
+  try {
+    const res = await dataApi.searchGoods({ 
+      keyword: searchKeyword.value.trim(),
+      limit: 50 
+    })
+    if (res.code === 1 && res.data) {
+      searchResults.value = res.data
+    }
+  } catch (error) {
+    console.error('搜索失败:', error)
+  } finally {
+    searchLoading.value = false
+  }
+}
+
+// 清除搜索
+const clearSearch = () => {
+  searchKeyword.value = ''
+  searchResults.value = []
+  showSearchResults.value = false
+}
+
+// 点击搜索结果跳转到详情
+const goToDetail = (item: SearchResult) => {
+  showSearchResults.value = false
+  const url = router.resolve({
+    path: '/app/detail',
+    query: { market_hash_name: item.marketHashName }
+  }).href
+  window.open(url, '_blank')
+}
+
+// 搜索结果图片加载失败处理
+const handleSearchImageError = (e: Event) => {
+  const target = e.target as HTMLImageElement
+  target.src = 'https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXQ9QVcJY8gulRPQV6CF7b9mMnYZh9SHY27gZKBl_JbMKyJI24H65S1xtXZwKb2YOqHxj4F68Nz2L2Y9oj2jQDm_RY4am-mctWXdFc5NQuDqAHqx-fmg5_v7oOJlyU1fQmQdw/360fx360f'
+}
+
 // 处理下拉菜单命令
 const handleCommand = async (command: string) => {
   switch (command) {
@@ -320,6 +422,12 @@ onMounted(() => {
     return
   }
   fetchHomeData()
+})
+
+onUnmounted(() => {
+  if (searchTimer) {
+    clearTimeout(searchTimer)
+  }
 })
 </script>
 
@@ -439,6 +547,82 @@ onMounted(() => {
 .hero-subtitle {
   font-size: 16px;
   color: #8c8c8c;
+}
+
+/* 搜索区域 */
+.search-section {
+  max-width: 600px;
+  margin: 0 auto 40px;
+  padding: 0 20px;
+}
+
+.search-box {
+  position: relative;
+}
+
+.search-box :deep(.el-input__wrapper) {
+  border-radius: 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  padding: 4px 20px;
+}
+
+.search-box :deep(.el-input__wrapper:hover) {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.search-box :deep(.el-input__wrapper.is-focus) {
+  box-shadow: 0 4px 16px rgba(64, 158, 255, 0.2);
+}
+
+.search-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  max-height: 400px;
+  overflow-y: auto;
+  z-index: 100;
+  margin-top: 8px;
+}
+
+.search-result-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.search-result-item:hover {
+  background: #f5f7fa;
+}
+
+.result-image {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  margin-right: 12px;
+  background: #f0f2f5;
+  border-radius: 6px;
+}
+
+.result-name {
+  flex: 1;
+  font-size: 14px;
+  color: #262626;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.no-results {
+  padding: 24px;
+  text-align: center;
+  color: #8c8c8c;
+  font-size: 14px;
 }
 
 /* 数据展示区域 */

@@ -101,7 +101,6 @@ const router = createRouter({
             title: '饰品详情', 
             icon: 'InfoFilled',
             requiresAuth: true,
-            requiresVip: true,
             hideInMenu: true  // 不在导航菜单中显示
           }
         },

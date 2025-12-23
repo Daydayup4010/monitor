@@ -443,17 +443,17 @@ export const dataApi = {
   getPriceIncrease: (params: { is_desc: boolean; limit: number }): Promise<ApiResponse<PriceIncreaseItem[]>> =>
     api.get('/vip/goods/price-increase', { params }),
   
-  // 获取商品详情
+  // 获取商品详情（普通用户可用）
   getGoodsDetail: (params: { market_hash_name: string; days?: number }): Promise<ApiResponse<GoodsDetailResponse>> =>
-    api.get('/vip/goods/detail', { params }),
+    api.get('/goods/detail', { params }),
   
-  // 搜索商品
+  // 搜索商品（普通用户可用）
   searchGoods: (params: { keyword: string; limit?: number }): Promise<ApiResponse<SearchResult[]>> =>
-    api.get('/vip/goods/search', { params }),
+    api.get('/goods/search', { params }),
   
-  // 获取同款饰品的不同磨损和品质版本
+  // 获取同款饰品的不同磨损和品质版本（普通用户可用）
   getRelatedWears: (params: { market_hash_name: string }): Promise<ApiResponse<RelatedWearsResponse>> =>
-    api.get('/vip/goods/related-wears', { params }),
+    api.get('/goods/related-wears', { params }),
 }
 
 // 搜索结果类型
