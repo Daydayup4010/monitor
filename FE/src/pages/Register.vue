@@ -22,7 +22,7 @@
           <el-form-item prop="username">
             <el-input
               v-model="form.username"
-              placeholder="3-20个字符"
+              placeholder="2-20个字符"
             />
           </el-form-item>
         </div>
@@ -145,10 +145,10 @@ const lastCheckedEmail = ref('')
 const validateUsername = (rule: any, value: any, callback: any) => {
   if (!value) {
     callback(new Error('请输入用户名'))
-  } else if (value.length < 3 || value.length > 20) {
-    callback(new Error('用户名长度应在3-20个字符之间'))
-  } else if (!/^[a-zA-Z0-9_]+$/.test(value)) {
-    callback(new Error('用户名只能包含字母、数字和下划线'))
+  } else if (value.length < 2 || value.length > 20) {
+    callback(new Error('用户名长度应在2-20个字符之间'))
+  } else if (!/^[\u4e00-\u9fa5a-zA-Z0-9_]+$/.test(value)) {
+    callback(new Error('用户名只能包含汉字、字母、数字和下划线'))
   } else {
     callback()
   }
@@ -307,10 +307,11 @@ const handleRegister = async () => {
       }
     }
     
-    const success = await userStore.register(form)
-    if (success) {
+    const result = await userStore.register(form)
+    if (result.success) {
       setTimeout(() => {
-        router.push('/login')
+        // 自动登录成功则跳转首页，否则跳转登录页
+        router.push(result.autoLogin ? '/' : '/login')
       }, 1500)
     }
   } catch (error) {

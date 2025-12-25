@@ -122,13 +122,20 @@ export const useUserStore = defineStore('user', () => {
       const { confirmPassword, ...registerData } = form
       const response = await authApi.register(registerData)
       if (response.code === 1) {
+        // 注册成功后自动登录
+        if (response.token && response.data) {
+          saveToStorage(response.token, response.data)
+          showMessage.success('注册成功！新用户免费送2天VIP体验')
+          return { success: true, autoLogin: true }
+        }
+        // 兜底：如果没有 token，提示去登录
         showMessage.success('注册成功！新用户免费送2天VIP体验，请登录')
-        return true
+        return { success: true, autoLogin: false }
       }
-      return false
+      return { success: false, autoLogin: false }
     } catch (error: any) {
       // 错误已在拦截器中处理，这里不再重复提示
-      return false
+      return { success: false, autoLogin: false }
     } finally {
       loading.value = false
     }

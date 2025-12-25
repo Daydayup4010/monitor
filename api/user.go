@@ -72,11 +72,44 @@ func Register(c *gin.Context) {
 		return
 	}
 	code = models.CreateUser(&user)
+	if code != utils.SUCCESS {
+		c.JSON(http.StatusOK, gin.H{
+			"code": code,
+			"msg":  utils.ErrorMessage(code),
+		})
+		return
+	}
+
+	// 注册成功后自动登录：生成 token
+	tokenVersion := models.GenerateTokenVersion()
+	if err := models.SetTokenVersion(c.Request.Context(), user.ID, tokenVersion); err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"code": utils.SUCCESS,
+			"msg":  "注册成功，请登录",
+		})
+		return
+	}
+
+	token, err := utils.GenerateJWT(user.ID, user.UserName, user.Role, user.VipExpiry, user.Email, tokenVersion)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"code": utils.SUCCESS,
+			"msg":  "注册成功，请登录",
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"code":     code,
-		"username": user.UserName,
-		"email":    user.Email,
-		"msg":      utils.ErrorMessage(code),
+		"code":  utils.SUCCESS,
+		"token": token,
+		"data": gin.H{
+			"id":         user.ID,
+			"username":   user.UserName,
+			"email":      user.Email,
+			"role":       user.Role,
+			"vip_expiry": user.VipExpiry,
+		},
+		"msg": utils.ErrorMessage(utils.SUCCESS),
 	})
 }
 
