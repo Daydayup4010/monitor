@@ -173,16 +173,17 @@
             </el-input>
           </div>
 
-          <div style="min-width: 120px;">
+          <div style="min-width: 200px;">
             <label style="display: block; margin-bottom: 8px; font-size: 14px; color: #595959; font-weight: 500;">类别</label>
             <el-select
-              v-model="category"
+              v-model="categories"
+              multiple
+              collapse-tags
+              collapse-tags-tooltip
               @change="handleCategoryChange"
-              style="width: 120px;"
-              clearable
-              placeholder="全部"
+              style="width: 200px;"
+              placeholder="全部类别"
             >
-              <el-option label="全部" value="" />
               <el-option label="匕首" value="匕首" />
               <el-option label="手套" value="手套" />
               <el-option label="步枪" value="步枪" />
@@ -500,9 +501,9 @@ const targetPlatform = computed({
   get: () => skinStore.targetPlatform,
   set: (val) => { skinStore.targetPlatform = val }
 })
-const category = computed({
-  get: () => skinStore.category,
-  set: (val) => { skinStore.category = val }
+const categories = computed({
+  get: () => skinStore.categories,
+  set: (val) => { skinStore.categories = val }
 })
 
 // 筛选参数
@@ -636,7 +637,8 @@ const getFilterDescription = () => {
   const priceRange = `价格${filterParams.min_sell_price}-${filterParams.max_sell_price}元`
   const sellNum = filterParams.min_sell_num > 0 ? `，在售量大于${filterParams.min_sell_num}件` : ''
   const priceDiff = filterParams.min_diff > 0 ? `，价格差大于${filterParams.min_diff}元` : ''
-  const categoryDesc = category.value ? `，类别：${category.value}` : ''
+  // 多选类别显示
+  const categoryDesc = categories.value.length > 0 ? `，类别：${categories.value.join('、')}` : ''
   
   return `从${sourceName}平台买入饰品，到${targetName}平台卖出（${priceRange}${sellNum}${priceDiff}${categoryDesc}）`
 }

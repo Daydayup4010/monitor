@@ -337,8 +337,10 @@ func GetGoods(userId string, pageSize, pageNum int, isDesc bool, sortField, sear
 			settings.MinDiff, settings.MinSellNum, settings.MaxSellPrice, settings.MinSellPrice)
 
 	if category != "" {
-		query1 = query1.Where("u_base_info.type_name = ?", category)
-		query2 = query2.Where("u_base_info.type_name = ?", category)
+		// 支持多个类别，逗号分隔
+		categories := strings.Split(category, ",")
+		query1 = query1.Where("u_base_info.type_name IN ?", categories)
+		query2 = query2.Where("u_base_info.type_name IN ?", categories)
 	}
 
 	if search != "" {

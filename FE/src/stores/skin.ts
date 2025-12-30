@@ -12,19 +12,21 @@ export const useSkinStore = defineStore('skin', () => {
   const savedSource = localStorage.getItem('brick_source') || 'buff'
   const savedTarget = localStorage.getItem('brick_target') || 'uu'
   const savedSort = localStorage.getItem('brick_sort') || 'default'
-  const savedCategory = localStorage.getItem('brick_category') || ''
+  // 类别改为多选数组，从 localStorage 读取（存储为逗号分隔的字符串）
+  const savedCategories = localStorage.getItem('brick_categories')
+  const defaultCategories: string[] = []
 
   // 平台和排序设置（持久化）
   const sourcePlatform = ref(savedSource)
   const targetPlatform = ref(savedTarget)
   const sortOption = ref(savedSort)
-  const category = ref(savedCategory)
+  const categories = ref<string[]>(savedCategories ? savedCategories.split(',').filter(c => c) : defaultCategories)
 
   // 监听变化，保存到 localStorage
   watch(sourcePlatform, (val) => localStorage.setItem('brick_source', val))
   watch(targetPlatform, (val) => localStorage.setItem('brick_target', val))
   watch(sortOption, (val) => localStorage.setItem('brick_sort', val))
-  watch(category, (val) => localStorage.setItem('brick_category', val))
+  watch(categories, (val) => localStorage.setItem('brick_categories', val.join(',')), { deep: true })
 
   // 排序配置映射
   const sortMap: Record<string, { field: string; desc: boolean }> = {
@@ -61,13 +63,15 @@ export const useSkinStore = defineStore('skin', () => {
     loading.value = true
     try {
       const sortConfig = getSortConfig()
+      // 多选类别转为逗号分隔字符串
+      const categoryParam = categories.value.length > 0 ? categories.value.join(',') : ''
       const queryParams = { 
         ...pagination.value, 
         sort: sortConfig.field,
         desc: sortConfig.desc,
         source: sourcePlatform.value,
         target: targetPlatform.value,
-        category: category.value,
+        category: categoryParam,
         ...params 
       }
       const response = await dataApi.getSkinItems(queryParams)
@@ -114,7 +118,7 @@ export const useSkinStore = defineStore('skin', () => {
     sourcePlatform,
     targetPlatform,
     sortOption,
-    category,
+    categories,
     getSortConfig,
     getSkinItems,
   }
