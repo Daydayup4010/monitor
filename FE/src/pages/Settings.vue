@@ -69,7 +69,7 @@
             <div class="feature-group">
               <div class="feature-item">
                 <el-icon class="feature-icon"><Check /></el-icon>
-                <span>查看饰品最大7天的价格走势变化</span>
+                <span>查看饰品历史价格走势</span>
               </div>
               <div class="feature-item">
                 <el-icon class="feature-icon"><Check /></el-icon>
@@ -77,7 +77,7 @@
               </div>
               <div class="feature-item">
                 <el-icon class="feature-icon"><Check /></el-icon>
-                <span>查看今日、7日、15日、30日涨跌榜单</span>
+                <span>查看饰品历史涨跌榜单</span>
               </div>
             </div>
             
