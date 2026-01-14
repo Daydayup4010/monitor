@@ -94,7 +94,7 @@ func GetUserSetting(id string) (*SettingsResponse, int) {
 }
 
 func UpdateSetting(id string, setting Settings) int {
-	err := config.DB.Where("user_id = ?", id).Updates(&setting).Error
+	err := config.DB.Model(&Settings{}).Where("user_id = ?", id).Select("min_sell_num", "min_diff", "max_sell_price", "min_sell_price").Updates(&setting).Error
 	if err != nil {
 		config.Log.Errorf("update setting err: %s", err)
 		return utils.ErrCodeUpdateSetting
