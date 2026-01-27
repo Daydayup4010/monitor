@@ -1,0 +1,241 @@
+.vip-page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #1890ff 0%, #f5f7fa 300rpx);
+  padding: 24rpx;
+  padding-bottom: 200rpx;
+}
+
+/* VIP状态卡片 */
+.vip-status-card {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  padding: 40rpx;
+  background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+  border-radius: 20rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 8rpx 24rpx rgba(255, 170, 0, 0.3);
+}
+
+.vip-icon {
+  font-size: 64rpx;
+}
+
+.vip-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.vip-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #5c3d00;
+}
+
+.vip-expiry {
+  font-size: 26rpx;
+  color: #8b6914;
+}
+
+/* 特权卡片 */
+.privileges-card {
+  background: white;
+  border-radius: 20rpx;
+  padding: 32rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.06);
+}
+
+.card-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #262626;
+  margin-bottom: 24rpx;
+}
+
+.privileges-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20rpx;
+}
+
+.privilege-item {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 16rpx;
+  background: #f5f7fa;
+  border-radius: 12rpx;
+}
+
+.privilege-icon {
+  font-size: 28rpx;
+}
+
+.privilege-text {
+  font-size: 26rpx;
+  color: #595959;
+}
+
+/* 套餐卡片 */
+.plans-card {
+  background: white;
+  border-radius: 20rpx;
+  padding: 32rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.06);
+}
+
+.plans-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.plan-item {
+  flex: 1;
+  min-width: calc(50% - 8rpx);
+  padding: 24rpx 16rpx;
+  background: #f5f7fa;
+  border-radius: 16rpx;
+  text-align: center;
+  position: relative;
+  border: 2rpx solid transparent;
+  transition: all 0.2s;
+}
+
+.plan-item.selected {
+  background: linear-gradient(135deg, #e6f7ff 0%, #f0f5ff 100%);
+  border-color: #1890ff;
+}
+
+.plan-badge {
+  position: absolute;
+  top: -10rpx;
+  right: 10rpx;
+  padding: 4rpx 12rpx;
+  background: #ff4d4f;
+  color: white;
+  font-size: 20rpx;
+  border-radius: 20rpx;
+}
+
+.plan-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #262626;
+  margin-bottom: 12rpx;
+}
+
+.plan-price {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  margin-bottom: 8rpx;
+}
+
+.price-symbol {
+  font-size: 28rpx;
+  color: #ff6b00;
+}
+
+.price-value {
+  font-size: 48rpx;
+  font-weight: 700;
+  color: #ff6b00;
+}
+
+.plan-unit {
+  font-size: 22rpx;
+  color: #8c8c8c;
+}
+
+.plan-check {
+  position: absolute;
+  bottom: 12rpx;
+  right: 12rpx;
+  width: 36rpx;
+  height: 36rpx;
+  background: #1890ff;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+}
+
+.loading-plans {
+  text-align: center;
+  padding: 40rpx;
+  color: #8c8c8c;
+}
+
+/* 支付区域 */
+.pay-section {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  padding: 24rpx 32rpx;
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 -4rpx 12rpx rgba(0, 0, 0, 0.06);
+}
+
+.pay-amount {
+  display: flex;
+  align-items: baseline;
+  gap: 8rpx;
+}
+
+.pay-label {
+  font-size: 28rpx;
+  color: #595959;
+}
+
+.pay-price {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #ff6b00;
+}
+
+.pay-btn {
+  padding: 0 60rpx;
+  height: 88rpx;
+  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  color: white;
+  font-size: 32rpx;
+  font-weight: 500;
+  border-radius: 44rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+}
+
+.pay-btn::after {
+  border: none;
+}
+
+.pay-btn[disabled] {
+  background: #d9d9d9;
+  color: #8c8c8c;
+}
+
+/* 底部说明 */
+.footer-tips {
+  padding: 24rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.tip-text {
+  font-size: 24rpx;
+  color: #8c8c8c;
+}

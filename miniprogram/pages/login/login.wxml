@@ -2,9 +2,9 @@
 <view class="login-page">
   <view class="login-card">
     <view class="login-header">
-      <image class="logo" src="/images/logo.png" mode="aspectFit"></image>
-      <text class="title">Goods</text>
-      <text class="subtitle">饰品差价监控</text>
+      <image class="logo" src="/images/logo.jpeg" mode="aspectFit"></image>
+      <text class="title">CSGoods</text>
+      <text class="subtitle">CS2饰品差价监控</text>
     </view>
 
     <button class="btn-login" type="primary" bindtap="handleWechatLogin">
@@ -12,11 +12,20 @@
       <text wx:else>登录中...</text>
     </button>
 
-    <view class="tips">
-      <text>登录即表示同意</text>
-      <text class="link">《用户协议》</text>
-      <text>和</text>
-      <text class="link">《隐私政策》</text>
+    <view class="skip-login" bindtap="skip">
+      <text>先逛逛，暂不登录</text>
+    </view>
+
+    <view class="agreement-check" bindtap="toggleAgree">
+      <view class="checkbox {{agreed ? 'checked' : ''}}">
+        <text wx:if="{{agreed}}">✓</text>
+      </view>
+      <view class="agreement-text">
+        <text>我已阅读并同意</text>
+        <text class="link" catchtap="goUserAgreement">《用户协议》</text>
+        <text>和</text>
+        <text class="link" catchtap="goPrivacyPolicy">《隐私政策》</text>
+      </view>
     </view>
   </view>
 </view>

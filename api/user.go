@@ -148,9 +148,14 @@ func SendEmailCode(c *gin.Context) {
 		return
 	}
 	code = config.CONFIG.Email.SendVerificationCode(req.Email, verifyCode)
+
+	// 检查邮箱是否已存在（用于小程序绑定邮箱时判断是新绑定还是合并账号）
+	emailExists := models.IfExistEmail(req.Email)
+
 	c.JSON(http.StatusOK, gin.H{
-		"code": code,
-		"msg":  utils.ErrorMessage(code),
+		"code":         code,
+		"msg":          utils.ErrorMessage(code),
+		"email_exists": emailExists,
 	})
 }
 

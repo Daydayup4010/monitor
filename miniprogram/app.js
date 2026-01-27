@@ -11,7 +11,7 @@ App({
   globalData: {
     userInfo: null,
     token: null,
-    baseURL: 'http://localhost:3601/api/v1'  // 后端API地址
+    baseURL: 'https://www.csgoods.com.cn/api/v1'  // 后端API地址
   },
 
   // 检查登录状态

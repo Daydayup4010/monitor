@@ -4,13 +4,15 @@ const app = getApp()
 
 Page({
   data: {
+    step: 1,  // 当前步骤：1=输入邮箱验证码，2=设置密码
     email: '',
     code: '',
     password: '',
     confirmPassword: '',
     countdown: 0,
     sending: false,
-    submitting: false
+    submitting: false,
+    emailExists: false  // 邮箱是否已存在（决定是新绑定还是合并）
   },
 
   onEmailInput(e) {
@@ -60,6 +62,11 @@ Page({
           icon: 'success'
         })
 
+        // 保存邮箱是否已存在的状态
+        this.setData({ 
+          emailExists: res.email_exists || false
+        })
+
         // 开始倒计时
         this.setData({ countdown: 60 })
         const timer = setInterval(() => {
@@ -78,12 +85,44 @@ Page({
     }
   },
 
-  // 提交绑定
-  async handleSubmit() {
-    // 验证表单
-    if (!this.data.email || !this.data.code || !this.data.password || !this.data.confirmPassword) {
+  // 第一步：验证邮箱
+  async handleStep1() {
+    if (!this.data.email || !this.data.code) {
       wx.showToast({
-        title: '请填写完整信息',
+        title: '请填写邮箱和验证码',
+        icon: 'none'
+      })
+      return
+    }
+
+    this.setData({ submitting: true })
+
+    try {
+      // 先验证验证码
+      const res = await api.verifyEmailCode(this.data.email, this.data.code)
+      
+      if (res.code === 1) {
+        // 验证成功，判断下一步
+        if (this.data.emailExists) {
+          // 邮箱已存在，直接合并
+          this.mergeAccount()
+        } else {
+          // 新绑定，进入设置密码步骤
+          this.setData({ step: 2 })
+        }
+      }
+    } catch (error) {
+      console.error('验证失败:', error)
+    } finally {
+      this.setData({ submitting: false })
+    }
+  },
+
+  // 第二步：设置密码并绑定
+  async handleStep2() {
+    if (!this.data.password || !this.data.confirmPassword) {
+      wx.showToast({
+        title: '请设置密码',
         icon: 'none'
       })
       return
@@ -115,17 +154,21 @@ Page({
       )
 
       if (res.code === 1) {
-        // 绑定成功
-        this.handleBindSuccess()
+        this.handleBindSuccess(res)
       } else if (res.code === 1021) {
-        // 邮箱已存在，需要合并
-        this.showMergeDialog()
+        // 邮箱已存在（兜底处理）
+        this.mergeAccount()
       }
     } catch (error) {
       console.error('绑定失败:', error)
     } finally {
       this.setData({ submitting: false })
     }
+  },
+
+  // 返回上一步
+  goBack() {
+    this.setData({ step: 1 })
   },
 
   // 显示合并账号对话框
@@ -184,16 +227,21 @@ Page({
   },
 
   // 绑定成功处理
-  handleBindSuccess() {
+  handleBindSuccess(res) {
     wx.showToast({
-      title: '绑定成功',
-      icon: 'success'
+      title: '绑定成功，获得2天VIP试用',
+      icon: 'none',
+      duration: 2000
     })
 
-    // 更新用户信息
+    // 更新用户信息，包括VIP状态
     const userInfo = app.globalData.userInfo
     userInfo.email = this.data.email
     userInfo.has_email = true
+    userInfo.role = 1  // VIP角色
+    if (res && res.data && res.data.vip_expiry) {
+      userInfo.vip_expiry = res.data.vip_expiry
+    }
     app.saveLoginInfo(app.globalData.token, userInfo)
 
     // 跳转到首页
@@ -201,7 +249,7 @@ Page({
       wx.switchTab({
         url: '/pages/home/home'
       })
-    }, 1500)
+    }, 2000)
   },
 
   // 跳过绑定

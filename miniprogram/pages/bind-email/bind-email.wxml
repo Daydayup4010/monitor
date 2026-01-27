@@ -1,12 +1,26 @@
 <!-- 绑定邮箱页面 -->
 <view class="bind-page">
   <view class="bind-card">
-    <view class="card-header">
-      <text class="title">绑定邮箱</text>
-      <text class="subtitle">绑定后可在Web端登录查看更多数据</text>
+    <!-- 步骤指示器 -->
+    <view class="steps" wx:if="{{!emailExists}}">
+      <view class="step {{step >= 1 ? 'active' : ''}}">
+        <view class="step-num">1</view>
+        <text class="step-text">验证邮箱</text>
+      </view>
+      <view class="step-line {{step >= 2 ? 'active' : ''}}"></view>
+      <view class="step {{step >= 2 ? 'active' : ''}}">
+        <view class="step-num">2</view>
+        <text class="step-text">设置密码</text>
+      </view>
     </view>
 
-    <view class="form">
+    <!-- 第一步：验证邮箱 -->
+    <view class="form" wx:if="{{step === 1}}">
+      <view class="card-header">
+        <text class="title">绑定邮箱</text>
+        <text class="subtitle">绑定后可在Web端登录查看更多数据</text>
+      </view>
+
       <view class="form-item">
         <text class="label">邮箱地址</text>
         <view class="input-wrapper">
@@ -45,6 +59,33 @@
         </view>
       </view>
 
+      <!-- 邮箱已存在提示 -->
+      <view class="merge-tip" wx:if="{{emailExists}}">
+        <text class="merge-icon">🔗</text>
+        <text class="merge-text">此邮箱已在Web端注册，验证后将自动合并账号</text>
+      </view>
+
+      <button class="btn-submit" bindtap="handleStep1" disabled="{{submitting}}">
+        {{submitting ? '验证中...' : (emailExists ? '验证并合并' : '下一步')}}
+      </button>
+
+      <view class="skip" bindtap="skip">
+        <text>暂不绑定</text>
+      </view>
+    </view>
+
+    <!-- 第二步：设置密码 -->
+    <view class="form" wx:if="{{step === 2}}">
+      <view class="card-header">
+        <text class="title">设置密码</text>
+        <text class="subtitle">设置登录密码，用于Web端登录</text>
+      </view>
+
+      <view class="email-display">
+        <text class="email-label">绑定邮箱</text>
+        <text class="email-value">{{email}}</text>
+      </view>
+
       <view class="form-item">
         <text class="label">设置密码</text>
         <view class="input-wrapper">
@@ -73,12 +114,12 @@
         </view>
       </view>
 
-      <button class="btn-submit" bindtap="handleSubmit" disabled="{{submitting}}">
-        {{submitting ? '绑定中...' : '确认绑定'}}
+      <button class="btn-submit" bindtap="handleStep2" disabled="{{submitting}}">
+        {{submitting ? '绑定中...' : '完成绑定'}}
       </button>
 
-      <view class="skip" bindtap="skip">
-        <text>暂不绑定</text>
+      <view class="skip" bindtap="goBack">
+        <text>← 返回上一步</text>
       </view>
     </view>
   </view>

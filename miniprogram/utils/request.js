@@ -5,6 +5,9 @@ const request = (url, options = {}) => {
   return new Promise((resolve, reject) => {
     const token = app.globalData.token || wx.getStorageSync('token')
     
+    // 判断是否是公开接口（不需要登录）
+    const isPublicApi = url.startsWith('/public/') || url === '/wechat/login'
+    
     wx.request({
       url: `${app.globalData.baseURL}${url}`,
       method: options.method || 'GET',
@@ -21,10 +24,10 @@ const request = (url, options = {}) => {
           // 统一错误处理
           if (data.code === 1) {
             resolve(data)
-          } else if (data.code === 1005 || data.code === 1006) {
-            // Token过期或无效
+          } else if ((data.code === 1005 || data.code === 1006) && !isPublicApi) {
+            // Token过期或无效（公开接口不处理）
             app.clearLoginInfo()
-            wx.reLaunch({
+            wx.navigateTo({
               url: '/pages/login/login'
             })
             reject(data)
@@ -52,6 +55,24 @@ const request = (url, options = {}) => {
             })
             reject(data)
           }
+        } else if (res.statusCode === 403) {
+          // 403 权限不足，不显示网络错误，静默处理或让页面自己处理
+          reject({
+            code: 403,
+            msg: '暂无权限访问',
+            statusCode: res.statusCode
+          })
+        } else if (res.statusCode === 401) {
+          // 401 未授权
+          app.clearLoginInfo()
+          wx.navigateTo({
+            url: '/pages/login/login'
+          })
+          reject({
+            code: 401,
+            msg: '请先登录',
+            statusCode: res.statusCode
+          })
         } else {
           wx.showToast({
             title: '网络错误',

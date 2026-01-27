@@ -1,67 +1,213 @@
-<!-- 饰品数据首页 -->
+<!-- 首页 -->
 <view class="home-page">
-  <!-- 平台选择卡片 -->
-  <view class="platform-card">
-    <view class="platform-item">
-      <text class="platform-label">买入平台</text>
-      <picker mode="selector" range="{{platforms}}" bindchange="onSourceChange" value="{{sourceIndex}}">
-        <view class="platform-box">{{platforms[sourceIndex]}}</view>
-      </picker>
-    </view>
-    <view class="arrow-wrapper">
-      <text class="arrow">→</text>
-    </view>
-    <view class="platform-item">
-      <text class="platform-label">卖出平台</text>
-      <picker mode="selector" range="{{platforms}}" bindchange="onTargetChange" value="{{targetIndex}}">
-        <view class="platform-box">{{platforms[targetIndex]}}</view>
-      </picker>
-    </view>
-  </view>
-
-  <!-- 类别和排序筛选卡片 -->
-  <view class="filter-card">
-    <picker mode="selector" range="{{categoryOptions}}" bindchange="onCategoryChange" value="{{categoryIndex}}">
-      <view class="filter-item">
-        <text class="filter-label">类别</text>
-        <view class="filter-value">{{categoryOptions[categoryIndex]}}</view>
-      </view>
-    </picker>
-    <picker mode="selector" range="{{sortOptions}}" bindchange="onSortChange" value="{{sortIndex}}">
-      <view class="filter-item">
-        <text class="filter-label">排序</text>
-        <view class="filter-value">{{sortOptions[sortIndex]}}</view>
-      </view>
-    </picker>
-  </view>
-
-  <!-- 饰品列表 -->
-  <view class="skin-list">
-    <view class="skin-item" wx:for="{{skinList}}" wx:key="id">
-      <image class="skin-img" src="{{item.image_url}}" mode="aspectFit"></image>
-      <view class="skin-info">
-        <text class="skin-name">{{item.name}}</text>
-        <view class="price-row">
-          <text class="price source">¥{{item.source_price}}</text>
-          <text class="price-arrow">→</text>
-          <text class="price target">¥{{item.target_price}}</text>
-        </view>
-        <view class="profit-row">
-          <text class="diff">+¥{{item.price_diff}}</text>
-          <text class="rate {{getProfitClass(item.profit_rate)}}">{{item.profit_rate}}%</text>
+  <!-- 已登录：挂刀/搬砖完整功能 -->
+  <block wx:if="{{isLoggedIn}}">
+    <!-- 标题卡片 -->
+    <view class="header-card">
+      <view class="header-row">
+        <text class="title-text">挂刀/搬砖</text>
+        <view class="filter-btn" bindtap="toggleFilter">
+          <text>筛选</text>
+          <text class="filter-icon">{{showFilter ? '▲' : '▼'}}</text>
         </view>
       </view>
     </view>
 
-    <!-- 空状态 -->
+    <!-- 平台选择 -->
+    <view class="platform-card">
+      <view class="platform-item">
+        <text class="platform-label">买入平台</text>
+        <picker mode="selector" range="{{platforms}}" bindchange="onSourceChange" value="{{sourceIndex}}">
+          <view class="platform-select">
+            <image class="select-icon" src="/images/{{platformKeys[sourceIndex]}}.png" mode="aspectFit"></image>
+            <text class="select-text">{{platforms[sourceIndex]}}</text>
+            <text class="select-arrow">▼</text>
+          </view>
+        </picker>
+      </view>
+      <view class="platform-item">
+        <text class="platform-label">卖出平台</text>
+        <picker mode="selector" range="{{platforms}}" bindchange="onTargetChange" value="{{targetIndex}}">
+          <view class="platform-select">
+            <image class="select-icon" src="/images/{{platformKeys[targetIndex]}}.png" mode="aspectFit"></image>
+            <text class="select-text">{{platforms[targetIndex]}}</text>
+            <text class="select-arrow">▼</text>
+          </view>
+        </picker>
+      </view>
+    </view>
+
+    <!-- 筛选面板 -->
+    <view class="filter-panel {{showFilter ? 'show' : ''}}">
+      <!-- 价格范围 -->
+      <view class="filter-row">
+        <view class="filter-group">
+          <text class="filter-label">最低价格</text>
+          <input class="filter-input" type="digit" placeholder="0" value="{{minPrice}}" bindinput="onMinPriceInput" />
+        </view>
+        <text class="filter-separator">~</text>
+        <view class="filter-group">
+          <text class="filter-label">最高价格</text>
+          <input class="filter-input" type="digit" placeholder="10000" value="{{maxPrice}}" bindinput="onMaxPriceInput" />
+        </view>
+      </view>
+
+      <!-- 在售量和价格差 -->
+      <view class="filter-row">
+        <view class="filter-group">
+          <text class="filter-label">最小在售量</text>
+          <input class="filter-input" type="number" placeholder="0" value="{{minSellNum}}" bindinput="onMinSellNumInput" />
+        </view>
+        <view class="filter-group">
+          <text class="filter-label">最小价格差</text>
+          <input class="filter-input" type="digit" placeholder="0" value="{{minDiff}}" bindinput="onMinDiffInput" />
+        </view>
+      </view>
+
+      <!-- 类别和排序 -->
+      <view class="filter-row">
+        <view class="filter-group">
+          <text class="filter-label">类别</text>
+          <picker mode="selector" range="{{categoryOptions}}" bindchange="onCategoryChange" value="{{categoryIndex}}">
+            <view class="filter-picker">
+              <text>{{categoryOptions[categoryIndex]}}</text>
+              <text class="picker-arrow">▼</text>
+            </view>
+          </picker>
+        </view>
+        <view class="filter-group">
+          <text class="filter-label">排序</text>
+          <picker mode="selector" range="{{sortOptions}}" bindchange="onSortChange" value="{{sortIndex}}">
+            <view class="filter-picker">
+              <text>{{sortOptions[sortIndex]}}</text>
+              <text class="picker-arrow">▼</text>
+            </view>
+          </picker>
+        </view>
+      </view>
+
+      <!-- 按钮 -->
+      <view class="filter-actions">
+        <button class="btn-confirm" bindtap="doSearch">确定</button>
+      </view>
+    </view>
+
+    <!-- 数据统计 -->
+    <view class="data-stats" wx:if="{{skinList.length > 0}}">
+      <text>共 {{total}} 条数据</text>
+    </view>
+  </block>
+
+  <!-- 未登录：搬砖利润榜 -->
+  <block wx:else>
+    <view class="header-card">
+      <view class="header-title">
+        <text class="title-text">搬砖利润榜</text>
+      </view>
+      <view class="header-desc">
+        <text class="desc-text">利润率TOP10</text>
+      </view>
+    </view>
+
+    <view class="login-tip" bindtap="goLogin">
+      <text class="tip-text">🎁 登录后可筛选、查看完整数据</text>
+      <text class="tip-btn">立即登录 ></text>
+    </view>
+  </block>
+
+  <!-- 数据列表 -->
+  <view class="skin-list" wx:if="{{!loading || skinList.length > 0}}">
+    <view class="skin-item-wrapper" wx:for="{{skinList}}" wx:key="market_hash_name">
+      <view class="skin-item" data-hashname="{{item.market_hash_name}}" bindtap="goDetail">
+        <view class="rank-badge {{index < 3 ? 'top' : ''}}" wx:if="{{!isLoggedIn}}">
+          <text>{{index + 1}}</text>
+        </view>
+        
+        <!-- 左侧：图片和平台数据按钮 -->
+        <view class="skin-left {{isLoggedIn ? '' : 'with-rank'}}">
+          <image class="skin-img" src="{{item.image_url}}" mode="aspectFit"></image>
+          <view class="platform-data-btn" wx:if="{{item.platform_list && item.platform_list.length > 0}}" data-index="{{index}}" catchtap="togglePlatformData">
+            <text>平台数据</text>
+            <text class="btn-arrow">{{item.showPlatform ? '▲' : '▼'}}</text>
+          </view>
+        </view>
+        
+        <view class="skin-info">
+          <text class="skin-name">{{item.name}}</text>
+          
+          <view class="price-row">
+            <view class="price-item">
+              <image class="price-icon" src="{{isLoggedIn ? '/images/' + platformKeys[sourceIndex] + '.png' : '/images/uu.png'}}" mode="aspectFit"></image>
+              <text class="price source">¥{{item.sourcePriceText}}</text>
+            </view>
+            <view class="arrow-wrapper">
+              <view class="arrow-line"></view>
+              <view class="arrow-head"></view>
+            </view>
+            <view class="price-item">
+              <image class="price-icon" src="{{isLoggedIn ? '/images/' + platformKeys[targetIndex] + '.png' : '/images/buff.png'}}" mode="aspectFit"></image>
+              <text class="price target">¥{{item.targetPriceText}}</text>
+            </view>
+          </view>
+          
+          <view class="profit-row">
+            <view class="profit-item">
+              <text class="profit-label">价差</text>
+              <text class="profit-value diff">+¥{{item.priceDiffText}}</text>
+            </view>
+            <view class="profit-item">
+              <text class="profit-label">利润率</text>
+              <text class="profit-value rate {{item.profitClass}}">{{item.profitRateText}}</text>
+            </view>
+            <view class="profit-item" wx:if="{{item.turn_over}}">
+              <text class="profit-label">成交量</text>
+              <text class="profit-value count">{{item.turn_over}}</text>
+            </view>
+            <view class="profit-item" wx:if="{{item.sell_count}}">
+              <text class="profit-label">在售数量</text>
+              <text class="profit-value count">{{item.sell_count}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 各平台数据展开区域 -->
+      <view class="platform-data-panel {{item.showPlatform ? 'show' : ''}}" wx:if="{{item.platform_list && item.platform_list.length > 0}}">
+        <view class="platform-data-item" wx:for="{{item.platform_list}}" wx:for-item="p" wx:key="platformItemId">
+          <view class="platform-name-row">
+            <text class="platform-name">{{p.platformName}}</text>
+          </view>
+          <view class="platform-price-row">
+            <view class="platform-price-item">
+              <text class="platform-price-label">在售价</text>
+              <text class="platform-price-value sell">¥{{p.sellPrice}}</text>
+              <text class="platform-price-count">({{p.sellCount}})</text>
+            </view>
+            <view class="platform-price-item">
+              <text class="platform-price-label">求购价</text>
+              <text class="platform-price-value bid">¥{{p.biddingPrice}}</text>
+              <text class="platform-price-count">({{p.biddingCount}})</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
     <view class="empty" wx:if="{{!loading && skinList.length === 0}}">
       <text class="empty-icon">📦</text>
       <text class="empty-text">暂无数据</text>
     </view>
   </view>
 
-  <!-- 加载更多 -->
-  <view class="load-more" wx:if="{{hasMore}}" bindtap="loadMore">
+  <view class="loading" wx:if="{{loading && skinList.length === 0}}">
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <view class="load-more" wx:if="{{isLoggedIn && hasMore && skinList.length > 0}}" bindtap="loadMore">
     <text>{{loading ? '加载中...' : '加载更多'}}</text>
+  </view>
+
+  <view class="no-more" wx:if="{{isLoggedIn && !hasMore && skinList.length > 0}}">
+    <text>— 没有更多了 —</text>
   </view>
 </view>

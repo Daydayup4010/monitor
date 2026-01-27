@@ -1,0 +1,76 @@
+<!-- 用户协议页面 -->
+<view class="agreement-page">
+  <view class="content">
+    <view class="title">CSGoods 用户服务协议</view>
+    <view class="update-time">更新日期：2026年1月1日</view>
+    
+    <view class="section">
+      <view class="section-title">一、协议的接受与修改</view>
+      <view class="section-content">
+        <text>1.1 欢迎使用CSGoods微信小程序（以下简称"本小程序"）。在使用本小程序前，请您仔细阅读本协议。一旦您使用本小程序，即表示您已阅读、理解并同意接受本协议的所有条款。</text>
+        <text>\n\n1.2 本小程序有权根据需要修改本协议，修改后的协议一经公布即生效。如您继续使用本小程序，即表示您接受修改后的协议。</text>
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">二、服务说明</view>
+      <view class="section-content">
+        <text>2.1 本小程序提供CS2（反恐精英2）游戏饰品在各交易平台间的差价数据查询服务，帮助用户了解不同平台间的价格差异。</text>
+        <text>\n\n2.2 本小程序展示的数据来源于公开的第三方平台，仅供参考。我们不对数据的准确性、完整性、及时性作出任何保证。</text>
+        <text>\n\n2.3 本小程序不直接参与任何饰品交易，不提供交易中介服务，不承担因用户自行交易产生的任何风险和损失。</text>
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">三、用户账号</view>
+      <view class="section-content">
+        <text>3.1 用户可通过微信授权登录本小程序。登录后，您的微信昵称、头像等公开信息可能被用于显示。</text>
+        <text>\n\n3.2 用户应妥善保管自己的账号信息，因账号泄露造成的损失由用户自行承担。</text>
+        <text>\n\n3.3 用户不得将账号转让、出借给他人使用。</text>
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">四、用户行为规范</view>
+      <view class="section-content">
+        <text>4.1 用户在使用本小程序时，应遵守中华人民共和国相关法律法规。</text>
+        <text>\n\n4.2 用户不得利用本小程序从事任何违法违规活动，包括但不限于：</text>
+        <text>\n- 发布、传播违法信息</text>
+        <text>\n- 侵犯他人合法权益</text>
+        <text>\n- 干扰本小程序的正常运行</text>
+        <text>\n- 未经授权访问、收集本小程序数据</text>
+        <text>\n\n4.3 如用户违反上述规定，本小程序有权暂停或终止对该用户的服务。</text>
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">五、知识产权</view>
+      <view class="section-content">
+        <text>5.1 本小程序的所有内容，包括但不限于文字、图片、软件、代码等，均受知识产权法保护。</text>
+        <text>\n\n5.2 未经本小程序书面许可，用户不得复制、修改、传播本小程序的任何内容。</text>
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">六、免责声明</view>
+      <view class="section-content">
+        <text>6.1 本小程序提供的数据仅供参考，不构成任何投资或交易建议。用户应自行判断并承担交易风险。</text>
+        <text>\n\n6.2 因网络状况、系统维护等原因导致的服务中断或数据延迟，本小程序不承担责任。</text>
+        <text>\n\n6.3 因不可抗力（如自然灾害、政策变化等）导致的服务中断，本小程序不承担责任。</text>
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">七、其他条款</view>
+      <view class="section-content">
+        <text>7.1 本协议的解释、效力及争议解决均适用中华人民共和国法律。</text>
+        <text>\n\n7.2 如本协议任何条款被认定为无效，不影响其他条款的效力。</text>
+        <text>\n\n7.3 本小程序保留对本协议的最终解释权。</text>
+      </view>
+    </view>
+
+    <view class="footer">
+      <text>如有疑问，请联系：goods.monitor@foxmail.com</text>
+    </view>
+  </view>
+</view>

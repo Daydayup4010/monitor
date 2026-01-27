@@ -1,0 +1,360 @@
+.detail-page {
+  padding: 24rpx;
+  min-height: 100vh;
+  background: #f5f7fa;
+}
+
+/* 加载中 */
+.loading {
+  padding: 120rpx;
+  text-align: center;
+}
+
+.loading-text {
+  font-size: 28rpx;
+  color: #8c8c8c;
+}
+
+/* 商品头部 */
+.goods-header {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  padding: 24rpx;
+  background: white;
+  border-radius: 16rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+}
+
+.goods-image {
+  width: 160rpx;
+  height: 120rpx;
+  background: #fafafa;
+  border-radius: 12rpx;
+  flex-shrink: 0;
+}
+
+.goods-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.goods-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #262626;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.4;
+  margin-bottom: 12rpx;
+}
+
+.goods-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  font-size: 24rpx;
+}
+
+.meta-label {
+  color: #8c8c8c;
+}
+
+.meta-value {
+  color: #595959;
+  font-weight: 500;
+}
+
+/* 通用卡片标题 */
+.card-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #262626;
+  margin-bottom: 20rpx;
+}
+
+/* 价格涨幅卡片 */
+.price-change-card {
+  background: white;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+}
+
+.price-change-scroll {
+  white-space: nowrap;
+}
+
+.price-change-list {
+  display: inline-flex;
+  gap: 16rpx;
+}
+
+.price-change-item {
+  width: 240rpx;
+  flex-shrink: 0;
+  background: #f5f8fd;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  text-align: center;
+}
+
+.price-change-item.is-up {
+  background: #fff5f5;
+}
+
+.change-label {
+  font-size: 26rpx;
+  color: #595959;
+  margin-bottom: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+}
+
+.change-icon {
+  font-size: 22rpx;
+}
+
+.change-icon.icon-up {
+  color: #ff4d4f;
+}
+
+.change-icon.icon-down {
+  color: #52c41a;
+}
+
+.change-value {
+  font-size: 26rpx;
+  font-weight: 500;
+}
+
+.price-diff {
+  font-weight: 600;
+}
+
+.change-rate {
+  font-size: 24rpx;
+  margin-left: 4rpx;
+}
+
+.text-red {
+  color: #ff4d4f;
+}
+
+.text-green {
+  color: #52c41a;
+}
+
+/* 市场对比卡片 */
+.market-card {
+  background: white;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+}
+
+.market-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.market-item {
+  width: calc(50% - 8rpx);
+  background: #f5f8fd;
+  border-radius: 12rpx;
+  padding: 20rpx;
+}
+
+.market-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12rpx;
+}
+
+.platform-info {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.platform-icon {
+  width: 36rpx;
+  height: 36rpx;
+}
+
+.platform-name {
+  font-size: 26rpx;
+  color: #8c8c8c;
+}
+
+.market-price {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  margin-bottom: 12rpx;
+}
+
+.price-value {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #ff6b00;
+}
+
+.lowest-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36rpx;
+  height: 36rpx;
+  background: #52c41a;
+  color: white;
+  font-size: 20rpx;
+  border-radius: 8rpx;
+}
+
+.market-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.market-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  font-size: 22rpx;
+}
+
+.stat-label {
+  color: #8c8c8c;
+}
+
+.stat-value {
+  color: #595959;
+}
+
+.stat-value.bid {
+  color: #ff4d4f;
+}
+
+.update-time {
+  font-size: 22rpx;
+  color: #bfbfbf;
+}
+
+/* 在售表格 */
+.onsale-card {
+  background: white;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+}
+
+.onsale-table {
+  font-size: 26rpx;
+}
+
+.table-header,
+.table-row {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 0;
+}
+
+.table-header {
+  color: #8c8c8c;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.table-row {
+  border-bottom: 1rpx solid #f5f5f5;
+}
+
+.table-row:last-child {
+  border-bottom: none;
+}
+
+.col-source {
+  flex: 2;
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.col-price,
+.col-bid {
+  flex: 1.5;
+}
+
+.col-count {
+  flex: 1;
+  text-align: right;
+  color: #595959;
+}
+
+.platform-icon-small {
+  width: 32rpx;
+  height: 32rpx;
+}
+
+.platform-name-small {
+  font-size: 24rpx;
+  color: #595959;
+}
+
+.text-orange {
+  color: #ff6b00;
+  font-weight: 500;
+}
+
+/* 提示卡片 */
+.tip-card {
+  padding: 24rpx;
+  text-align: center;
+}
+
+.tip-text {
+  font-size: 24rpx;
+  color: #8c8c8c;
+}
+
+/* 空状态 */
+.empty {
+  padding: 120rpx 40rpx;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.empty-icon {
+  font-size: 96rpx;
+  opacity: 0.3;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #8c8c8c;
+}

@@ -220,6 +220,108 @@ func PayNotify(c *gin.Context) {
 	c.String(http.StatusOK, "SUCCESS")
 }
 
+// 创建小程序支付订单
+func CreateMinAppPayOrder(c *gin.Context) {
+	userID := getUserIdFromContext(c)
+	if userID == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"code": utils.ErrCodePermissionDenied,
+			"msg":  utils.ErrorMessage(utils.ErrCodePermissionDenied),
+		})
+		return
+	}
+
+	// 解析请求参数
+	var req struct {
+		Months int `json:"months"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		req.Months = 1 // 默认1个月
+	}
+
+	// 获取套餐信息
+	plan, ok := models.GetVipPlan(req.Months)
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code": utils.InvalidParameter,
+			"msg":  "无效的套餐",
+		})
+		return
+	}
+
+	// 获取用户的微信OpenID
+	user, code := models.GetUserById(userID)
+	if code != utils.SUCCESS || user.WechatOpenID == nil || *user.WechatOpenID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code": utils.ERROR,
+			"msg":  "请先绑定微信账号",
+		})
+		return
+	}
+
+	// 生成商户订单号
+	outTradeNo := fmt.Sprintf("VIP%s%d", time.Now().Format("20060102150405"), time.Now().UnixNano()%10000)
+
+	// 创建订单记录
+	order, err := models.CreatePaymentOrder(userID, outTradeNo, plan.Price, plan.Months)
+	if err != nil {
+		config.Log.Errorf("CreateMinAppPayOrder: create order failed: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": utils.ERROR,
+			"msg":  "创建订单失败",
+		})
+		return
+	}
+
+	// 商品描述
+	var body string
+	if plan.Months == 1 {
+		body = "CSGoods VIP会员月卡"
+	} else {
+		body = fmt.Sprintf("CSGoods VIP会员%d个月", plan.Months)
+	}
+
+	// 调用YunGouOS小程序支付
+	payResp, err := services.CreateMinAppPay(
+		outTradeNo,
+		plan.Price,
+		body,
+		*user.WechatOpenID,
+		fmt.Sprintf("%s|%d", userID, plan.Months),
+	)
+	if err != nil {
+		config.Log.Errorf("CreateMinAppPayOrder: call minapp pay failed: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": utils.ERROR,
+			"msg":  "创建支付失败",
+		})
+		return
+	}
+
+	if payResp.Code != 0 {
+		config.Log.Errorf("CreateMinAppPayOrder: minapp pay return error: code=%d, msg=%s", payResp.Code, payResp.Msg)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": utils.ERROR,
+			"msg":  fmt.Sprintf("支付创建失败: %s", payResp.Msg),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": utils.SUCCESS,
+		"msg":  utils.ErrorMessage(utils.SUCCESS),
+		"data": gin.H{
+			"order_no":  order.OutTradeNo,
+			"amount":    plan.Price,
+			"timeStamp": payResp.Data.TimeStamp,
+			"nonceStr":  payResp.Data.NonceStr,
+			"package":   payResp.Data.Package,
+			"signType":  payResp.Data.SignType,
+			"paySign":   payResp.Data.PaySign,
+		},
+	})
+}
+
 // 查询订单状态
 func QueryPayOrder(c *gin.Context) {
 	orderNo := c.Query("order_no")

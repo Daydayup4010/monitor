@@ -1,0 +1,171 @@
+// pages/vip/vip.js
+const api = require('../../utils/api.js')
+const app = getApp()
+
+Page({
+  data: {
+    plans: [],
+    selectedPlan: null,
+    loading: false,
+    paying: false,
+    userInfo: null
+  },
+
+  onLoad() {
+    this.loadVipPlans()
+    this.checkUserInfo()
+  },
+
+  onShow() {
+    this.checkUserInfo()
+  },
+
+  // 检查用户信息
+  checkUserInfo() {
+    const userInfo = app.globalData.userInfo
+    this.setData({ userInfo })
+  },
+
+  // 加载VIP套餐
+  async loadVipPlans() {
+    this.setData({ loading: true })
+    
+    try {
+      const res = await api.getVipPlans()
+      if (res.code === 1 && res.data && res.data.plans) {
+        // 将 plans 对象转换为数组并排序
+        const plansObj = res.data.plans
+        const plans = Object.values(plansObj).sort((a, b) => a.months - b.months)
+        
+        // 添加显示信息
+        const plansWithInfo = plans.map(plan => ({
+          ...plan,
+          title: plan.months === 1 ? '月卡' : plan.months === 12 ? '年卡' : `${plan.months}个月`,
+          pricePerMonth: (plan.price / plan.months).toFixed(1),
+          savings: plan.months > 1 ? Math.round((1 - plan.price / (19.9 * plan.months)) * 100) : 0
+        }))
+        
+        this.setData({ 
+          plans: plansWithInfo,
+          selectedPlan: plansWithInfo[0] // 默认选中第一个
+        })
+      }
+    } catch (error) {
+      console.error('加载套餐失败:', error)
+      wx.showToast({
+        title: '加载失败',
+        icon: 'none'
+      })
+    } finally {
+      this.setData({ loading: false })
+    }
+  },
+
+  // 选择套餐
+  selectPlan(e) {
+    const months = e.currentTarget.dataset.months
+    const plan = this.data.plans.find(p => p.months === months)
+    if (plan) {
+      this.setData({ selectedPlan: plan })
+    }
+  },
+
+  // 发起支付
+  async handlePay() {
+    if (!this.data.selectedPlan) {
+      wx.showToast({
+        title: '请选择套餐',
+        icon: 'none'
+      })
+      return
+    }
+
+    // 检查登录状态
+    if (!app.globalData.token) {
+      wx.showModal({
+        title: '提示',
+        content: '请先登录',
+        confirmText: '去登录',
+        success: (res) => {
+          if (res.confirm) {
+            wx.navigateTo({
+              url: '/pages/login/login'
+            })
+          }
+        }
+      })
+      return
+    }
+
+    this.setData({ paying: true })
+
+    try {
+      // 创建支付订单
+      const res = await api.createMinAppPay({
+        months: this.data.selectedPlan.months
+      })
+
+      if (res.code === 1 && res.data) {
+        // 调用微信支付
+        wx.requestPayment({
+          timeStamp: res.data.timeStamp,
+          nonceStr: res.data.nonceStr,
+          package: res.data.package,
+          signType: res.data.signType,
+          paySign: res.data.paySign,
+          success: () => {
+            wx.showToast({
+              title: '支付成功',
+              icon: 'success'
+            })
+            // 刷新用户信息
+            this.refreshUserInfo()
+          },
+          fail: (err) => {
+            console.error('支付失败:', err)
+            if (err.errMsg !== 'requestPayment:fail cancel') {
+              wx.showToast({
+                title: '支付失败',
+                icon: 'none'
+              })
+            }
+          }
+        })
+      } else {
+        wx.showToast({
+          title: res.msg || '创建订单失败',
+          icon: 'none'
+        })
+      }
+    } catch (error) {
+      console.error('支付错误:', error)
+      wx.showToast({
+        title: '支付失败',
+        icon: 'none'
+      })
+    } finally {
+      this.setData({ paying: false })
+    }
+  },
+
+  // 刷新用户信息
+  async refreshUserInfo() {
+    try {
+      const res = await api.getUserInfo()
+      if (res.code === 1 && res.data) {
+        app.globalData.userInfo = res.data
+        wx.setStorageSync('userInfo', res.data)
+        this.setData({ userInfo: res.data })
+      }
+    } catch (error) {
+      console.error('刷新用户信息失败:', error)
+    }
+  },
+
+  // 查看VIP记录
+  goVipRecords() {
+    wx.navigateTo({
+      url: '/pages/vip-records/vip-records'
+    })
+  }
+})

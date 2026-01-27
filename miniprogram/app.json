@@ -1,15 +1,19 @@
 {
   "pages": [
-    "pages/login/login",
     "pages/home/home",
     "pages/my/my",
+    "pages/login/login",
     "pages/settings/settings",
-    "pages/bind-email/bind-email"
+    "pages/bind-email/bind-email",
+    "pages/user-agreement/user-agreement",
+    "pages/privacy-policy/privacy-policy",
+    "pages/detail/detail",
+    "pages/vip/vip"
   ],
   "window": {
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#1890ff",
-    "navigationBarTitleText": "Goods",
+    "navigationBarTitleText": "搬砖助手",
     "navigationBarTextStyle": "white",
     "backgroundColor": "#f5f7fa"
   },
@@ -21,7 +25,7 @@
     "list": [
       {
         "pagePath": "pages/home/home",
-        "text": "饰品数据",
+        "text": "搬砖榜",
         "iconPath": "images/home.png",
         "selectedIconPath": "images/home-active.png"
       },

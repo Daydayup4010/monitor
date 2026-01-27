@@ -168,11 +168,32 @@ func BindEmail(c *gin.Context) {
 		return
 	}
 
-	// 3. Bind email and password
+	// 3. Bind email and password, and grant 2 days VIP trial
 	hashedPassword := models.ScryptPw(req.Password)
+
+	// 计算VIP试用到期时间（2天）
+	var vipExpiry time.Time
+	user, getCode := models.GetUserById(userID)
+	if getCode != utils.SUCCESS {
+		c.JSON(http.StatusOK, gin.H{
+			"code": getCode,
+			"msg":  utils.ErrorMessage(getCode),
+		})
+		return
+	}
+
+	// 如果当前VIP还没过期，在现有基础上加2天；否则从现在开始加2天
+	if user.VipExpiry.After(time.Now()) {
+		vipExpiry = user.VipExpiry.Add(2 * 24 * time.Hour)
+	} else {
+		vipExpiry = time.Now().Add(2 * 24 * time.Hour)
+	}
+
 	updates := map[string]interface{}{
-		"email":    req.Email,
-		"password": hashedPassword,
+		"email":      req.Email,
+		"password":   hashedPassword,
+		"vip_expiry": vipExpiry,
+		"role":       models.RoleVip, // 设置为VIP角色
 	}
 
 	err := config.DB.Model(&models.User{}).Where("id = ?", userID).Updates(updates).Error
@@ -185,9 +206,14 @@ func BindEmail(c *gin.Context) {
 		return
 	}
 
+	config.Log.Infof("user %s bind email %s, granted 2 days VIP trial until %v", userID, req.Email, vipExpiry)
+
 	c.JSON(http.StatusOK, gin.H{
 		"code": utils.SUCCESS,
-		"msg":  utils.ErrorMessage(utils.SUCCESS),
+		"msg":  "绑定成功，已获得2天VIP试用",
+		"data": gin.H{
+			"vip_expiry": vipExpiry,
+		},
 	})
 }
 
