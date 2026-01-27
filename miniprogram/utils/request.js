@@ -56,10 +56,23 @@ const request = (url, options = {}) => {
             reject(data)
           }
         } else if (res.statusCode === 403) {
-          // 403 权限不足，不显示网络错误，静默处理或让页面自己处理
+          // 403 权限不足，提示开通VIP
+          wx.showModal({
+            title: '提示',
+            content: '暂无权限访问，请先开通VIP',
+            confirmText: '去开通',
+            cancelText: '取消',
+            success(modal) {
+              if (modal.confirm) {
+                wx.navigateTo({
+                  url: '/pages/vip/vip'
+                })
+              }
+            }
+          })
           reject({
             code: 403,
-            msg: '暂无权限访问',
+            msg: '暂无权限访问，请先开通VIP',
             statusCode: res.statusCode
           })
         } else if (res.statusCode === 401) {

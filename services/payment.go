@@ -158,7 +158,7 @@ func CreateMinAppPay(outTradeNo string, totalFee float64, body, openId, attach s
 		"total_fee":    fmt.Sprintf("%.2f", totalFee),
 		"mch_id":       paymentConfig.MchId,
 		"body":         body,
-		"openId":       openId,
+		"open_id":      openId,
 		"app_id":       wechatConfig.AppID,
 	}
 
@@ -171,7 +171,7 @@ func CreateMinAppPay(outTradeNo string, totalFee float64, body, openId, attach s
 		"total_fee":    fmt.Sprintf("%.2f", totalFee),
 		"mch_id":       paymentConfig.MchId,
 		"body":         body,
-		"openId":       openId,
+		"open_id":      openId,
 		"app_id":       wechatConfig.AppID,
 		"notify_url":   paymentConfig.NotifyUrl,
 		"sign":         sign,
