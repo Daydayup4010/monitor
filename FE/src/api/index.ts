@@ -306,6 +306,22 @@ export const orderApi = {
     api.get('/admin/orders', { params }),
 }
 
+// 系统配置响应
+export interface SystemConfigData {
+  minapp_vip_enabled: boolean
+}
+
+// 系统配置API（管理员）
+export const systemConfigApi = {
+  // 获取系统配置
+  getConfig: (): Promise<ApiResponse<SystemConfigData>> =>
+    api.get('/admin/system-config'),
+  
+  // 设置小程序VIP开关
+  setMinappVipEnabled: (enabled: boolean): Promise<ApiResponse> =>
+    api.post('/admin/minapp-vip-enabled', { enabled }),
+}
+
 // 设置相关API（VIP用户）
 export const settingsApi = {
   // 获取设置
@@ -590,3 +606,4 @@ export const paymentApi = {
 }
 
 export default api
+

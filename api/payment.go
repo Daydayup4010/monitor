@@ -299,6 +299,7 @@ func CreateMinAppPayOrder(c *gin.Context) {
 	}
 
 	if payResp.Code != 0 {
+		config.Log.Errorf("wechat openID: %s", *user.WechatOpenID)
 		config.Log.Errorf("CreateMinAppPayOrder: minapp pay return error: code=%d, msg=%s", payResp.Code, payResp.Msg)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": utils.ERROR,

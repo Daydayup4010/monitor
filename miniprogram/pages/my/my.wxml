@@ -18,6 +18,10 @@
         <text class="label">绑定邮箱</text>
         <text class="lock">🔒</text>
       </view>
+      <view class="menu-item" bindtap="showContact">
+        <text class="label">联系我们</text>
+        <text class="arrow">></text>
+      </view>
     </view>
   </block>
 
@@ -33,16 +37,19 @@
           <text class="email" wx:else>未绑定邮箱</text>
         </view>
       </view>
-      <view class="vip-badge {{userInfo.role === 1 ? 'active' : ''}}" bindtap="goVip">
+      <view class="vip-badge {{userInfo.role === 1 ? 'active' : ''}}" bindtap="goVip" wx:if="{{vipEnabled}}">
         <text wx:if="{{userInfo.role === 1}}">VIP会员</text>
         <text wx:else>开通VIP</text>
       </view>
+      <view class="vip-badge active" wx:elif="{{userInfo.role === 1}}">
+        <text>VIP会员</text>
+      </view>
     </view>
 
-    <!-- VIP入口 -->
-    <view class="vip-entry" bindtap="goVip" wx:if="{{userInfo.role !== 1}}">
+    <!-- VIP入口 - 仅VIP开关开启且非VIP用户显示 -->
+    <view class="vip-entry" bindtap="goVip" wx:if="{{vipEnabled && userInfo.role !== 1}}">
       <view class="vip-entry-left">
-        <text class="vip-entry-icon">👑</text>
+        <image class="vip-entry-icon" src="/images/vip.png"></image>
         <view class="vip-entry-info">
           <text class="vip-entry-title">开通VIP会员</text>
           <text class="vip-entry-desc">解锁全部功能，查看完整数据</text>
@@ -53,7 +60,8 @@
 
     <!-- 功能列表 -->
     <view class="menu-list">
-      <view class="menu-item" bindtap="goVip">
+      <!-- VIP入口 - 仅VIP开关开启时显示 -->
+      <view class="menu-item" bindtap="goVip" wx:if="{{vipEnabled}}">
         <text class="label">{{userInfo.role === 1 ? 'VIP中心' : '开通VIP'}}</text>
         <text class="arrow">></text>
       </view>
@@ -65,11 +73,43 @@
         <text class="label">绑定邮箱</text>
         <text class="arrow">></text>
       </view>
+      <view class="menu-item" bindtap="showContact">
+        <text class="label">联系我们</text>
+        <text class="arrow">></text>
+      </view>
       <view class="menu-item" bindtap="logout">
         <text class="label">退出登录</text>
         <text class="arrow">></text>
       </view>
     </view>
   </block>
+
+  <!-- 联系我们弹窗 -->
+  <view class="contact-modal" wx:if="{{showContactModal}}" bindtap="hideContact">
+    <view class="contact-content" catchtap="preventBubble">
+      <view class="contact-header">
+        <text class="contact-title">联系我们</text>
+        <text class="contact-close" bindtap="hideContact">×</text>
+      </view>
+      <view class="contact-body">
+        <view class="contact-item" bindtap="copyEmail">
+          <image class="contact-icon" src="/images/email.png"></image>
+          <view class="contact-info">
+            <text class="contact-label">邮箱</text>
+            <text class="contact-value">goods.monitor@foxmail.com</text>
+          </view>
+          <text class="copy-btn">复制</text>
+        </view>
+        <view class="contact-item" bindtap="copyQQ">
+          <image class="contact-icon" src="/images/qq.png"></image>
+          <view class="contact-info">
+            <text class="contact-label">QQ</text>
+            <text class="contact-value">401026211</text>
+          </view>
+          <text class="copy-btn">复制</text>
+        </view>
+      </view>
+    </view>
+  </view>
 </view>
 

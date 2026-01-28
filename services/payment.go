@@ -18,7 +18,7 @@ const YunGouOSBaseURL = "https://api.pay.yungouos.com"
 const NativePayPath = "/api/pay/wxpay/nativePay"
 
 // 小程序支付路径
-const MinAppPayPath = "/api/pay/wxpay/minAppPay"
+const MinAppPayPath = "/api/pay/wxpay/v3/minAppPay"
 
 // 支付请求客户端
 var payClient = utils.CreateClient(YunGouOSBaseURL)
@@ -152,7 +152,6 @@ func CreateMinAppPay(outTradeNo string, totalFee float64, body, openId, attach s
 	}
 
 	// 参与签名的参数（根据YunGouOS文档：out_trade_no, total_fee, mch_id, body, openId, app_id 参与签名）
-	// 注意：attach, notify_url 不参与签名
 	signParams := map[string]string{
 		"out_trade_no": outTradeNo,
 		"total_fee":    fmt.Sprintf("%.2f", totalFee),
@@ -180,7 +179,7 @@ func CreateMinAppPay(outTradeNo string, totalFee float64, body, openId, attach s
 		requestParams["attach"] = attach
 	}
 
-	config.Log.Infof("MinAppPay request: out_trade_no=%s, total_fee=%.2f, body=%s, openId=%s", outTradeNo, totalFee, body, openId)
+	config.Log.Infof("MinAppPay request: out_trade_no=%s, total_fee=%.2f, body=%s, openId=%s, app_id=%s", outTradeNo, totalFee, body, openId, wechatConfig.AppID)
 
 	var result MinAppPayResponse
 	resp, err := payClient.DoRequest("POST", MinAppPayPath, utils.RequestOptions{

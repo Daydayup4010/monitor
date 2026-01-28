@@ -4,7 +4,9 @@ const app = getApp()
 Page({
   data: {
     userInfo: {},
-    isLoggedIn: false
+    isLoggedIn: false,
+    showContactModal: false,
+    vipEnabled: false  // VIP入口开关
   },
 
   onShow() {
@@ -12,13 +14,16 @@ Page({
     app.checkLoginStatus()
     
     const isLoggedIn = !!app.globalData.token
+    const vipEnabled = app.globalData.minAppConfig?.vipEnabled || false
+    
     this.setData({
       isLoggedIn: isLoggedIn,
-      userInfo: app.globalData.userInfo || {}
+      userInfo: app.globalData.userInfo || {},
+      vipEnabled: vipEnabled
     })
 
-    // 检查是否需要引导
-    if (isLoggedIn) {
+    // 检查是否需要引导（仅VIP开关开启时才引导）
+    if (isLoggedIn && vipEnabled) {
       this.checkUserGuide()
     }
   },
@@ -73,7 +78,7 @@ Page({
   showBindEmailGuide() {
     wx.showModal({
       title: '绑定邮箱',
-      content: '绑定邮箱可免费获得2天VIP试用时间，还能在Web端登录查看更多数据',
+      content: '绑定邮箱后可在Web端登录查看更多数据',
       confirmText: '去绑定',
       cancelText: '稍后再说',
       success: (res) => {
@@ -106,6 +111,14 @@ Page({
   },
 
   goVip() {
+    // 检查VIP入口开关
+    if (!app.globalData.minAppConfig?.vipEnabled) {
+      wx.showToast({
+        title: '暂不支持小程序开通',
+        icon: 'none'
+      })
+      return
+    }
     wx.navigateTo({
       url: '/pages/vip/vip'
     })
@@ -122,6 +135,45 @@ Page({
             url: '/pages/login/login'
           })
         }
+      }
+    })
+  },
+
+  // 显示联系我们弹窗
+  showContact() {
+    this.setData({ showContactModal: true })
+  },
+
+  // 隐藏联系我们弹窗
+  hideContact() {
+    this.setData({ showContactModal: false })
+  },
+
+  // 阻止冒泡
+  preventBubble() {},
+
+  // 复制邮箱
+  copyEmail() {
+    wx.setClipboardData({
+      data: 'goods.monitor@foxmail.com',
+      success: () => {
+        wx.showToast({
+          title: '邮箱已复制',
+          icon: 'success'
+        })
+      }
+    })
+  },
+
+  // 复制QQ
+  copyQQ() {
+    wx.setClipboardData({
+      data: '401026211',
+      success: () => {
+        wx.showToast({
+          title: 'QQ已复制',
+          icon: 'success'
+        })
       }
     })
   }

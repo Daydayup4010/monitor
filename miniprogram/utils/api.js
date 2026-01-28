@@ -17,6 +17,9 @@ module.exports = {
   // 验证邮箱验证码
   verifyEmailCode: (email, code) => request.post('/user/verify-email-code', { email, code }),
   
+  // 获取小程序配置（公开API）
+  getMinAppConfig: () => request.get('/public/minapp-config'),
+  
   // 获取饰品数据（VIP）
   getSkinItems: (params) => request.get('/vip/goods/data', params),
   
@@ -35,8 +38,14 @@ module.exports = {
   // 获取用户信息
   getUserInfo: () => request.get('/user/self'),
   
-  // 获取饰品详情
-  getGoodsDetail: (params) => request.get('/vip/goods/detail', params),
+  // 获取饰品详情（需登录，不需VIP）
+  getGoodsDetail: (params) => request.get('/goods/detail', params),
+  
+  // 获取关联磨损数据
+  getRelatedWears: (params) => request.get('/goods/related-wears', params),
+  
+  // 搜索饰品（需登录）
+  searchGoods: (params) => request.get('/goods/search', params),
   
   // VIP支付相关
   getVipPlans: () => request.get('/payment/vip-price'),

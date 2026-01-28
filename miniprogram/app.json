@@ -1,5 +1,6 @@
 {
   "pages": [
+    "pages/landing/landing",
     "pages/home/home",
     "pages/my/my",
     "pages/login/login",
@@ -23,6 +24,12 @@
     "backgroundColor": "#ffffff",
     "borderStyle": "black",
     "list": [
+      {
+        "pagePath": "pages/landing/landing",
+        "text": "首页",
+        "iconPath": "images/home.png",
+        "selectedIconPath": "images/home-active.png"
+      },
       {
         "pagePath": "pages/home/home",
         "text": "搬砖榜",

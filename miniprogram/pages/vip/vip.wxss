@@ -1,81 +1,162 @@
 .vip-page {
   min-height: 100vh;
-  background: linear-gradient(180deg, #1890ff 0%, #f5f7fa 300rpx);
+  background: #f5f7fa;
   padding: 24rpx;
   padding-bottom: 200rpx;
 }
 
-/* VIP状态卡片 */
-.vip-status-card {
+/* VIP头部卡片 */
+.vip-header-card {
   display: flex;
   align-items: center;
-  gap: 24rpx;
-  padding: 40rpx;
+  justify-content: space-between;
+  padding: 40rpx 32rpx;
   background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
   border-radius: 20rpx;
   margin-bottom: 24rpx;
   box-shadow: 0 8rpx 24rpx rgba(255, 170, 0, 0.3);
 }
 
-.vip-icon {
-  font-size: 64rpx;
+.vip-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
 }
 
-.vip-info {
-  display: flex;
-  flex-direction: column;
-  gap: 8rpx;
+.vip-icon {
+  width: 64rpx;
+  height: 64rpx;
 }
 
 .vip-title {
-  font-size: 36rpx;
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #5c3d00;
+}
+
+.vip-header-right {
+  display: flex;
+  align-items: baseline;
+}
+
+.vip-price-label {
+  font-size: 28rpx;
   font-weight: 600;
   color: #5c3d00;
 }
 
-.vip-expiry {
-  font-size: 26rpx;
+.vip-price-value {
+  font-size: 48rpx;
+  font-weight: 700;
+  color: #5c3d00;
+}
+
+.vip-price-unit {
+  font-size: 24rpx;
   color: #8b6914;
 }
 
-/* 特权卡片 */
-.privileges-card {
+/* VIP状态 */
+.vip-status {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 24rpx;
   background: white;
+  border-radius: 12rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+}
+
+.status-label {
+  font-size: 28rpx;
+  color: #595959;
+}
+
+.status-value {
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.status-value.vip {
+  color: #ff9500;
+}
+
+.status-expiry {
+  font-size: 24rpx;
+  color: #8c8c8c;
+  margin-left: 8rpx;
+}
+
+/* 特权卡片 - 深蓝色主题（与Web对齐） */
+.privileges-card {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
   border-radius: 20rpx;
   padding: 32rpx;
   margin-bottom: 24rpx;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.06);
+  box-shadow: 0 10rpx 40rpx rgba(0, 0, 0, 0.3);
+  position: relative;
+  overflow: hidden;
 }
 
-.card-title {
+.privileges-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(255, 215, 0, 0.1) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.privileges-card .card-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #262626;
+  color: #ffd700;
   margin-bottom: 24rpx;
+  position: relative;
+  z-index: 1;
 }
 
-.privileges-list {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20rpx;
+.feature-group {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  position: relative;
+  z-index: 1;
 }
 
-.privilege-item {
+.feature-item {
   display: flex;
   align-items: center;
-  gap: 12rpx;
-  padding: 16rpx;
-  background: #f5f7fa;
-  border-radius: 12rpx;
+  gap: 16rpx;
 }
 
-.privilege-icon {
+.feature-check {
+  width: 36rpx;
+  height: 36rpx;
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4a 100%);
+  color: #1a1a2e;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22rpx;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.feature-text {
   font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.9);
 }
 
-.privilege-text {
-  font-size: 26rpx;
-  color: #595959;
+.feature-divider {
+  height: 1rpx;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 24rpx 0;
+  position: relative;
+  z-index: 1;
 }
 
 /* 套餐卡片 */
@@ -88,14 +169,12 @@
 }
 
 .plans-list {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 16rpx;
 }
 
 .plan-item {
-  flex: 1;
-  min-width: calc(50% - 8rpx);
   padding: 24rpx 16rpx;
   background: #f5f7fa;
   border-radius: 16rpx;
@@ -103,6 +182,7 @@
   position: relative;
   border: 2rpx solid transparent;
   transition: all 0.2s;
+  box-sizing: border-box;
 }
 
 .plan-item.selected {
@@ -110,18 +190,27 @@
   border-color: #1890ff;
 }
 
+.plan-item.recommend {
+  border-color: #ff9500;
+}
+
+.plan-item.recommend.selected {
+  border-color: #1890ff;
+}
+
 .plan-badge {
   position: absolute;
-  top: -10rpx;
-  right: 10rpx;
-  padding: 4rpx 12rpx;
-  background: #ff4d4f;
+  top: -12rpx;
+  right: 16rpx;
+  padding: 4rpx 16rpx;
+  background: linear-gradient(135deg, #ff9500 0%, #ff6b00 100%);
   color: white;
   font-size: 20rpx;
+  font-weight: 500;
   border-radius: 20rpx;
 }
 
-.plan-title {
+.plan-months {
   font-size: 28rpx;
   font-weight: 600;
   color: #262626;
@@ -136,12 +225,13 @@
 }
 
 .price-symbol {
-  font-size: 28rpx;
+  font-size: 24rpx;
   color: #ff6b00;
+  font-weight: 600;
 }
 
 .price-value {
-  font-size: 48rpx;
+  font-size: 44rpx;
   font-weight: 700;
   color: #ff6b00;
 }
@@ -151,71 +241,60 @@
   color: #8c8c8c;
 }
 
-.plan-check {
-  position: absolute;
-  bottom: 12rpx;
-  right: 12rpx;
-  width: 36rpx;
-  height: 36rpx;
-  background: #1890ff;
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24rpx;
-}
-
 .loading-plans {
   text-align: center;
   padding: 40rpx;
   color: #8c8c8c;
 }
 
-/* 支付区域 */
-.pay-section {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: white;
-  padding: 24rpx 32rpx;
-  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
+/* 已选信息 */
+.selected-info {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 -4rpx 12rpx rgba(0, 0, 0, 0.06);
+  padding: 20rpx 24rpx;
+  background: white;
+  border-radius: 12rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
 }
 
-.pay-amount {
-  display: flex;
-  align-items: baseline;
-  gap: 8rpx;
-}
-
-.pay-label {
+.selected-label {
   font-size: 28rpx;
   color: #595959;
 }
 
-.pay-price {
-  font-size: 40rpx;
+.selected-price {
+  font-size: 28rpx;
+  color: #595959;
+}
+
+.price-highlight {
+  font-size: 36rpx;
   font-weight: 700;
   color: #ff6b00;
 }
 
+/* 支付区域 */
+.pay-section {
+  padding: 0 24rpx;
+  margin-bottom: 24rpx;
+}
+
 .pay-btn {
-  padding: 0 60rpx;
-  height: 88rpx;
-  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
-  color: white;
-  font-size: 32rpx;
-  font-weight: 500;
-  border-radius: 44rpx;
+  width: 100%;
+  height: 96rpx;
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4a 100%);
+  color: #1a1a2e;
+  font-size: 34rpx;
+  font-weight: 600;
+  border-radius: 20rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   border: none;
+  box-shadow: 0 8rpx 24rpx rgba(255, 215, 0, 0.4);
+  transition: all 0.3s;
 }
 
 .pay-btn::after {
@@ -225,6 +304,7 @@
 .pay-btn[disabled] {
   background: #d9d9d9;
   color: #8c8c8c;
+  box-shadow: none;
 }
 
 /* 底部说明 */

@@ -1,0 +1,75 @@
+<!-- 首页 Landing -->
+<view class="landing-page">
+  <!-- 顶部 Logo 区域 -->
+  <view class="hero-section">
+    <view class="logo-section">
+      <image class="logo-icon" src="/images/logo.jpeg" mode="aspectFill"></image>
+      <view class="logo-text-wrapper">
+        <text class="logo-text">CS Goods</text>
+        <text class="logo-subtitle">CS2饰品搬砖助手</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 搜索区域 -->
+  <view class="search-section">
+    <view class="search-box">
+      <view class="search-icon">🔍</view>
+      <input 
+        class="search-input" 
+        type="text" 
+        placeholder="搜索饰品名称..."
+        value="{{searchKeyword}}"
+        bindinput="onSearchInput"
+        bindblur="hideResults"
+        confirm-type="search"
+      />
+      <view class="clear-btn" wx:if="{{searchKeyword}}" bindtap="clearSearch">✕</view>
+    </view>
+    
+    <!-- 搜索结果 -->
+    <view class="search-results" wx:if="{{showResults}}">
+      <!-- 加载中 -->
+      <view class="loading-tip" wx:if="{{loading}}">
+        <text>搜索中...</text>
+      </view>
+      
+      <!-- 搜索结果列表 -->
+      <block wx:elif="{{searchResults.length > 0}}">
+        <view 
+          class="result-item" 
+          wx:for="{{searchResults}}" 
+          wx:key="marketHashName"
+          data-item="{{item}}"
+          bindtap="goDetail"
+        >
+          <image 
+            class="result-image" 
+            src="{{item.iconUrl}}" 
+            mode="aspectFit"
+            data-index="{{index}}"
+            binderror="onImageError"
+          ></image>
+          <text class="result-name">{{item.name}}</text>
+        </view>
+      </block>
+      
+      <!-- 需要登录 -->
+      <view class="login-prompt" wx:elif="{{needLogin}}">
+        <text class="prompt-text">登录后可搜索饰品</text>
+        <view class="prompt-btn" bindtap="goLogin">去登录</view>
+      </view>
+      
+      <!-- 无结果 -->
+      <view class="no-results" wx:elif="{{searchKeyword && !loading}}">
+        <text>未找到相关饰品</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部提示 -->
+  <view class="footer-tip" wx:if="{{!isLoggedIn}}">
+    <text class="tip-text">登录后可查看饰品详情</text>
+    <view class="login-btn" bindtap="goLogin">立即登录</view>
+  </view>
+</view>

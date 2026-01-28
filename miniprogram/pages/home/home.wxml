@@ -8,33 +8,68 @@
         <text class="title-text">挂刀/搬砖</text>
         <view class="filter-btn" bindtap="toggleFilter">
           <text>筛选</text>
-          <text class="filter-icon">{{showFilter ? '▲' : '▼'}}</text>
+          <text class="filter-icon {{showFilter ? 'expanded' : ''}}">▼</text>
         </view>
       </view>
     </view>
 
     <!-- 平台选择 -->
     <view class="platform-card">
-      <view class="platform-item">
-        <text class="platform-label">买入平台</text>
-        <picker mode="selector" range="{{platforms}}" bindchange="onSourceChange" value="{{sourceIndex}}">
-          <view class="platform-select">
-            <image class="select-icon" src="/images/{{platformKeys[sourceIndex]}}.png" mode="aspectFit"></image>
-            <text class="select-text">{{platforms[sourceIndex]}}</text>
-            <text class="select-arrow">▼</text>
-          </view>
-        </picker>
+      <view class="platform-row">
+        <!-- 买入平台 -->
+        <view class="platform-item">
+          <text class="platform-label">买入平台</text>
+          <picker mode="selector" range="{{platforms}}" bindchange="onSourceChange" value="{{sourceIndex}}">
+            <view class="platform-picker">
+              <image class="picker-icon" src="/images/{{platformKeys[sourceIndex]}}.png" mode="aspectFit"></image>
+              <text class="picker-text">{{platforms[sourceIndex]}}</text>
+              <text class="picker-arrow">▼</text>
+            </view>
+          </picker>
+        </view>
+        
+        <!-- 卖出平台 -->
+        <view class="platform-item">
+          <text class="platform-label">卖出平台</text>
+          <picker mode="selector" range="{{platforms}}" bindchange="onTargetChange" value="{{targetIndex}}">
+            <view class="platform-picker">
+              <image class="picker-icon" src="/images/{{platformKeys[targetIndex]}}.png" mode="aspectFit"></image>
+              <text class="picker-text">{{platforms[targetIndex]}}</text>
+              <text class="picker-arrow">▼</text>
+            </view>
+          </picker>
+        </view>
       </view>
-      <view class="platform-item">
-        <text class="platform-label">卖出平台</text>
-        <picker mode="selector" range="{{platforms}}" bindchange="onTargetChange" value="{{targetIndex}}">
-          <view class="platform-select">
-            <image class="select-icon" src="/images/{{platformKeys[targetIndex]}}.png" mode="aspectFit"></image>
-            <text class="select-text">{{platforms[targetIndex]}}</text>
-            <text class="select-arrow">▼</text>
-          </view>
-        </picker>
+    </view>
+
+    <!-- 类别标签（横向滚动） -->
+    <scroll-view class="category-scroll" scroll-x="true" enhanced="true" show-scrollbar="false">
+      <view class="category-tags">
+        <view 
+          class="category-tag {{categoryIndex === index ? 'active' : ''}}" 
+          wx:for="{{categoryOptions}}" 
+          wx:key="index"
+          data-index="{{index}}"
+          bindtap="onCategoryTap"
+        >{{item}}</view>
       </view>
+    </scroll-view>
+
+    <!-- 排序标签 -->
+    <view class="sort-bar">
+      <view 
+        class="sort-tag {{sortIndex === index ? 'active' : ''}}" 
+        wx:for="{{sortOptions}}" 
+        wx:key="index"
+        data-index="{{index}}"
+        bindtap="onSortTap"
+      >{{item}}</view>
+    </view>
+
+    <!-- 当前选项描述 -->
+    <view class="filter-desc">
+      <text class="desc-label">当前选项描述：</text>
+      <text class="desc-content">{{filterDescription}}</text>
     </view>
 
     <!-- 筛选面板 -->
@@ -61,28 +96,6 @@
         <view class="filter-group">
           <text class="filter-label">最小价格差</text>
           <input class="filter-input" type="digit" placeholder="0" value="{{minDiff}}" bindinput="onMinDiffInput" />
-        </view>
-      </view>
-
-      <!-- 类别和排序 -->
-      <view class="filter-row">
-        <view class="filter-group">
-          <text class="filter-label">类别</text>
-          <picker mode="selector" range="{{categoryOptions}}" bindchange="onCategoryChange" value="{{categoryIndex}}">
-            <view class="filter-picker">
-              <text>{{categoryOptions[categoryIndex]}}</text>
-              <text class="picker-arrow">▼</text>
-            </view>
-          </picker>
-        </view>
-        <view class="filter-group">
-          <text class="filter-label">排序</text>
-          <picker mode="selector" range="{{sortOptions}}" bindchange="onSortChange" value="{{sortIndex}}">
-            <view class="filter-picker">
-              <text>{{sortOptions[sortIndex]}}</text>
-              <text class="picker-arrow">▼</text>
-            </view>
-          </picker>
         </view>
       </view>
 
@@ -126,9 +139,12 @@
         <!-- 左侧：图片和平台数据按钮 -->
         <view class="skin-left {{isLoggedIn ? '' : 'with-rank'}}">
           <image class="skin-img" src="{{item.image_url}}" mode="aspectFit"></image>
-          <view class="platform-data-btn" wx:if="{{item.platform_list && item.platform_list.length > 0}}" data-index="{{index}}" catchtap="togglePlatformData">
-            <text>平台数据</text>
-            <text class="btn-arrow">{{item.showPlatform ? '▲' : '▼'}}</text>
+          <view class="platform-data-wrapper" wx:if="{{item.platform_list && item.platform_list.length > 0}}">
+            <view class="platform-data-btn" data-index="{{index}}" catchtap="togglePlatformData">
+              <text>平台数据</text>
+              <text class="btn-arrow {{item.showPlatform ? 'expanded' : ''}}">▼</text>
+            </view>
+            <view class="lower-price-tip" wx:if="{{item.hasLowerPrice}}">有更低价格平台</view>
           </view>
         </view>
         
@@ -173,21 +189,39 @@
       
       <!-- 各平台数据展开区域 -->
       <view class="platform-data-panel {{item.showPlatform ? 'show' : ''}}" wx:if="{{item.platform_list && item.platform_list.length > 0}}">
-        <view class="platform-data-item" wx:for="{{item.platform_list}}" wx:for-item="p" wx:key="platformItemId">
-          <view class="platform-name-row">
-            <text class="platform-name">{{p.platformName}}</text>
+        <!-- 卖出平台抬头（高亮区块） -->
+        <view class="target-platform-header" wx:if="{{item.targetPlatformData}}">
+          <view class="target-platform-info">
+            <image class="target-platform-icon" src="{{item.targetPlatformData.icon}}" mode="aspectFit"></image>
+            <text class="target-platform-name">{{item.targetPlatformData.platformName}}</text>
           </view>
-          <view class="platform-price-row">
-            <view class="platform-price-item">
-              <text class="platform-price-label">在售价</text>
-              <text class="platform-price-value sell">¥{{p.sellPrice}}</text>
-              <text class="platform-price-count">({{p.sellCount}})</text>
+          <view class="target-platform-prices">
+            <text class="target-price-item">在售价(¥): <text class="sell">{{item.targetPlatformData.sellPrice}}</text>({{item.targetPlatformData.sellCount}})</text>
+            <text class="target-price-item">求购价(¥): <text class="bid">{{item.targetPlatformData.biddingPrice}}</text>({{item.targetPlatformData.biddingCount}})</text>
+          </view>
+        </view>
+        <!-- 其他平台表格 -->
+        <view class="other-platforms-table" wx:if="{{item.otherPlatforms && item.otherPlatforms.length > 0}}">
+          <view class="platform-table-header">
+            <text class="col-platform">平台</text>
+            <text class="col-sell">在售价(¥)</text>
+            <text class="col-bid">求购价(¥)</text>
+            <text class="col-diff">价格差(¥)</text>
+          </view>
+          <view class="platform-table-row" wx:for="{{item.otherPlatforms}}" wx:for-item="p" wx:key="platformItemId">
+            <view class="col-platform">
+              <image class="platform-icon-small" src="{{p.icon}}" mode="aspectFit"></image>
+              <text>{{p.platformName}}</text>
             </view>
-            <view class="platform-price-item">
-              <text class="platform-price-label">求购价</text>
-              <text class="platform-price-value bid">¥{{p.biddingPrice}}</text>
-              <text class="platform-price-count">({{p.biddingCount}})</text>
+            <view class="col-sell">
+              <text class="sell-price">{{p.sellPrice}}</text>
+              <text class="count">({{p.sellCount}})</text>
             </view>
+            <view class="col-bid">
+              <text class="bid-price">{{p.biddingPrice}}</text>
+              <text class="count">({{p.biddingCount}})</text>
+            </view>
+            <text class="col-diff diff-price">{{p.price_diff || '-'}}</text>
           </view>
         </view>
       </view>
@@ -203,11 +237,17 @@
     <text class="loading-text">加载中...</text>
   </view>
 
-  <view class="load-more" wx:if="{{isLoggedIn && hasMore && skinList.length > 0}}" bindtap="loadMore">
-    <text>{{loading ? '加载中...' : '加载更多'}}</text>
-  </view>
-
-  <view class="no-more" wx:if="{{isLoggedIn && !hasMore && skinList.length > 0}}">
-    <text>— 没有更多了 —</text>
+  <!-- 底部加载状态 -->
+  <view class="load-status" wx:if="{{isLoggedIn && skinList.length > 0}}">
+    <view class="loading-more" wx:if="{{hasMore && loading}}">
+      <view class="loading-spinner"></view>
+      <text>加载中...</text>
+    </view>
+    <view class="has-more-tip" wx:elif="{{hasMore && !loading}}">
+      <text>上拉加载更多</text>
+    </view>
+    <view class="no-more" wx:else>
+      <text>— 没有更多了 —</text>
+    </view>
   </view>
 </view>

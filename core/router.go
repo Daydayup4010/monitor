@@ -37,6 +37,17 @@ func InitRouter() *gin.Engine {
 			}),
 			api.GetPublicHomeData,
 		)
+		// 公开搜索接口（不需要登录）
+		public.GET("search",
+			middleware.RateLimiterByIP(middleware.RateLimiterConfig{
+				Window:      60 * time.Second,
+				MaxRequests: 30,
+				KeyPrefix:   "public:search",
+			}),
+			api.SearchGoods,
+		)
+		// 小程序配置（公开API）
+		public.GET("minapp-config", api.GetMinAppConfig)
 	}
 
 	user := v1.Group("user")
@@ -147,6 +158,9 @@ func InitRouter() *gin.Engine {
 		admin.DELETE("user", api.DeleteUser)
 		admin.POST("vip-expiry", api.RenewVipExpiry)
 		admin.GET("orders", api.GetAllOrders)
+		// 系统配置
+		admin.GET("system-config", api.GetSystemConfigs)
+		admin.POST("minapp-vip-enabled", api.SetMinAppVipEnabled)
 	}
 
 	tokens := admin.Group("tokens")

@@ -229,19 +229,15 @@ Page({
   // 绑定成功处理
   handleBindSuccess(res) {
     wx.showToast({
-      title: '绑定成功，获得2天VIP试用',
-      icon: 'none',
+      title: '绑定成功',
+      icon: 'success',
       duration: 2000
     })
 
-    // 更新用户信息，包括VIP状态
+    // 更新用户信息
     const userInfo = app.globalData.userInfo
     userInfo.email = this.data.email
     userInfo.has_email = true
-    userInfo.role = 1  // VIP角色
-    if (res && res.data && res.data.vip_expiry) {
-      userInfo.vip_expiry = res.data.vip_expiry
-    }
     app.saveLoginInfo(app.globalData.token, userInfo)
 
     // 跳转到首页

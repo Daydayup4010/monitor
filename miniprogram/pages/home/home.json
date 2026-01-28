@@ -2,6 +2,7 @@
   "usingComponents": {},
   "navigationBarTitleText": "挂刀/搬砖",
   "enablePullDownRefresh": true,
-  "backgroundTextStyle": "dark"
+  "backgroundTextStyle": "dark",
+  "onReachBottomDistance": 100
 }
 

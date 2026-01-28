@@ -1,4 +1,6 @@
 // app.js
+const api = require('./utils/api.js')
+
 App({
   onLaunch() {
     // 小程序启动时执行
@@ -6,12 +8,37 @@ App({
     
     // 检查登录状态
     this.checkLoginStatus()
+    
+    // 获取小程序配置
+    this.fetchMinAppConfig()
   },
 
   globalData: {
     userInfo: null,
     token: null,
-    baseURL: 'https://www.csgoods.com.cn/api/v1'  // 后端API地址
+    // baseURL: 'http://localhost:3100/api/v1'  // 后端API地址（本地开发）
+    baseURL: 'https://www.csgoods.com.cn/api/v1',  // 后端API地址
+    // 小程序配置
+    minAppConfig: {
+      vipEnabled: false  // VIP开通入口开关，默认关闭
+    },
+    configLoaded: false  // 配置是否已加载
+  },
+
+  // 获取小程序配置
+  async fetchMinAppConfig() {
+    try {
+      const res = await api.getMinAppConfig()
+      if (res.code === 1 && res.data) {
+        this.globalData.minAppConfig = {
+          vipEnabled: res.data.vip_enabled || false
+        }
+      }
+    } catch (error) {
+      console.error('获取小程序配置失败:', error)
+    } finally {
+      this.globalData.configLoaded = true
+    }
   },
 
   // 检查登录状态

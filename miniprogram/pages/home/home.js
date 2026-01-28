@@ -35,16 +35,21 @@ Page({
     total: 0,
     
     // 展开筛选面板
-    showFilter: false
+    showFilter: false,
+    
+    // 筛选描述
+    filterDescription: ''
   },
 
   onLoad() {
     this.checkLoginStatus()
     if (this.data.isLoggedIn) {
       this.loadSettings().then(() => {
+        this.updateFilterDescription()
         this.loadData()
       })
     } else {
+      this.updateFilterDescription()
       this.loadData()
     }
   },
@@ -80,6 +85,9 @@ Page({
   checkUserGuide() {
     // 如果已经显示过引导，不再重复
     if (app.globalData.hasShownGuide) return
+    
+    // 如果VIP开关关闭，不引导开通VIP
+    const vipEnabled = app.globalData.minAppConfig?.vipEnabled || false
 
     const userInfo = app.globalData.userInfo
     if (!userInfo) return
@@ -92,8 +100,8 @@ Page({
     }
     const hasEmail = userInfo.email && userInfo.email !== ''
 
-    // 如果不是VIP
-    if (!isVip) {
+    // 如果不是VIP且VIP开关开启
+    if (!isVip && vipEnabled) {
       app.globalData.hasShownGuide = true
       if (hasEmail) {
         // 已绑定邮箱，引导开通VIP
@@ -126,7 +134,7 @@ Page({
   showBindEmailGuide() {
     wx.showModal({
       title: '绑定邮箱',
-      content: '绑定邮箱可免费获得2天VIP试用时间，还能在Web端登录查看更多数据',
+      content: '绑定邮箱后可在Web端登录查看更多数据',
       confirmText: '去绑定',
       cancelText: '稍后再说',
       success: (res) => {
@@ -189,19 +197,48 @@ Page({
     this.setData({ minDiff: e.detail.value })
   },
 
-  // 类别选择
+  // 类别标签点击
+  onCategoryTap(e) {
+    const index = e.currentTarget.dataset.index
+    if (index === this.data.categoryIndex) return
+    this.setData({ 
+      categoryIndex: index,
+      pageNum: 1,
+      skinList: []
+    }, () => {
+      this.updateFilterDescription()
+      this.loadData()
+    })
+  },
+
+  // 排序标签点击
+  onSortTap(e) {
+    const index = e.currentTarget.dataset.index
+    if (index === this.data.sortIndex) return
+    this.setData({ 
+      sortIndex: index,
+      pageNum: 1,
+      skinList: []
+    }, () => {
+      this.loadData()
+    })
+  },
+
+  // 类别选择（picker备用）
   onCategoryChange(e) {
-    this.setData({ categoryIndex: parseInt(e.detail.value) })
+    this.onCategoryTap({ currentTarget: { dataset: { index: parseInt(e.detail.value) } } })
   },
 
-  // 排序选择
+  // 排序选择（picker备用）
   onSortChange(e) {
-    this.setData({ sortIndex: parseInt(e.detail.value) })
+    this.onSortTap({ currentTarget: { dataset: { index: parseInt(e.detail.value) } } })
   },
 
-  // 平台切换
+  // 买入平台切换
   onSourceChange(e) {
     const index = parseInt(e.detail.value)
+    if (index === this.data.sourceIndex) return
+    
     let targetIndex = this.data.targetIndex
     // 如果买入卖出平台相同，自动切换到下一个
     if (index === targetIndex) {
@@ -213,12 +250,16 @@ Page({
       pageNum: 1,
       skinList: []
     }, () => {
+      this.updateFilterDescription()
       this.loadData()
     })
   },
 
+  // 卖出平台切换
   onTargetChange(e) {
     const index = parseInt(e.detail.value)
+    if (index === this.data.targetIndex) return
+    
     let sourceIndex = this.data.sourceIndex
     // 如果买入卖出平台相同，自动切换到下一个
     if (index === sourceIndex) {
@@ -230,6 +271,7 @@ Page({
       pageNum: 1,
       skinList: []
     }, () => {
+      this.updateFilterDescription()
       this.loadData()
     })
   },
@@ -253,6 +295,7 @@ Page({
       skinList: [],
       showFilter: false
     }, () => {
+      this.updateFilterDescription()
       this.loadData()
     })
   },
@@ -354,6 +397,17 @@ Page({
   },
 
   processData(list) {
+    // 平台名称和图标映射
+    const platformIconMap = {
+      'BUFF': '/images/buff.png',
+      '悠悠': '/images/uu.png',
+      'C5GAME': '/images/c5.png',
+      'Steam': '/images/steam.png'
+    }
+    
+    // 当前卖出平台名称
+    const targetPlatformName = this.data.platforms[this.data.targetIndex]
+    
     return list.map(item => {
       const rate = item.profit_rate || 0
       const percent = rate * 100
@@ -363,10 +417,27 @@ Page({
       if (platformList.length > 0) {
         platformList = platformList.map(p => ({
           ...p,
+          sellPriceNum: Number(p.sellPrice || 0),
           sellPrice: Number(p.sellPrice || 0).toFixed(2),
-          biddingPrice: Number(p.biddingPrice || 0).toFixed(2)
+          biddingPrice: Number(p.biddingPrice || 0).toFixed(2),
+          icon: platformIconMap[p.platformName] || '/images/buff.png'
         }))
       }
+      
+      // 分离卖出平台数据和其他平台数据
+      let targetPlatformData = null
+      let otherPlatforms = []
+      
+      if (platformList.length > 0) {
+        targetPlatformData = platformList.find(p => p.platformName === targetPlatformName)
+        otherPlatforms = platformList.filter(p => p.platformName !== targetPlatformName)
+      }
+      
+      // 判断是否有平台价格低于买入平台价格
+      const sourcePrice = Number(item.source_price || 0)
+      const hasLowerPrice = platformList.some(p => 
+        p.sellPriceNum > 0 && p.sellPriceNum < sourcePrice
+      )
       
       return {
         ...item,
@@ -376,7 +447,10 @@ Page({
         profitRateText: percent.toFixed(1) + '%',
         profitClass: this.getProfitClass(rate),
         platform_list: platformList,
-        showPlatform: false
+        targetPlatformData: targetPlatformData,
+        otherPlatforms: otherPlatforms,
+        showPlatform: false,
+        hasLowerPrice: hasLowerPrice
       }
     })
   },
@@ -386,6 +460,11 @@ Page({
     this.setData({ pageNum: this.data.pageNum + 1 }, () => {
       this.loadData()
     })
+  },
+
+  // 页面触底自动加载更多
+  onReachBottom() {
+    this.loadMore()
   },
 
   onPullDownRefresh() {
@@ -402,6 +481,33 @@ Page({
     if (percent >= 40) return 'warning'
     if (percent >= 20) return 'success'
     return 'primary'
+  },
+
+  // 更新筛选描述
+  updateFilterDescription() {
+    const sourceName = this.data.platforms[this.data.sourceIndex]
+    const targetName = this.data.platforms[this.data.targetIndex]
+    
+    const minPrice = this.data.minPrice || 0
+    const maxPrice = this.data.maxPrice || 10000
+    const priceRange = `价格${minPrice}-${maxPrice}元`
+    
+    let conditions = []
+    if (this.data.minSellNum) {
+      conditions.push(`在售量大于${this.data.minSellNum}件`)
+    }
+    if (this.data.minDiff) {
+      conditions.push(`价格差大于${this.data.minDiff}元`)
+    }
+    if (this.data.categoryIndex > 0) {
+      conditions.push(`类别：${this.data.categoryOptions[this.data.categoryIndex]}`)
+    }
+    
+    const conditionStr = conditions.length > 0 ? '，' + conditions.join('，') : ''
+    
+    this.setData({
+      filterDescription: `从${sourceName}平台买入饰品，到${targetName}平台卖出（${priceRange}${conditionStr}）`
+    })
   },
 
   // 切换平台数据展开状态

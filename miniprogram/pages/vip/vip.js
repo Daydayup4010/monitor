@@ -8,7 +8,9 @@ Page({
     selectedPlan: null,
     loading: false,
     paying: false,
-    userInfo: null
+    userInfo: null,
+    lowestPrice: '14.2',  // 默认最低月付价格
+    formatExpiry: ''      // 格式化的到期时间
   },
 
   onLoad() {
@@ -23,7 +25,12 @@ Page({
   // 检查用户信息
   checkUserInfo() {
     const userInfo = app.globalData.userInfo
-    this.setData({ userInfo })
+    let formatExpiry = ''
+    if (userInfo && userInfo.vip_expiry) {
+      const date = new Date(userInfo.vip_expiry)
+      formatExpiry = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+    }
+    this.setData({ userInfo, formatExpiry })
   },
 
   // 加载VIP套餐
@@ -42,12 +49,20 @@ Page({
           ...plan,
           title: plan.months === 1 ? '月卡' : plan.months === 12 ? '年卡' : `${plan.months}个月`,
           pricePerMonth: (plan.price / plan.months).toFixed(1),
-          savings: plan.months > 1 ? Math.round((1 - plan.price / (19.9 * plan.months)) * 100) : 0
+          savings: plan.months > 1 ? Math.round((1 - plan.price / (19.9 * plan.months)) * 100) : 0,
+          recommend: plan.months === 12  // 12个月为推荐
         }))
+        
+        // 计算最低月付价格
+        const lowestPrice = Math.min(...plansWithInfo.map(p => p.price / p.months)).toFixed(1)
+        
+        // 默认选中12个月（推荐）
+        const defaultPlan = plansWithInfo.find(p => p.months === 12) || plansWithInfo[0]
         
         this.setData({ 
           plans: plansWithInfo,
-          selectedPlan: plansWithInfo[0] // 默认选中第一个
+          selectedPlan: defaultPlan,
+          lowestPrice
         })
       }
     } catch (error) {
