@@ -80,9 +80,9 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	// 注册成功后自动登录：生成 token
+	// 注册成功后自动登录：生成 token（Web端注册）
 	tokenVersion := models.GenerateTokenVersion()
-	if err := models.SetTokenVersion(c.Request.Context(), user.ID, tokenVersion); err != nil {
+	if err := models.SetTokenVersion(c.Request.Context(), user.ID, models.ClientTypeWeb, tokenVersion); err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code": utils.SUCCESS,
 			"msg":  "注册成功，请登录",
@@ -90,7 +90,7 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	token, err := utils.GenerateJWT(user.ID, user.UserName, user.Role, user.VipExpiry, user.Email, tokenVersion)
+	token, err := utils.GenerateJWT(user.ID, user.UserName, user.Role, user.VipExpiry, user.Email, tokenVersion, models.ClientTypeWeb)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code": utils.SUCCESS,
@@ -117,11 +117,12 @@ func GetUserList(c *gin.Context) {
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
 	pageNum, _ := strconv.Atoi(c.DefaultQuery("page_num", "1"))
 	search := c.Query("search")
-	users, total, code := models.GetUserList(pageSize, pageNum, search)
+	users, total, vipCount, code := models.GetUserList(pageSize, pageNum, search)
 	c.JSON(http.StatusOK, gin.H{
 		"code":      code,
 		"data":      users,
 		"total":     total,
+		"vip_count": vipCount,
 		"page_size": pageSize,
 		"page_num":  pageNum,
 	})
@@ -321,8 +322,15 @@ func RefreshToken(c *gin.Context) {
 		return
 	}
 
+	// 获取客户端类型
+	clientType, _ := c.Get("clientType")
+	clientTypeStr, ok := clientType.(string)
+	if !ok || clientTypeStr == "" {
+		clientTypeStr = models.ClientTypeWeb
+	}
+
 	// 获取当前的 token 版本号（沿用，不重新生成）
-	currentVersion, err := models.GetTokenVersion(c.Request.Context(), user.ID)
+	currentVersion, err := models.GetTokenVersion(c.Request.Context(), user.ID, clientTypeStr)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"code": utils.ErrCodeTokenKicked,
@@ -332,7 +340,7 @@ func RefreshToken(c *gin.Context) {
 	}
 
 	// 刷新 Redis 中版本号的过期时间
-	if err := models.SetTokenVersion(c.Request.Context(), user.ID, currentVersion); err != nil {
+	if err := models.SetTokenVersion(c.Request.Context(), user.ID, clientTypeStr, currentVersion); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": utils.ErrCodeTokenGenerate,
 			"msg":  "刷新失败，请重试",
@@ -341,7 +349,7 @@ func RefreshToken(c *gin.Context) {
 	}
 
 	// 生成新的token（使用最新的用户信息 + 原版本号）
-	newToken, err := utils.GenerateJWT(user.ID, user.UserName, user.Role, user.VipExpiry, user.Email, currentVersion)
+	newToken, err := utils.GenerateJWT(user.ID, user.UserName, user.Role, user.VipExpiry, user.Email, currentVersion, clientTypeStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code": utils.ErrCodeTokenGenerate,
@@ -364,7 +372,7 @@ func RefreshToken(c *gin.Context) {
 	})
 }
 
-// Logout 登出（使当前 token 失效）
+// Logout 登出（使当前客户端的 token 失效）
 func Logout(c *gin.Context) {
 	userID, _ := c.Get("userID")
 	userIDVal, ok := userID.(uuid.UUID)
@@ -376,8 +384,15 @@ func Logout(c *gin.Context) {
 		return
 	}
 
-	// 删除 Redis 中的 token 版本号，使所有该用户的 token 失效
-	if err := models.InvalidateTokenVersion(c.Request.Context(), userIDVal); err != nil {
+	// 获取客户端类型
+	clientType, _ := c.Get("clientType")
+	clientTypeStr, ok := clientType.(string)
+	if !ok || clientTypeStr == "" {
+		clientTypeStr = models.ClientTypeWeb
+	}
+
+	// 删除 Redis 中当前客户端类型的 token 版本号
+	if err := models.InvalidateTokenVersion(c.Request.Context(), userIDVal, clientTypeStr); err != nil {
 		config.Log.Errorf("logout invalidate token error: %v", err)
 		// 即使失败也返回成功，因为客户端会清除本地 token
 	}

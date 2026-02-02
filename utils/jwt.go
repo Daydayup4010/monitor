@@ -17,11 +17,12 @@ type Claims struct {
 	VipExpiry    time.Time `json:"vip_expiry"`
 	Email        string    `json:"email"`
 	TokenVersion string    `json:"token_version"` // 用于单设备登录验证
+	ClientType   string    `json:"client_type"`   // 客户端类型：web/miniprogram
 	jwt.RegisteredClaims
 }
 
 // GenerateJWT 生成JWT令牌
-func GenerateJWT(userID uuid.UUID, username string, role int64, vipExpiry time.Time, email string, tokenVersion string) (string, error) {
+func GenerateJWT(userID uuid.UUID, username string, role int64, vipExpiry time.Time, email string, tokenVersion string, clientType string) (string, error) {
 	claims := &Claims{
 		UserID:       userID,
 		Username:     username,
@@ -29,6 +30,7 @@ func GenerateJWT(userID uuid.UUID, username string, role int64, vipExpiry time.T
 		VipExpiry:    vipExpiry,
 		Email:        email,
 		TokenVersion: tokenVersion,
+		ClientType:   clientType,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)), // 24小时有效期
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

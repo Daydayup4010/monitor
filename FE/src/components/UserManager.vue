@@ -173,6 +173,7 @@ import vipIcon from '@/assets/icons/vip.png'
 const loading = ref(false)
 const userList = ref<UserListItem[]>([])
 const total = ref(0)
+const vipCount = ref(0)  // VIP用户总数（从后端获取）
 const pageNum = ref(1)
 const pageSize = ref(10)
 const searchKeyword = ref('')
@@ -182,12 +183,6 @@ const renewLoading = ref(false)
 const currentUser = ref<UserListItem>({} as UserListItem)
 const renewForm = reactive({
   days: 1,  // 默认1个月
-})
-
-const vipCount = computed(() => {
-  return userList.value.filter(user => 
-    user.role === 1 && isVipValid(user.vip_expiry)
-  ).length
 })
 
 const renewDialogTitle = computed(() => {
@@ -261,6 +256,7 @@ const loadUserList = async () => {
     if (response.code === 1) {
       userList.value = response.data || []
       total.value = response.total || 0
+      vipCount.value = response.vip_count || 0  // 使用后端返回的VIP用户总数
     }
   } catch (error) {
     console.error('加载用户列表失败:', error)

@@ -569,6 +569,11 @@ Page({
 
   // 下拉刷新
   onPullDownRefresh() {
+    // 清除旧的 canvas 引用，因为 loading 状态变化会导致 DOM 重建
+    this.canvas = null
+    this.ctx = null
+    this.chartInfo = null
+    
     this.fetchDetail().then(() => {
       wx.stopPullDownRefresh()
     })

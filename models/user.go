@@ -175,9 +175,10 @@ func UpdateUserLastLogin(user *User) {
 	}
 }
 
-func GetUserList(pageSize, pageNum int, search string) ([]UserResponse, int64, int) {
+func GetUserList(pageSize, pageNum int, search string) ([]UserResponse, int64, int64, int) {
 	var users []UserResponse
 	var total int64
+	var vipCount int64
 
 	query := config.DB.Model(&User{})
 
@@ -194,9 +195,13 @@ func GetUserList(pageSize, pageNum int, search string) ([]UserResponse, int64, i
 
 	if err != nil {
 		config.Log.Errorf("Get user list error: %v", err)
-		return users, total, utils.ErrCodeGetUserList
+		return users, total, 0, utils.ErrCodeGetUserList
 	}
-	return users, total, utils.SUCCESS
+
+	// 统计 VIP 用户总数（role=1 且 vip_expiry 未过期）
+	config.DB.Model(&User{}).Where("role = ? AND vip_expiry > ?", RoleVip, time.Now()).Count(&vipCount)
+
+	return users, total, vipCount, utils.SUCCESS
 }
 
 func SaveEmailCode(email, code string, c context.Context) int {

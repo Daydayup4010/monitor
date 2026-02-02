@@ -5,7 +5,6 @@ Page({
   data: {
     userInfo: {},
     isLoggedIn: false,
-    showContactModal: false,
     vipEnabled: false  // VIP入口开关
   },
 
@@ -135,45 +134,6 @@ Page({
             url: '/pages/login/login'
           })
         }
-      }
-    })
-  },
-
-  // 显示联系我们弹窗
-  showContact() {
-    this.setData({ showContactModal: true })
-  },
-
-  // 隐藏联系我们弹窗
-  hideContact() {
-    this.setData({ showContactModal: false })
-  },
-
-  // 阻止冒泡
-  preventBubble() {},
-
-  // 复制邮箱
-  copyEmail() {
-    wx.setClipboardData({
-      data: 'goods.monitor@foxmail.com',
-      success: () => {
-        wx.showToast({
-          title: '邮箱已复制',
-          icon: 'success'
-        })
-      }
-    })
-  },
-
-  // 复制QQ
-  copyQQ() {
-    wx.setClipboardData({
-      data: '401026211',
-      success: () => {
-        wx.showToast({
-          title: 'QQ已复制',
-          icon: 'success'
-        })
       }
     })
   }

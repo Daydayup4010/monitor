@@ -18,10 +18,10 @@
         <text class="label">绑定邮箱</text>
         <text class="lock">🔒</text>
       </view>
-      <view class="menu-item" bindtap="showContact">
-        <text class="label">联系我们</text>
+      <button class="menu-item contact-btn" open-type="contact">
+        <text class="label">联系客服</text>
         <text class="arrow">></text>
-      </view>
+      </button>
     </view>
   </block>
 
@@ -73,43 +73,15 @@
         <text class="label">绑定邮箱</text>
         <text class="arrow">></text>
       </view>
-      <view class="menu-item" bindtap="showContact">
-        <text class="label">联系我们</text>
+      <button class="menu-item contact-btn" open-type="contact">
+        <text class="label">联系客服</text>
         <text class="arrow">></text>
-      </view>
+      </button>
       <view class="menu-item" bindtap="logout">
         <text class="label">退出登录</text>
         <text class="arrow">></text>
       </view>
     </view>
   </block>
-
-  <!-- 联系我们弹窗 -->
-  <view class="contact-modal" wx:if="{{showContactModal}}" bindtap="hideContact">
-    <view class="contact-content" catchtap="preventBubble">
-      <view class="contact-header">
-        <text class="contact-title">联系我们</text>
-        <text class="contact-close" bindtap="hideContact">×</text>
-      </view>
-      <view class="contact-body">
-        <view class="contact-item" bindtap="copyEmail">
-          <image class="contact-icon" src="/images/email.png"></image>
-          <view class="contact-info">
-            <text class="contact-label">邮箱</text>
-            <text class="contact-value">goods.monitor@foxmail.com</text>
-          </view>
-          <text class="copy-btn">复制</text>
-        </view>
-        <view class="contact-item" bindtap="copyQQ">
-          <image class="contact-icon" src="/images/qq.png"></image>
-          <view class="contact-info">
-            <text class="contact-label">QQ</text>
-            <text class="contact-value">401026211</text>
-          </view>
-          <text class="copy-btn">复制</text>
-        </view>
-      </view>
-    </view>
-  </view>
 </view>
 

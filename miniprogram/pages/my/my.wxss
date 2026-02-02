@@ -119,11 +119,14 @@
 .label {
   font-size: 28rpx;
   color: #262626;
+  flex: 1;
 }
 
 .arrow {
   color: #8c8c8c;
   font-size: 28rpx;
+  flex-shrink: 0;
+  line-height: 1;
 }
 
 /* 未登录状态 */
@@ -170,92 +173,50 @@
   font-size: 24rpx;
 }
 
-/* 联系我们弹窗 */
-.contact-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
+/* 客服按钮样式 - 让它看起来像普通菜单项 */
+button.contact-btn {
+  width: 100% !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 32rpx !important;
+  margin: 0 !important;
+  line-height: normal !important;
+  font-size: 28rpx !important;
+  text-align: left !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  height: auto !important;
+  min-height: 0 !important;
+  box-sizing: border-box !important;
+  border-bottom: 1rpx solid #f0f0f0 !important;
 }
 
-.contact-content {
-  width: 80%;
-  max-width: 600rpx;
-  background: white;
-  border-radius: 20rpx;
-  overflow: hidden;
+/* 最后一个元素不需要底部边框 */
+button.contact-btn:last-child {
+  border-bottom: none !important;
 }
 
-.contact-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 32rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+button.contact-btn::after {
+  border: none !important;
+  display: none !important;
 }
 
-.contact-title {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #262626;
+/* 确保按钮内的文字样式正确 */
+button.contact-btn .label {
+  font-size: 28rpx !important;
+  color: #262626 !important;
+  font-weight: normal !important;
+  flex: 1 !important;
+  text-align: left !important;
 }
 
-.contact-close {
-  font-size: 44rpx;
-  color: #8c8c8c;
-  line-height: 1;
-}
-
-.contact-body {
-  padding: 32rpx;
-}
-
-.contact-item {
-  display: flex;
-  align-items: center;
-  padding: 24rpx;
-  background: #f5f7fa;
-  border-radius: 12rpx;
-  margin-bottom: 20rpx;
-}
-
-.contact-item:last-child {
-  margin-bottom: 0;
-}
-
-.contact-icon {
-  width: 48rpx;
-  height: 48rpx;
-  margin-right: 20rpx;
-}
-
-.contact-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4rpx;
-}
-
-.contact-label {
-  font-size: 24rpx;
-  color: #8c8c8c;
-}
-
-.contact-value {
-  font-size: 28rpx;
-  color: #262626;
-}
-
-.copy-btn {
-  font-size: 24rpx;
-  color: #1890ff;
-  padding: 8rpx 20rpx;
-  background: rgba(24, 144, 255, 0.1);
-  border-radius: 20rpx;
+button.contact-btn .arrow {
+  color: #8c8c8c !important;
+  font-size: 28rpx !important;
+  font-weight: normal !important;
+  flex-shrink: 0 !important;
+  line-height: 1 !important;
 }

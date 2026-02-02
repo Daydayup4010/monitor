@@ -1,15 +1,18 @@
 // 网络请求封装
-const app = getApp()
 
 const request = (url, options = {}) => {
   return new Promise((resolve, reject) => {
-    const token = app.globalData.token || wx.getStorageSync('token')
+    const app = getApp()
+    const token = (app && app.globalData.token) || wx.getStorageSync('token')
     
     // 判断是否是公开接口（不需要登录）
     const isPublicApi = url.startsWith('/public/') || url === '/wechat/login'
     
+    // 获取 baseURL，优先从 app.globalData，其次使用默认值
+    const baseURL = (app && app.globalData && app.globalData.baseURL) || 'https://www.csgoods.com.cn/api/v1'
+    
     wx.request({
-      url: `${app.globalData.baseURL}${url}`,
+      url: `${baseURL}${url}`,
       method: options.method || 'GET',
       data: options.data || {},
       header: {
@@ -26,7 +29,9 @@ const request = (url, options = {}) => {
             resolve(data)
           } else if ((data.code === 1005 || data.code === 1006) && !isPublicApi) {
             // Token过期或无效（公开接口不处理）
-            app.clearLoginInfo()
+            if (app && app.clearLoginInfo) {
+              app.clearLoginInfo()
+            }
             wx.navigateTo({
               url: '/pages/login/login'
             })
@@ -38,7 +43,9 @@ const request = (url, options = {}) => {
               icon: 'none',
               duration: 2000
             })
-            app.clearLoginInfo()
+            if (app && app.clearLoginInfo) {
+              app.clearLoginInfo()
+            }
             setTimeout(() => {
               wx.reLaunch({
                 url: '/pages/login/login'
@@ -77,7 +84,9 @@ const request = (url, options = {}) => {
           })
         } else if (res.statusCode === 401) {
           // 401 未授权
-          app.clearLoginInfo()
+          if (app && app.clearLoginInfo) {
+            app.clearLoginInfo()
+          }
           wx.navigateTo({
             url: '/pages/login/login'
           })

@@ -32,9 +32,9 @@
       },
       {
         "pagePath": "pages/home/home",
-        "text": "搬砖榜",
-        "iconPath": "images/home.png",
-        "selectedIconPath": "images/home-active.png"
+        "text": "数据",
+        "iconPath": "images/data.png",
+        "selectedIconPath": "images/data-active.png"
       },
       {
         "pagePath": "pages/my/my",

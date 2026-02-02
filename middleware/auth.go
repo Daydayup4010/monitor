@@ -40,8 +40,14 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// 验证 token 版本号（单设备登录检查）
-		if !models.ValidateTokenVersion(c.Request.Context(), claims.UserID, claims.TokenVersion) {
+		// 获取客户端类型（兼容旧token，默认为web）
+		clientType := claims.ClientType
+		if clientType == "" {
+			clientType = models.ClientTypeWeb
+		}
+
+		// 验证 token 版本号（按客户端类型检查，同类型客户端只能一个在线）
+		if !models.ValidateTokenVersion(c.Request.Context(), claims.UserID, clientType, claims.TokenVersion) {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"code":  utils.ErrCodeTokenKicked,
 				"error": utils.ErrorMessage(utils.ErrCodeTokenKicked),
@@ -56,6 +62,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		c.Set("vipExpiry", claims.VipExpiry)
 		c.Set("email", claims.Email)
 		c.Set("tokenVersion", claims.TokenVersion)
+		c.Set("clientType", clientType)
 		c.Next()
 	}
 }

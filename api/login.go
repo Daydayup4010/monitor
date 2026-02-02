@@ -54,9 +54,9 @@ func Login(c *gin.Context) {
 	user.LastLogin = time.Now()
 	models.UpdateUserLastLogin(user)
 
-	// 生成 token 版本号并存储到 Redis（单设备登录）
+	// 生成 token 版本号并存储到 Redis（按客户端类型区分，Web端）
 	tokenVersion := models.GenerateTokenVersion()
-	if err := models.SetTokenVersion(c.Request.Context(), user.ID, tokenVersion); err != nil {
+	if err := models.SetTokenVersion(c.Request.Context(), user.ID, models.ClientTypeWeb, tokenVersion); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": utils.ErrCodeTokenGenerate,
 			"msg":  "登录失败，请重试",
@@ -64,7 +64,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	token, err := utils.GenerateJWT(user.ID, user.UserName, user.Role, user.VipExpiry, user.Email, tokenVersion)
+	token, err := utils.GenerateJWT(user.ID, user.UserName, user.Role, user.VipExpiry, user.Email, tokenVersion, models.ClientTypeWeb)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code": utils.ErrCodeTokenGenerate,
@@ -122,9 +122,9 @@ func LoginByEmail(c *gin.Context) {
 	user.LastLogin = time.Now()
 	models.UpdateUserLastLogin(user)
 
-	// 生成 token 版本号并存储到 Redis（单设备登录）
+	// 生成 token 版本号并存储到 Redis（按客户端类型区分，Web端）
 	tokenVersion := models.GenerateTokenVersion()
-	if err := models.SetTokenVersion(c.Request.Context(), user.ID, tokenVersion); err != nil {
+	if err := models.SetTokenVersion(c.Request.Context(), user.ID, models.ClientTypeWeb, tokenVersion); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": utils.ErrCodeTokenGenerate,
 			"msg":  "登录失败，请重试",
@@ -132,7 +132,7 @@ func LoginByEmail(c *gin.Context) {
 		return
 	}
 
-	token, err := utils.GenerateJWT(user.ID, user.UserName, user.Role, user.VipExpiry, user.Email, tokenVersion)
+	token, err := utils.GenerateJWT(user.ID, user.UserName, user.Role, user.VipExpiry, user.Email, tokenVersion, models.ClientTypeWeb)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code": utils.ErrCodeTokenGenerate,
