@@ -19,26 +19,21 @@ Page({
   },
 
   onShow() {
-    this.checkUserInfo()
+    // 每次进入页面都从服务器刷新用户信息（确保VIP状态最新）
+    this.refreshUserInfo()
     
     // 处理嵌入式小程序支付回调
     const payResult = app.globalData.payResult
-    console.log('vip.onShow - payResult:', payResult)
-    
     if (payResult) {
       // 清除支付结果，避免重复处理
       app.globalData.payResult = null
       
       if (payResult.success) {
         wx.showToast({
-          title: '支付成功，正在更新...',
-          icon: 'loading',
+          title: '支付成功',
+          icon: 'success',
           duration: 2000
         })
-        // 刷新用户信息
-        this.refreshUserInfo()
-      } else {
-        console.log('支付失败:', payResult.msg)
       }
     }
   },
@@ -205,11 +200,9 @@ Page({
   // 刷新用户信息
   async refreshUserInfo() {
     try {
-      // 等待一下，确保后端回调已处理
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      
       const res = await api.getUserInfo()
       if (res.code === 1 && res.data) {
+        // 更新全局数据和本地存储
         app.globalData.userInfo = res.data
         wx.setStorageSync('userInfo', res.data)
         
@@ -224,8 +217,6 @@ Page({
           userInfo: res.data,
           formatExpiry: formatExpiry
         })
-        
-        console.log('用户信息已刷新:', res.data)
       }
     } catch (error) {
       console.error('刷新用户信息失败:', error)

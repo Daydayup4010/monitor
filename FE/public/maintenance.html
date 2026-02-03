@@ -98,6 +98,63 @@
       font-size: 13px;
       color: rgba(255, 255, 255, 0.4);
     }
+    /* 联系方式 - 与正常页面保持一致 */
+    .contact {
+      position: fixed;
+      right: 30px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: #fff;
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    }
+    .contact-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .contact-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      background: #f5f7fa;
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+    .contact-item:last-child {
+      margin-bottom: 0;
+    }
+    .contact-icon-img {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+    }
+    .contact-value {
+      font-size: 13px;
+      color: #333;
+    }
+    .contact-wechat {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #f0f0f0;
+      text-align: center;
+    }
+    .wechat-qrcode {
+      max-width: 150px;
+      border-radius: 8px;
+    }
+    @media (max-width: 900px) {
+      .contact {
+        position: static;
+        transform: none;
+        margin-top: 40px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -116,6 +173,21 @@
     <div class="progress">
       <div class="progress-bar"></div>
       <div class="progress-text">正在努力升级中...</div>
+    </div>
+  </div>
+  
+  <div class="contact">
+    <div class="contact-title">联系我们</div>
+    <div class="contact-item">
+      <img src="/email.png" class="contact-icon-img" alt="邮箱" />
+      <div class="contact-value">goods.monitor@foxmail.com</div>
+    </div>
+    <div class="contact-item">
+      <img src="/qq.png" class="contact-icon-img" alt="QQ" />
+      <div class="contact-value">401026211</div>
+    </div>
+    <div class="contact-wechat">
+      <img src="/wechat.png" class="wechat-qrcode" alt="微信" />
     </div>
   </div>
 </body>

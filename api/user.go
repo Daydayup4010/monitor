@@ -191,19 +191,26 @@ func VerifyEmailCode(c *gin.Context) {
 
 func GetSelfInfo(c *gin.Context) {
 	userId, _ := c.Get("userID")
-	username, _ := c.Get("username")
-	role, _ := c.Get("role")
-	vipExpiry, _ := c.Get("vipExpiry")
-	email, _ := c.Get("email")
+
+	// 从数据库获取最新的用户信息（而不是从 token 读取，确保 VIP 状态是最新的）
+	user, code := models.GetUserById(userId.(uuid.UUID).String())
+	if code != utils.SUCCESS {
+		c.JSON(http.StatusOK, gin.H{
+			"code": code,
+			"msg":  "获取用户信息失败",
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"code": 1,
+		"code": utils.SUCCESS,
 		"msg":  "success",
 		"data": gin.H{
-			"id":         userId,
-			"username":   username,
-			"email":      email,
-			"role":       role,
-			"vip_expiry": vipExpiry,
+			"id":         user.ID,
+			"username":   user.UserName,
+			"email":      user.Email,
+			"role":       user.Role,
+			"vip_expiry": user.VipExpiry,
 		},
 	})
 }

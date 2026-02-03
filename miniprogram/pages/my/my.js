@@ -20,15 +20,17 @@ Page({
     // 先用本地数据渲染
     this.updateUserDisplay()
 
-    // 如果已登录，主动从服务器刷新用户信息
+    // 并行获取：用户信息 + 小程序配置
+    const promises = []
     if (isLoggedIn) {
-      this.refreshUserInfo()
+      promises.push(this.refreshUserInfo())
     }
-
-    // 每次进入页面都重新获取配置（确保配置是最新的）
-    await app.fetchMinAppConfig()
+    promises.push(app.fetchMinAppConfig())
     
-    // 重新获取最新的vipEnabled并更新显示
+    // 等待所有请求完成
+    await Promise.all(promises)
+    
+    // 重新获取最新的数据并更新显示
     this.updateUserDisplay()
     
     const vipEnabled = app.globalData.minAppConfig?.vipEnabled || false
