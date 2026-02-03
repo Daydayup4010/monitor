@@ -133,7 +133,7 @@ func CreateNativePay(outTradeNo string, totalFee float64, body, attach string) (
 	return &result, nil
 }
 
-// CreateMinAppPay 发起小程序支付
+// CreateMinAppPay 发起小程序支付 --原生支付
 // outTradeNo: 商户订单号
 // totalFee: 支付金额（元）
 // body: 商品描述

@@ -28,14 +28,20 @@
     </view>
     
     <!-- 搜索结果 -->
-    <view class="search-results" wx:if="{{showResults}}">
+    <view class="search-results" wx:if="{{showResults}}" catchtouchmove="onResultsTouchMove">
       <!-- 加载中 -->
       <view class="loading-tip" wx:if="{{loading}}">
         <text>搜索中...</text>
       </view>
       
       <!-- 搜索结果列表 -->
-      <block wx:elif="{{searchResults.length > 0}}">
+      <scroll-view 
+        class="results-scroll" 
+        scroll-y="{{true}}" 
+        wx:elif="{{searchResults.length > 0}}"
+        bindtouchstart="onResultsTouchStart"
+        bindtouchend="onResultsTouchEnd"
+      >
         <view 
           class="result-item" 
           wx:for="{{searchResults}}" 
@@ -52,7 +58,7 @@
           ></image>
           <text class="result-name">{{item.name}}</text>
         </view>
-      </block>
+      </scroll-view>
       
       <!-- 需要登录 -->
       <view class="login-prompt" wx:elif="{{needLogin}}">

@@ -9,7 +9,8 @@ Page({
     showResults: false,
     loading: false,
     isLoggedIn: false,
-    needLogin: false
+    needLogin: false,
+    isTouchingResults: false  // 是否正在触摸搜索结果列表
   },
 
   onLoad() {
@@ -125,10 +126,31 @@ Page({
 
   // 隐藏搜索结果
   hideResults() {
+    // 如果正在触摸搜索结果列表，不隐藏
+    if (this.data.isTouchingResults) {
+      return
+    }
     // 延迟隐藏，以便点击事件能够触发
     setTimeout(() => {
-      this.setData({ showResults: false })
+      if (!this.data.isTouchingResults) {
+        this.setData({ showResults: false })
+      }
     }, 200)
+  },
+
+  // 开始触摸搜索结果
+  onResultsTouchStart() {
+    this.setData({ isTouchingResults: true })
+  },
+
+  // 结束触摸搜索结果
+  onResultsTouchEnd() {
+    this.setData({ isTouchingResults: false })
+  },
+
+  // 阻止滑动事件冒泡
+  onResultsTouchMove() {
+    // 阻止事件冒泡，让 scroll-view 处理滚动
   },
 
   // 图片加载失败

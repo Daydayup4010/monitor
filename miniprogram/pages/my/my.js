@@ -5,7 +5,9 @@ Page({
   data: {
     userInfo: {},
     isLoggedIn: false,
-    vipEnabled: false  // VIP入口开关
+    vipEnabled: false,  // VIP入口开关
+    vipExpiryText: '',  // VIP到期时间文本
+    isVipValid: false   // VIP是否有效
   },
 
   onShow() {
@@ -14,11 +16,23 @@ Page({
     
     const isLoggedIn = !!app.globalData.token
     const vipEnabled = app.globalData.minAppConfig?.vipEnabled || false
+    const userInfo = app.globalData.userInfo || {}
+    
+    // 计算VIP状态和到期时间
+    let vipExpiryText = ''
+    let isVipValid = false
+    if (userInfo.role === 1 && userInfo.vip_expiry) {
+      const vipExpiry = new Date(userInfo.vip_expiry)
+      isVipValid = vipExpiry > new Date()
+      vipExpiryText = this.formatDate(userInfo.vip_expiry)
+    }
     
     this.setData({
       isLoggedIn: isLoggedIn,
-      userInfo: app.globalData.userInfo || {},
-      vipEnabled: vipEnabled
+      userInfo: userInfo,
+      vipEnabled: vipEnabled,
+      vipExpiryText: vipExpiryText,
+      isVipValid: isVipValid
     })
 
     // 检查是否需要引导（仅VIP开关开启时才引导）
@@ -77,7 +91,7 @@ Page({
   showBindEmailGuide() {
     wx.showModal({
       title: '绑定邮箱',
-      content: '绑定邮箱后可在Web端登录查看更多数据',
+      content: '绑定邮箱后可在网页端登录使用更多功能',
       confirmText: '去绑定',
       cancelText: '稍后再说',
       success: (res) => {
@@ -136,6 +150,16 @@ Page({
         }
       }
     })
+  },
+
+  // 格式化日期
+  formatDate(dateStr) {
+    if (!dateStr) return ''
+    const date = new Date(dateStr)
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
   }
 })
 

@@ -263,7 +263,7 @@ func CreateMinAppPayOrder(c *gin.Context) {
 	outTradeNo := fmt.Sprintf("VIP%s%d", time.Now().Format("20060102150405"), time.Now().UnixNano()%10000)
 
 	// 创建订单记录
-	order, err := models.CreatePaymentOrder(userID, outTradeNo, plan.Price, plan.Months)
+	_, err := models.CreatePaymentOrder(userID, outTradeNo, plan.Price, plan.Months)
 	if err != nil {
 		config.Log.Errorf("CreateMinAppPayOrder: create order failed: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -281,44 +281,45 @@ func CreateMinAppPayOrder(c *gin.Context) {
 		body = fmt.Sprintf("CSGoods VIP会员%d个月", plan.Months)
 	}
 
-	// 调用YunGouOS小程序支付
-	payResp, err := services.CreateMinAppPay(
-		outTradeNo,
-		plan.Price,
-		body,
-		*user.WechatOpenID,
-		fmt.Sprintf("%s|%d", userID, plan.Months),
-	)
-	if err != nil {
-		config.Log.Errorf("CreateMinAppPayOrder: call minapp pay failed: %v", err)
+	// 获取支付配置
+	paymentConfig := config.CONFIG.Payment
+	if paymentConfig == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": utils.ERROR,
-			"msg":  "创建支付失败",
+			"msg":  "支付配置错误",
 		})
 		return
 	}
 
-	if payResp.Code != 0 {
-		config.Log.Errorf("wechat openID: %s", *user.WechatOpenID)
-		config.Log.Errorf("CreateMinAppPayOrder: minapp pay return error: code=%d, msg=%s", payResp.Code, payResp.Msg)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"code": utils.ERROR,
-			"msg":  fmt.Sprintf("支付创建失败: %s", payResp.Msg),
-		})
-		return
+	// 生成嵌入式小程序支付参数（用于 wx.openEmbeddedMiniProgram）
+	// attach 用于回调时识别用户和套餐
+	attach := fmt.Sprintf("%s|%d", userID, plan.Months)
+	totalFee := fmt.Sprintf("%.2f", plan.Price)
+
+	// 参与签名的参数（根据YunGouOS文档）
+	signParams := map[string]string{
+		"out_trade_no": outTradeNo,
+		"total_fee":    totalFee,
+		"mch_id":       paymentConfig.MchId,
+		"body":         body,
 	}
+
+	// 生成签名
+	sign := services.PayGenerateSign(signParams, paymentConfig.ApiKey)
+
+	config.Log.Infof("CreateMinAppPayOrder: created embedded minapp pay params, order=%s, amount=%s", outTradeNo, totalFee)
 
 	c.JSON(http.StatusOK, gin.H{
 		"code": utils.SUCCESS,
 		"msg":  utils.ErrorMessage(utils.SUCCESS),
 		"data": gin.H{
-			"order_no":  order.OutTradeNo,
-			"amount":    plan.Price,
-			"timeStamp": payResp.Data.TimeStamp,
-			"nonceStr":  payResp.Data.NonceStr,
-			"package":   payResp.Data.Package,
-			"signType":  payResp.Data.SignType,
-			"paySign":   payResp.Data.PaySign,
+			"out_trade_no": outTradeNo,
+			"total_fee":    totalFee,
+			"mch_id":       paymentConfig.MchId,
+			"body":         body,
+			"notify_url":   paymentConfig.NotifyUrl,
+			"attach":       attach,
+			"sign":         sign,
 		},
 	})
 }

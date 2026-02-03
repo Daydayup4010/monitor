@@ -1,4 +1,5 @@
 {
+  "embeddedAppIdList": ["wxd9634afb01b983c0"],
   "pages": [
     "pages/landing/landing",
     "pages/home/home",

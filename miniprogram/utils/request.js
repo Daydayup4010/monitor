@@ -30,7 +30,7 @@ const request = (url, options = {}) => {
           } else if ((data.code === 1005 || data.code === 1006) && !isPublicApi) {
             // Token过期或无效（公开接口不处理）
             if (app && app.clearLoginInfo) {
-              app.clearLoginInfo()
+            app.clearLoginInfo()
             }
             wx.navigateTo({
               url: '/pages/login/login'
@@ -44,7 +44,7 @@ const request = (url, options = {}) => {
               duration: 2000
             })
             if (app && app.clearLoginInfo) {
-              app.clearLoginInfo()
+            app.clearLoginInfo()
             }
             setTimeout(() => {
               wx.reLaunch({

@@ -20,6 +20,22 @@ Page({
 
   onShow() {
     this.checkUserInfo()
+    
+    // 处理嵌入式小程序支付回调
+    const payResult = app.globalData.payResult
+    if (payResult) {
+      // 清除支付结果，避免重复处理
+      app.globalData.payResult = null
+      
+      if (payResult.success) {
+        wx.showToast({
+          title: '支付成功',
+          icon: 'success'
+        })
+        // 刷新用户信息
+        this.refreshUserInfo()
+      }
+    }
   },
 
   // 检查用户信息
@@ -115,35 +131,36 @@ Page({
     this.setData({ paying: true })
 
     try {
-      // 创建支付订单
+      // 创建支付订单（获取嵌入式小程序支付参数）
       const res = await api.createMinAppPay({
         months: this.data.selectedPlan.months
       })
 
       if (res.code === 1 && res.data) {
-        // 调用微信支付
-        wx.requestPayment({
-          timeStamp: res.data.timeStamp,
-          nonceStr: res.data.nonceStr,
-          package: res.data.package,
-          signType: res.data.signType,
-          paySign: res.data.paySign,
+        // 使用嵌入式小程序支付（YunGouOS收银台）
+        const payParams = res.data
+        wx.openEmbeddedMiniProgram({
+          appId: 'wxd9634afb01b983c0', // YunGouOS收银台小程序AppID（固定值）
+          path: '/pages/pay/pay',      // 支付页面路径（固定值）
+          extraData: {
+            out_trade_no: payParams.out_trade_no,
+            total_fee: payParams.total_fee,
+            mch_id: payParams.mch_id,
+            body: payParams.body,
+            notify_url: payParams.notify_url,
+            attach: payParams.attach,
+            sign: payParams.sign,
+            title: 'CS搬砖助手'
+          },
           success: () => {
-            wx.showToast({
-              title: '支付成功',
-              icon: 'success'
-            })
-            // 刷新用户信息
-            this.refreshUserInfo()
+            console.log('打开收银台成功')
           },
           fail: (err) => {
-            console.error('支付失败:', err)
-            if (err.errMsg !== 'requestPayment:fail cancel') {
-              wx.showToast({
-                title: '支付失败',
-                icon: 'none'
-              })
-            }
+            console.error('打开收银台失败:', err)
+            wx.showToast({
+              title: '打开支付失败',
+              icon: 'none'
+            })
           }
         })
       } else {

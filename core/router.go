@@ -17,6 +17,10 @@ func InitRouter() *gin.Engine {
 
 	// Gzip 压缩（节省带宽，压缩 JSON 响应）
 	r.Use(gzip.Gzip(gzip.DefaultCompression))
+
+	// 静态文件服务 - 图片上传目录
+	r.Static("/uploads", "./uploads")
+
 	v1 := r.Group("api/v1")
 
 	v1.GET("captcha", middleware.RateLimiterByIP(middleware.RateLimiterConfig{
@@ -115,6 +119,16 @@ func InitRouter() *gin.Engine {
 		authUser.POST("logout", api.Logout)
 	}
 
+	// 通知相关API（需要登录）
+	notification := v1.Group("notification")
+	notification.Use(middleware.AuthMiddleware())
+	{
+		notification.GET("list", api.GetNotifications)       // 获取通知列表
+		notification.GET("unread-count", api.GetUnreadCount) // 获取未读数量
+		notification.POST("read", api.MarkAsRead)            // 标记单条已读
+		notification.POST("read-all", api.MarkAllAsRead)     // 标记全部已读
+	}
+
 	authGoods := v1.Group("goods")
 	authGoods.Use(middleware.AuthMiddleware())
 	authGoods.Use(middleware.RateLimiterByUser(middleware.RateLimiterConfig{
@@ -161,6 +175,11 @@ func InitRouter() *gin.Engine {
 		// 系统配置
 		admin.GET("system-config", api.GetSystemConfigs)
 		admin.POST("minapp-vip-enabled", api.SetMinAppVipEnabled)
+		// 通知管理
+		admin.POST("notification", api.CreateNotification)
+		admin.GET("notifications", api.GetAllNotifications)
+		admin.DELETE("notification", api.DeleteNotification)
+		admin.POST("upload-image", api.UploadImage) // 上传图片
 	}
 
 	tokens := admin.Group("tokens")

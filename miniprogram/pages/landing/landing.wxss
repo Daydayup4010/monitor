@@ -96,10 +96,14 @@
   background: #fff;
   border-radius: 20rpx;
   box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.12);
-  max-height: 600rpx;
-  overflow-y: auto;
   z-index: 100;
   margin-top: 16rpx;
+  overflow: hidden;
+}
+
+/* 搜索结果滚动容器 */
+.results-scroll {
+  max-height: 600rpx;
 }
 
 .loading-tip {

@@ -68,7 +68,7 @@ func WechatLogin(c *gin.Context) {
 		vipExpiry := time.Now().Add(2 * 24 * time.Hour) // 新用户赠送2天VIP试用
 		user = &models.User{
 			ID:           userId,
-			UserName:     "wechat_user_" + openID[len(openID)-6:],
+			UserName:     openID[len(openID)-6:],
 			WechatOpenID: &openID,
 			Role:         models.RoleVip, // 新用户默认VIP
 			VipExpiry:    vipExpiry,

@@ -37,12 +37,17 @@
           <text class="email" wx:else>未绑定邮箱</text>
         </view>
       </view>
-      <view class="vip-badge {{userInfo.role === 1 ? 'active' : ''}}" bindtap="goVip" wx:if="{{vipEnabled}}">
-        <text wx:if="{{userInfo.role === 1}}">VIP会员</text>
-        <text wx:else>开通VIP</text>
-      </view>
-      <view class="vip-badge active" wx:elif="{{userInfo.role === 1}}">
-        <text>VIP会员</text>
+      <!-- VIP状态区域 -->
+      <view class="vip-status-row">
+        <view class="vip-badge {{isVipValid ? 'active' : ''}}" bindtap="goVip" wx:if="{{vipEnabled}}">
+          <text wx:if="{{isVipValid}}">VIP会员</text>
+          <text wx:else>开通VIP</text>
+        </view>
+        <view class="vip-badge active" wx:elif="{{isVipValid}}">
+          <text>VIP会员</text>
+        </view>
+        <!-- VIP到期时间 -->
+        <text class="vip-expiry" wx:if="{{isVipValid && vipExpiryText}}">到期：{{vipExpiryText}}</text>
       </view>
     </view>
 
@@ -60,11 +65,6 @@
 
     <!-- 功能列表 -->
     <view class="menu-list">
-      <!-- VIP入口 - 仅VIP开关开启时显示 -->
-      <view class="menu-item" bindtap="goVip" wx:if="{{vipEnabled}}">
-        <text class="label">{{userInfo.role === 1 ? 'VIP中心' : '开通VIP'}}</text>
-        <text class="arrow">></text>
-      </view>
       <view class="menu-item" bindtap="goSettings">
         <text class="label">个人设置</text>
         <text class="arrow">></text>

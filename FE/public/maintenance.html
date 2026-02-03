@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>网站维护中 - CSGoods</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      color: #fff;
+    }
+    .container {
+      text-align: center;
+      padding: 40px 20px;
+      max-width: 500px;
+    }
+    .icon {
+      font-size: 80px;
+      margin-bottom: 30px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.1); opacity: 0.8; }
+    }
+    .logo {
+      font-size: 24px;
+      font-weight: 700;
+      color: #4ecdc4;
+      margin-bottom: 20px;
+      letter-spacing: 2px;
+    }
+    h1 {
+      font-size: 32px;
+      margin-bottom: 16px;
+      color: #fff;
+      font-weight: 600;
+    }
+    p {
+      font-size: 16px;
+      color: rgba(255, 255, 255, 0.7);
+      line-height: 1.8;
+      margin-bottom: 30px;
+    }
+    .time-box {
+      background: rgba(255, 255, 255, 0.08);
+      padding: 20px 32px;
+      border-radius: 16px;
+      display: inline-block;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .time-box .label {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.5);
+      margin-bottom: 8px;
+    }
+    .time-box .value {
+      color: #4ecdc4;
+      font-weight: 600;
+      font-size: 20px;
+    }
+    .progress {
+      margin-top: 40px;
+    }
+    .progress-bar {
+      width: 200px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+      margin: 0 auto;
+      overflow: hidden;
+    }
+    .progress-bar::after {
+      content: '';
+      display: block;
+      width: 40%;
+      height: 100%;
+      background: linear-gradient(90deg, #4ecdc4, #44a08d);
+      border-radius: 2px;
+      animation: loading 1.5s ease-in-out infinite;
+    }
+    @keyframes loading {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(350%); }
+    }
+    .progress-text {
+      margin-top: 12px;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.4);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon">🔧</div>
+    <div class="logo">CSGOODS</div>
+    <h1>系统维护中</h1>
+    <p>
+      我们正在进行系统升级优化，<br>
+      请稍后再访问，给您带来不便敬请谅解。
+    </p>
+    <div class="time-box">
+      <div class="label">预计恢复时间</div>
+      <div class="value">10 分钟内</div>
+    </div>
+    <div class="progress">
+      <div class="progress-bar"></div>
+      <div class="progress-text">正在努力升级中...</div>
+    </div>
+  </div>
+</body>
+</html>

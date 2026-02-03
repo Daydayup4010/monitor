@@ -35,6 +35,9 @@
         
         <div class="header-actions">
           <el-space size="large">
+            <!-- 通知中心 -->
+            <NotificationCenter />
+            
             <!-- 用户信息下拉菜单 -->
             <el-dropdown trigger="click" @command="handleCommand">
               <div class="user-dropdown">
@@ -66,6 +69,10 @@
                   <el-dropdown-item v-if="userStore.isVip" command="big-item-bidding">
                     <el-icon><ShoppingCart /></el-icon>
                     <span>大件求购</span>
+                  </el-dropdown-item>
+                  <el-dropdown-item command="notifications">
+                    <el-icon><Bell /></el-icon>
+                    <span>消息中心</span>
                   </el-dropdown-item>
                   <el-dropdown-item command="settings">
                     <el-icon><User /></el-icon>
@@ -123,6 +130,9 @@
               <img :src="qqIcon" class="contact-icon-img" />
               <div class="contact-value">401026211</div>
             </div>
+            <div class="contact-wechat">
+              <img :src="wechatIcon" class="wechat-qrcode" />
+            </div>
           </div>
         </el-popover>
       </div>
@@ -137,13 +147,15 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { ArrowLeft, ArrowRight, Service } from '@element-plus/icons-vue'
+import { ArrowLeft, ArrowRight, Service, Bell } from '@element-plus/icons-vue'
 import loginIcon from '@/assets/icons/login.png'
 import registerIcon from '@/assets/icons/register.png'
 import emailIcon from '@/assets/icons/email.png'
 import qqIcon from '@/assets/icons/QQ.png'
+import wechatIcon from '@/assets/icons/wechat.png'
 import logoIcon from '@/assets/icons/logo.jpeg'
 import Footer from '@/components/Footer.vue'
+import NotificationCenter from '@/components/NotificationCenter.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -222,6 +234,9 @@ const handleCommand = (command: string) => {
       break
     case 'big-item-bidding':
       router.push('/app/big-item-bidding')
+      break
+    case 'notifications':
+      router.push('/app/notifications')
       break
     case 'settings':
       router.push('/app/settings')
@@ -690,5 +705,17 @@ onMounted(() => {
 .contact-value {
   font-size: 13px;
   color: #333;
+}
+
+.contact-wechat {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+  text-align: center;
+}
+
+.wechat-qrcode {
+  max-width: 150px;
+  border-radius: 8px;
 }
 </style>

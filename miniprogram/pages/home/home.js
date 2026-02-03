@@ -100,16 +100,17 @@ Page({
     }
     const hasEmail = userInfo.email && userInfo.email !== ''
 
-    // 如果不是VIP且VIP开关开启
+    // 优先提醒绑定邮箱（未绑定邮箱的用户每次登录都提醒）
+    if (!hasEmail) {
+      app.globalData.hasShownGuide = true
+      this.showBindEmailGuide()
+      return
+    }
+
+    // 如果不是VIP且VIP开关开启，引导开通VIP
     if (!isVip && vipEnabled) {
       app.globalData.hasShownGuide = true
-      if (hasEmail) {
-        // 已绑定邮箱，引导开通VIP
-        this.showVipGuide()
-      } else {
-        // 未绑定邮箱，提示先绑定邮箱
-        this.showBindEmailGuide()
-      }
+      this.showVipGuide()
     }
   },
 
@@ -134,7 +135,7 @@ Page({
   showBindEmailGuide() {
     wx.showModal({
       title: '绑定邮箱',
-      content: '绑定邮箱后可在Web端登录查看更多数据',
+      content: '绑定邮箱后可在网页端登录使用更多功能',
       confirmText: '去绑定',
       cancelText: '稍后再说',
       success: (res) => {

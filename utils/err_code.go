@@ -48,6 +48,15 @@ const (
 	ErrCodeRateLimitExceeded    = 2010
 )
 
+// 通知模块错误码
+const (
+	ErrCodeCreateNotification   = 3001
+	ErrCodeGetNotifications     = 3002
+	ErrCodeNotificationNotFound = 3003
+	ErrCodeMarkNotificationRead = 3004
+	ErrCodeDeleteNotification   = 3005
+)
+
 // 错误码与消息映射
 var errorCodeToMessage = map[int]string{
 	SUCCESS:                  "success",
@@ -89,6 +98,12 @@ var errorCodeToMessage = map[int]string{
 	ErrCodeCaptchaGenerate:      "Generate captcha error",
 	ErrCodeCaptchaInvalid:       "Invalid captcha or captcha expired",
 	ErrCodeTokenKicked:          "账号已在其他设备登录",
+	// 通知模块
+	ErrCodeCreateNotification:   "Create notification error",
+	ErrCodeGetNotifications:     "Get notifications error",
+	ErrCodeNotificationNotFound: "Notification not found",
+	ErrCodeMarkNotificationRead: "Mark notification as read error",
+	ErrCodeDeleteNotification:   "Delete notification error",
 }
 
 // ErrorMessage 返回指定错误码对应的错误消息

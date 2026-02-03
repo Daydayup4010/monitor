@@ -116,6 +116,17 @@ const router = createRouter({
           }
         },
         {
+          path: 'notifications',
+          name: 'NotificationCenter',
+          component: () => import('@/pages/NotificationCenter.vue'),
+          meta: { 
+            title: '消息中心', 
+            icon: 'Bell',
+            requiresAuth: true,
+            hideInMenu: true  // 不在导航菜单中显示
+          }
+        },
+        {
           path: 'vip',
           name: 'VipService',
           component: () => import('@/pages/Settings.vue'),

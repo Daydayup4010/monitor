@@ -239,6 +239,9 @@
               <img :src="qqIcon" class="contact-icon-img" />
               <div class="contact-value">401026211</div>
             </div>
+            <div class="contact-wechat">
+              <img :src="wechatIcon" class="wechat-qrcode" />
+            </div>
           </div>
         </el-popover>
       </div>
@@ -259,6 +262,7 @@ import loginIcon from '@/assets/icons/login.png'
 import registerIcon from '@/assets/icons/register.png'
 import emailIcon from '@/assets/icons/email.png'
 import qqIcon from '@/assets/icons/QQ.png'
+import wechatIcon from '@/assets/icons/wechat.png'
 import logoIcon from '@/assets/icons/logo.jpeg'
 
 const router = useRouter()
@@ -1021,5 +1025,17 @@ onUnmounted(() => {
 .contact-value {
   font-size: 13px;
   color: #333;
+}
+
+.contact-wechat {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+  text-align: center;
+}
+
+.wechat-qrcode {
+  max-width: 150px;
+  border-radius: 8px;
 }
 </style>

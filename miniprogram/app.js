@@ -13,11 +13,35 @@ App({
     this.fetchMinAppConfig()
   },
 
+  onShow(options) {
+    // 处理嵌入式小程序支付回调
+    if (options && options.referrerInfo && options.referrerInfo.extraData) {
+      const extraData = options.referrerInfo.extraData
+      console.log('收到支付回调:', extraData)
+      
+      // 保存支付结果到 globalData
+      this.globalData.payResult = {
+        success: extraData.code === 0,
+        orderNo: extraData.data?.orderNo || '',
+        msg: extraData.msg || ''
+      }
+      
+      // 如果支付失败，显示错误提示
+      if (extraData.code !== 0) {
+        wx.showToast({
+          title: extraData.msg || '支付失败',
+          icon: 'none',
+          duration: 3000
+        })
+      }
+    }
+  },
+
   globalData: {
     userInfo: null,
     token: null,
-    // baseURL: 'http://localhost:3100/api/v1'  // 后端API地址（本地开发）
-    baseURL: 'https://www.csgoods.com.cn/api/v1',  // 后端API地址
+    baseURL: 'http://localhost:3100/api/v1',  // 后端API地址（本地开发）
+    // baseURL: 'https://www.csgoods.com.cn/api/v1',  // 后端API地址
     // 小程序配置
     minAppConfig: {
       vipEnabled: false  // VIP开通入口开关，默认关闭
