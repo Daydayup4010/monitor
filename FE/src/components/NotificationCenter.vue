@@ -110,11 +110,13 @@ import { showMessage } from '@/utils/message'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import 'dayjs/locale/zh-cn'
+import { useUserStore } from '@/store/user'
 
 dayjs.extend(relativeTime)
 dayjs.locale('zh-cn')
 
 const router = useRouter()
+const userStore = useUserStore()
 
 interface NotificationItem {
   id: string
@@ -143,6 +145,9 @@ let pollTimer: ReturnType<typeof setInterval> | null = null
 
 // 获取未读数量
 const fetchUnreadCount = async () => {
+  // 未登录时不请求
+  if (!userStore.isLoggedIn) return
+  
   try {
     const res = await notificationApi.getUnreadCount()
     if (res.code === 1) {
@@ -272,8 +277,11 @@ const stopPolling = () => {
 }
 
 onMounted(() => {
-  fetchUnreadCount()
-  startPolling()
+  // 只有登录后才获取通知和启动轮询
+  if (userStore.isLoggedIn) {
+    fetchUnreadCount()
+    startPolling()
+  }
 })
 
 onUnmounted(() => {
