@@ -1,4 +1,5 @@
 // pages/my/my.js
+const api = require('../../utils/api.js')
 const app = getApp()
 
 Page({
@@ -10,10 +11,35 @@ Page({
     isVipValid: false   // VIP是否有效
   },
 
-  onShow() {
+  async onShow() {
     // 从storage重新读取用户信息，确保是最新的
     app.checkLoginStatus()
     
+    const isLoggedIn = !!app.globalData.token
+    
+    // 先用本地数据渲染
+    this.updateUserDisplay()
+
+    // 如果已登录，主动从服务器刷新用户信息
+    if (isLoggedIn) {
+      this.refreshUserInfo()
+    }
+
+    // 每次进入页面都重新获取配置（确保配置是最新的）
+    await app.fetchMinAppConfig()
+    
+    // 重新获取最新的vipEnabled并更新显示
+    this.updateUserDisplay()
+    
+    const vipEnabled = app.globalData.minAppConfig?.vipEnabled || false
+    // 检查是否需要引导（仅VIP开关开启时才引导）
+    if (isLoggedIn && vipEnabled) {
+      this.checkUserGuide()
+    }
+  },
+
+  // 更新用户信息显示
+  updateUserDisplay() {
     const isLoggedIn = !!app.globalData.token
     const vipEnabled = app.globalData.minAppConfig?.vipEnabled || false
     const userInfo = app.globalData.userInfo || {}
@@ -34,10 +60,22 @@ Page({
       vipExpiryText: vipExpiryText,
       isVipValid: isVipValid
     })
+  },
 
-    // 检查是否需要引导（仅VIP开关开启时才引导）
-    if (isLoggedIn && vipEnabled) {
-      this.checkUserGuide()
+  // 从服务器刷新用户信息
+  async refreshUserInfo() {
+    try {
+      const res = await api.getUserInfo()
+      if (res.code === 1 && res.data) {
+        // 更新全局和本地存储
+        app.globalData.userInfo = res.data
+        wx.setStorageSync('userInfo', res.data)
+        
+        // 更新页面显示
+        this.updateUserDisplay()
+      }
+    } catch (error) {
+      console.error('刷新用户信息失败:', error)
     }
   },
 

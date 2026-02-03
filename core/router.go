@@ -180,6 +180,11 @@ func InitRouter() *gin.Engine {
 		admin.GET("notifications", api.GetAllNotifications)
 		admin.DELETE("notification", api.DeleteNotification)
 		admin.POST("upload-image", api.UploadImage) // 上传图片
+		// VIP套餐管理
+		admin.GET("vip-plans", api.GetAllVipPlansAdmin)
+		admin.POST("vip-plan", api.CreateVipPlan)
+		admin.PUT("vip-plan", api.UpdateVipPlan)
+		admin.DELETE("vip-plan", api.DeleteVipPlan)
 	}
 
 	tokens := admin.Group("tokens")

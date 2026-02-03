@@ -444,12 +444,7 @@ interface MonthOption {
   price: number
   recommend: boolean
 }
-const monthOptions = ref<MonthOption[]>([
-  { months: 1, price: 19.9, recommend: false },
-  { months: 3, price: 49.9, recommend: false },
-  { months: 6, price: 89.9, recommend: false },
-  { months: 12, price: 169.9, recommend: true },
-])
+const monthOptions = ref<MonthOption[]>([])
 const isLoadingPrice = ref(false)
 
 const fetchVipPrice = async () => {
@@ -458,12 +453,38 @@ const fetchVipPrice = async () => {
     const res = await paymentApi.getVipPrice()
     if (res.code === 1 && res.data?.plans) {
       const plans = res.data.plans
-      monthOptions.value = [
-        { months: 1, price: plans[1]?.price || 19.9, recommend: false },
-        { months: 3, price: plans[3]?.price || 49.9, recommend: false },
-        { months: 6, price: plans[6]?.price || 89.9, recommend: false },
-        { months: 12, price: plans[12]?.price || 169.9, recommend: true },
-      ]
+      // 将套餐对象转换为数组并按月数排序
+      const planArray: MonthOption[] = Object.values(plans)
+        .sort((a, b) => a.months - b.months)
+        .map(plan => ({
+          months: plan.months,
+          price: plan.price,
+          recommend: false
+        }))
+      
+      // 找出月均价最低的套餐作为推荐
+      if (planArray.length > 0) {
+        let lowestAvgPriceIndex = 0
+        let lowestAvgPrice = planArray[0].price / planArray[0].months
+        planArray.forEach((plan, index) => {
+          const avgPrice = plan.price / plan.months
+          if (avgPrice < lowestAvgPrice) {
+            lowestAvgPrice = avgPrice
+            lowestAvgPriceIndex = index
+          }
+        })
+        planArray[lowestAvgPriceIndex].recommend = true
+      }
+      
+      monthOptions.value = planArray
+      
+      // 默认选中推荐套餐
+      const recommendPlan = planArray.find(p => p.recommend)
+      if (recommendPlan) {
+        selectedMonths.value = recommendPlan.months
+      } else if (planArray.length > 0) {
+        selectedMonths.value = planArray[0].months
+      }
     }
   } catch (error) {
     console.error('获取VIP价格失败:', error)

@@ -11,6 +11,10 @@
           <div class="menu-icon">📋</div>
           <div class="menu-text">订单管理</div>
         </div>
+        <div class="menu-item" :class="{ active: activeTab === 'vip-plans' }" @click="activeTab = 'vip-plans'">
+          <div class="menu-icon">💎</div>
+          <div class="menu-text">VIP定价</div>
+        </div>
         <div class="menu-item" :class="{ active: activeTab === 'notifications' }" @click="activeTab = 'notifications'">
           <div class="menu-icon">🔔</div>
           <div class="menu-text">通知管理</div>
@@ -25,6 +29,7 @@
       <div class="admin-content">
         <UserManager v-if="activeTab === 'users'" />
         <OrderManager v-else-if="activeTab === 'orders'" />
+        <VipPlanManager v-else-if="activeTab === 'vip-plans'" />
         <NotificationManager v-else-if="activeTab === 'notifications'" />
         <SystemConfigManager v-else-if="activeTab === 'config'" />
       </div>
@@ -36,6 +41,7 @@
 import { ref } from 'vue'
 import UserManager from '@/components/UserManager.vue'
 import OrderManager from '@/components/OrderManager.vue'
+import VipPlanManager from '@/components/VipPlanManager.vue'
 import NotificationManager from '@/components/NotificationManager.vue'
 import SystemConfigManager from '@/components/SystemConfigManager.vue'
 

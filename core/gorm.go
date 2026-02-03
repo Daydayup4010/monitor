@@ -26,7 +26,7 @@ func InitGorm() {
 	if err != nil {
 		config.Log.Panicf("DB connect fail: %s", err)
 	}
-	err = db.AutoMigrate(&models.U{}, &models.BaseGoods{}, &models.User{}, &models.Settings{}, &models.APIKey{}, &models.Buff{}, &models.C5{}, &models.Steam{}, &models.UBaseInfo{}, &models.PriceHistory{}, &models.PaymentOrder{}, &models.SystemConfig{}, &models.Notification{}, &models.NotificationRead{}) // migrate schema
+	err = db.AutoMigrate(&models.U{}, &models.BaseGoods{}, &models.User{}, &models.Settings{}, &models.APIKey{}, &models.Buff{}, &models.C5{}, &models.Steam{}, &models.UBaseInfo{}, &models.PriceHistory{}, &models.PaymentOrder{}, &models.SystemConfig{}, &models.Notification{}, &models.NotificationRead{}, &models.VipPlan{}) // migrate schema
 	if err != nil {
 		config.Log.Panicf("migrate schema fail: %s", err)
 	}
@@ -42,4 +42,9 @@ func InitGorm() {
 
 	// 初始化系统配置默认值
 	models.InitSystemConfig()
+
+	// 初始化VIP套餐默认值
+	if err := models.InitVipPlans(); err != nil {
+		config.Log.Errorf("init vip plans failed: %v", err)
+	}
 }

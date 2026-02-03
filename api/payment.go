@@ -15,12 +15,142 @@ import (
 
 // 获取VIP价格信息
 func GetVipPrice(c *gin.Context) {
+	plans, err := models.GetAllVipPlans()
+	if err != nil {
+		config.Log.Errorf("GetVipPrice: get plans failed: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": utils.ERROR,
+			"msg":  "获取套餐失败",
+		})
+		return
+	}
+
+	// 转换为 map 格式以保持兼容性
+	plansMap := make(map[int]models.VipPlan)
+	for _, plan := range plans {
+		plansMap[plan.Months] = plan
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"code": utils.SUCCESS,
 		"msg":  utils.ErrorMessage(utils.SUCCESS),
 		"data": gin.H{
-			"plans": models.VipPlans,
+			"plans": plansMap,
 		},
+	})
+}
+
+// 获取所有VIP套餐（管理员）
+func GetAllVipPlansAdmin(c *gin.Context) {
+	plans, err := models.GetAllVipPlansAdmin()
+	if err != nil {
+		config.Log.Errorf("GetAllVipPlansAdmin: get plans failed: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": utils.ERROR,
+			"msg":  "获取套餐失败",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":  utils.SUCCESS,
+		"msg":   utils.ErrorMessage(utils.SUCCESS),
+		"data":  plans,
+		"total": len(plans),
+	})
+}
+
+// 创建VIP套餐（管理员）
+func CreateVipPlan(c *gin.Context) {
+	var req struct {
+		Months  int     `json:"months" binding:"required,min=1"`
+		Price   float64 `json:"price" binding:"required,gt=0"`
+		Enabled bool    `json:"enabled"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code": utils.InvalidParameter,
+			"msg":  "参数错误：" + err.Error(),
+		})
+		return
+	}
+
+	plan, err := models.CreateVipPlan(req.Months, req.Price, req.Enabled)
+	if err != nil {
+		config.Log.Errorf("CreateVipPlan: create failed: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": utils.ERROR,
+			"msg":  "创建套餐失败，可能月份已存在",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": utils.SUCCESS,
+		"msg":  "创建成功",
+		"data": plan,
+	})
+}
+
+// 更新VIP套餐（管理员）
+func UpdateVipPlan(c *gin.Context) {
+	var req struct {
+		ID      uint    `json:"id" binding:"required"`
+		Months  int     `json:"months" binding:"required,min=1"`
+		Price   float64 `json:"price" binding:"required,gt=0"`
+		Enabled bool    `json:"enabled"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code": utils.InvalidParameter,
+			"msg":  "参数错误：" + err.Error(),
+		})
+		return
+	}
+
+	if err := models.UpdateVipPlan(req.ID, req.Months, req.Price, req.Enabled); err != nil {
+		config.Log.Errorf("UpdateVipPlan: update failed: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": utils.ERROR,
+			"msg":  "更新套餐失败",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": utils.SUCCESS,
+		"msg":  "更新成功",
+	})
+}
+
+// 删除VIP套餐（管理员）
+func DeleteVipPlan(c *gin.Context) {
+	var req struct {
+		ID uint `json:"id" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code": utils.InvalidParameter,
+			"msg":  "参数错误",
+		})
+		return
+	}
+
+	if err := models.DeleteVipPlan(req.ID); err != nil {
+		config.Log.Errorf("DeleteVipPlan: delete failed: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": utils.ERROR,
+			"msg":  "删除套餐失败",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": utils.SUCCESS,
+		"msg":  "删除成功",
 	})
 }
 

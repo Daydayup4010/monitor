@@ -51,13 +51,13 @@
       </view>
     </view>
 
-    <!-- VIP入口 - 仅VIP开关开启且非VIP用户显示 -->
-    <view class="vip-entry" bindtap="goVip" wx:if="{{vipEnabled && userInfo.role !== 1}}">
+    <!-- VIP入口 - VIP开关开启时显示 -->
+    <view class="vip-entry" bindtap="goVip" wx:if="{{vipEnabled}}">
       <view class="vip-entry-left">
         <image class="vip-entry-icon" src="/images/vip.png"></image>
         <view class="vip-entry-info">
-          <text class="vip-entry-title">开通VIP会员</text>
-          <text class="vip-entry-desc">解锁全部功能，查看完整数据</text>
+          <text class="vip-entry-title">{{isVipValid ? '续费VIP会员' : '开通VIP会员'}}</text>
+          <text class="vip-entry-desc">{{isVipValid ? '延长VIP有效期，继续享受特权' : '解锁全部功能，查看完整数据'}}</text>
         </view>
       </view>
       <text class="vip-entry-arrow">></text>

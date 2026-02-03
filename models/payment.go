@@ -15,24 +15,99 @@ const (
 	PaymentStatusRefunded = 3 // 已退款
 )
 
-// VIP套餐价格配置
+// VIP套餐价格配置（数据库模型）
 type VipPlan struct {
-	Months int     `json:"months"`
-	Price  float64 `json:"price"`
+	ID        uint      `json:"id" gorm:"primaryKey;autoIncrement"`
+	Months    int       `json:"months" gorm:"uniqueIndex"`
+	Price     float64   `json:"price"`
+	Enabled   bool      `json:"enabled" gorm:"default:true"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
-// VIP套餐列表
-var VipPlans = map[int]VipPlan{
-	1:  {Months: 1, Price: 19.9},
-	3:  {Months: 3, Price: 49.9},
-	6:  {Months: 6, Price: 89.9},
-	12: {Months: 12, Price: 169.9},
+// 默认VIP套餐（用于初始化）
+var defaultVipPlans = []VipPlan{
+	{Months: 1, Price: 19.9, Enabled: true},
+	{Months: 3, Price: 49.9, Enabled: true},
+	{Months: 6, Price: 89.9, Enabled: true},
+	{Months: 12, Price: 169.9, Enabled: true},
+}
+
+// 初始化VIP套餐（如果数据库为空则插入默认值）
+func InitVipPlans() error {
+	var count int64
+	config.DB.Model(&VipPlan{}).Count(&count)
+	if count == 0 {
+		for _, plan := range defaultVipPlans {
+			if err := config.DB.Create(&plan).Error; err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// 获取所有启用的VIP套餐
+func GetAllVipPlans() ([]VipPlan, error) {
+	var plans []VipPlan
+	if err := config.DB.Where("enabled = ?", true).Order("months ASC").Find(&plans).Error; err != nil {
+		return nil, err
+	}
+	return plans, nil
+}
+
+// 获取所有VIP套餐（管理员用，包括禁用的）
+func GetAllVipPlansAdmin() ([]VipPlan, error) {
+	var plans []VipPlan
+	if err := config.DB.Order("months ASC").Find(&plans).Error; err != nil {
+		return nil, err
+	}
+	return plans, nil
 }
 
 // 获取VIP套餐
 func GetVipPlan(months int) (VipPlan, bool) {
-	plan, ok := VipPlans[months]
-	return plan, ok
+	var plan VipPlan
+	if err := config.DB.Where("months = ? AND enabled = ?", months, true).First(&plan).Error; err != nil {
+		return plan, false
+	}
+	return plan, true
+}
+
+// 创建VIP套餐
+func CreateVipPlan(months int, price float64, enabled bool) (*VipPlan, error) {
+	plan := &VipPlan{
+		Months:  months,
+		Price:   price,
+		Enabled: enabled,
+	}
+	if err := config.DB.Create(plan).Error; err != nil {
+		return nil, err
+	}
+	return plan, nil
+}
+
+// 更新VIP套餐
+func UpdateVipPlan(id uint, months int, price float64, enabled bool) error {
+	return config.DB.Model(&VipPlan{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"months":  months,
+		"price":   price,
+		"enabled": enabled,
+	}).Error
+}
+
+// 删除VIP套餐
+func DeleteVipPlan(id uint) error {
+	return config.DB.Delete(&VipPlan{}, id).Error
+}
+
+// 根据ID获取VIP套餐
+func GetVipPlanByID(id uint) (*VipPlan, error) {
+	var plan VipPlan
+	if err := config.DB.First(&plan, id).Error; err != nil {
+		return nil, err
+	}
+	return &plan, nil
 }
 
 // 支付订单

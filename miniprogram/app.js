@@ -15,16 +15,21 @@ App({
 
   onShow(options) {
     // 处理嵌入式小程序支付回调
+    console.log('App.onShow options:', options)
+    
     if (options && options.referrerInfo && options.referrerInfo.extraData) {
       const extraData = options.referrerInfo.extraData
-      console.log('收到支付回调:', extraData)
+      console.log('收到支付回调 extraData:', JSON.stringify(extraData))
       
       // 保存支付结果到 globalData
+      // YunGouOS 返回: { code: 0, data: { orderNo: "xxx" }, msg: "支付成功" }
       this.globalData.payResult = {
         success: extraData.code === 0,
         orderNo: extraData.data?.orderNo || '',
         msg: extraData.msg || ''
       }
+      
+      console.log('设置 payResult:', this.globalData.payResult)
       
       // 如果支付失败，显示错误提示
       if (extraData.code !== 0) {
@@ -40,8 +45,8 @@ App({
   globalData: {
     userInfo: null,
     token: null,
-    baseURL: 'http://localhost:3100/api/v1',  // 后端API地址（本地开发）
-    // baseURL: 'https://www.csgoods.com.cn/api/v1',  // 后端API地址
+    // baseURL: 'http://localhost:3100/api/v1',  // 后端API地址（本地开发）
+    baseURL: 'https://www.csgoods.com.cn/api/v1',  // 后端API地址（线上）
     // 小程序配置
     minAppConfig: {
       vipEnabled: false  // VIP开通入口开关，默认关闭
