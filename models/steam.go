@@ -1,6 +1,9 @@
 package models
 
 import (
+	"strings"
+	"time"
+
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"uu/config"
@@ -32,18 +35,29 @@ func BatchGetSteamGoods(hashNames []string) map[string]*Steam {
 }
 
 func BatchUpdateSteamGoods(steam []*Steam) {
-	err := config.DB.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Clauses(clause.OnConflict{
-			Columns:   []clause.Column{{Name: "market_hash_name"}},
-			DoUpdates: clause.AssignmentColumns([]string{"sell_price", "sell_count", "bidding_price", "bidding_count", "update_time", "turn_over", "link"}),
-		}).CreateInBatches(steam, 100).Error; err != nil {
-			return err
+	maxRetries := 3
+	var err error
+	for i := 0; i < maxRetries; i++ {
+		err = config.DB.Transaction(func(tx *gorm.DB) error {
+			if err := tx.Clauses(clause.OnConflict{
+				Columns:   []clause.Column{{Name: "market_hash_name"}},
+				DoUpdates: clause.AssignmentColumns([]string{"sell_price", "sell_count", "bidding_price", "bidding_count", "update_time", "turn_over", "link"}),
+			}).CreateInBatches(steam, 50).Error; err != nil {
+				return err
+			}
+			return nil
+		})
+		if err == nil {
+			return
 		}
-		return nil
-	})
-	if err != nil {
-		config.Log.Errorf("Update steam Goods fail: %v", err)
-		return
+		if strings.Contains(err.Error(), "Deadlock") || strings.Contains(err.Error(), "SAVEPOINT") {
+			config.Log.Warnf("Update Steam Goods deadlock, retrying (%d/%d)...", i+1, maxRetries)
+			time.Sleep(time.Millisecond * time.Duration(100*(i+1)))
+			continue
+		}
+		break
 	}
-	//config.Log.Info("Update steam Goods Success")
+	if err != nil {
+		config.Log.Errorf("Update Steam Goods fail: %v", err)
+	}
 }

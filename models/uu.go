@@ -2,6 +2,7 @@ package models
 
 import (
 	"strings"
+	"time"
 
 	"uu/config"
 
@@ -241,17 +242,30 @@ func BatchGetUUGoods(hashNames []string) map[string]*U {
 }
 
 func BatchUpdateUUGoods(uu []*U) {
-	err := config.DB.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Clauses(clause.OnConflict{UpdateAll: true}).CreateInBatches(uu, 100).Error; err != nil {
-			return err
+	maxRetries := 3
+	var err error
+	for i := 0; i < maxRetries; i++ {
+		err = config.DB.Transaction(func(tx *gorm.DB) error {
+			// 减小批量大小，降低锁冲突概率
+			if err := tx.Clauses(clause.OnConflict{UpdateAll: true}).CreateInBatches(uu, 50).Error; err != nil {
+				return err
+			}
+			return nil
+		})
+		if err == nil {
+			return
 		}
-		return nil
-	})
+		// 如果是死锁错误，等待后重试
+		if strings.Contains(err.Error(), "Deadlock") || strings.Contains(err.Error(), "SAVEPOINT") {
+			config.Log.Warnf("Update UU Goods deadlock, retrying (%d/%d)...", i+1, maxRetries)
+			time.Sleep(time.Millisecond * time.Duration(100*(i+1))) // 递增等待
+			continue
+		}
+		break // 其他错误不重试
+	}
 	if err != nil {
 		config.Log.Errorf("Update UU Goods fail: %v", err)
-		return
 	}
-	//config.Log.Info("Update UU Goods Success")
 }
 
 func BatchQueryHashIcon() ([]UBaseInfo, error) {

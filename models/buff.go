@@ -1,6 +1,9 @@
 package models
 
 import (
+	"strings"
+	"time"
+
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"uu/config"
@@ -72,15 +75,26 @@ func BatchGetBuffGoods(hashNames []string) map[string]*Buff {
 }
 
 func BatchUpdateBuffGoods(buff []*Buff) {
-	err := config.DB.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Clauses(clause.OnConflict{UpdateAll: true}).CreateInBatches(buff, 100).Error; err != nil {
-			return err
+	maxRetries := 3
+	var err error
+	for i := 0; i < maxRetries; i++ {
+		err = config.DB.Transaction(func(tx *gorm.DB) error {
+			if err := tx.Clauses(clause.OnConflict{UpdateAll: true}).CreateInBatches(buff, 50).Error; err != nil {
+				return err
+			}
+			return nil
+		})
+		if err == nil {
+			return
 		}
-		return nil
-	})
+		if strings.Contains(err.Error(), "Deadlock") || strings.Contains(err.Error(), "SAVEPOINT") {
+			config.Log.Warnf("Update Buff Goods deadlock, retrying (%d/%d)...", i+1, maxRetries)
+			time.Sleep(time.Millisecond * time.Duration(100*(i+1)))
+			continue
+		}
+		break
+	}
 	if err != nil {
 		config.Log.Errorf("Update Buff Goods fail: %v", err)
-		return
 	}
-	//config.Log.Info("Update Buff Goods Success")
 }
