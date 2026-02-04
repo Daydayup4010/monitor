@@ -783,3 +783,71 @@
   color: #bfbfbf;
   font-size: 24rpx;
 }
+
+/* 购买/出售方案卡片 */
+.scheme-card {
+  background: white;
+  padding: 20rpx 24rpx;
+  border-radius: 16rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+}
+
+.scheme-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.scheme-row:last-child {
+  margin-bottom: 0;
+}
+
+.scheme-label {
+  font-size: 24rpx;
+  color: #8c8c8c;
+  flex-shrink: 0;
+}
+
+.scheme-tabs {
+  display: flex;
+  flex: 1;
+  background: #f5f7fa;
+  border-radius: 12rpx;
+  padding: 6rpx;
+  gap: 6rpx;
+}
+
+.scheme-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6rpx;
+  padding: 14rpx 12rpx;
+  border-radius: 10rpx;
+  font-size: 22rpx;
+  color: #595959;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.scheme-tab.active {
+  background: white;
+  color: #1890ff;
+  font-weight: 500;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.08);
+}
+
+.fast-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rpx 10rpx;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
+  color: white;
+  font-size: 18rpx;
+  font-weight: 600;
+  border-radius: 6rpx;
+}

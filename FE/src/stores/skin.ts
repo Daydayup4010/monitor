@@ -15,18 +15,27 @@ export const useSkinStore = defineStore('skin', () => {
   // 类别改为多选数组，从 localStorage 读取（存储为逗号分隔的字符串）
   const savedCategories = localStorage.getItem('brick_categories')
   const defaultCategories: string[] = []
+  // 购买方案和出售方案
+  const savedBuyType = localStorage.getItem('brick_buy_type') || 'sell'
+  const savedSellType = localStorage.getItem('brick_sell_type') || 'sell'
 
   // 平台和排序设置（持久化）
   const sourcePlatform = ref(savedSource)
   const targetPlatform = ref(savedTarget)
   const sortOption = ref(savedSort)
   const categories = ref<string[]>(savedCategories ? savedCategories.split(',').filter(c => c) : defaultCategories)
+  // 购买方案: sell(在售价购买) / bidding(求购价购买)
+  // 出售方案: sell(在售价出售) / bidding(求购价出售)
+  const buyType = ref(savedBuyType)
+  const sellType = ref(savedSellType)
 
   // 监听变化，保存到 localStorage
   watch(sourcePlatform, (val) => localStorage.setItem('brick_source', val))
   watch(targetPlatform, (val) => localStorage.setItem('brick_target', val))
   watch(sortOption, (val) => localStorage.setItem('brick_sort', val))
   watch(categories, (val) => localStorage.setItem('brick_categories', val.join(',')), { deep: true })
+  watch(buyType, (val) => localStorage.setItem('brick_buy_type', val))
+  watch(sellType, (val) => localStorage.setItem('brick_sell_type', val))
 
   // 排序配置映射
   const sortMap: Record<string, { field: string; desc: boolean }> = {
@@ -72,6 +81,8 @@ export const useSkinStore = defineStore('skin', () => {
         source: sourcePlatform.value,
         target: targetPlatform.value,
         category: categoryParam,
+        buy_type: buyType.value,
+        sell_type: sellType.value,
         ...params 
       }
       const response = await dataApi.getSkinItems(queryParams)
@@ -119,6 +130,8 @@ export const useSkinStore = defineStore('skin', () => {
     targetPlatform,
     sortOption,
     categories,
+    buyType,
+    sellType,
     getSortConfig,
     getSkinItems,
   }

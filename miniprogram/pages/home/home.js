@@ -14,6 +14,12 @@ Page({
     sourceIndex: 1,  // UU
     targetIndex: 0,  // Buff
     
+    // 购买/出售方案
+    // buyType: sell(在售价购买) / bidding(求购价购买)
+    // sellType: sell(挂底价) / bidding(丢求购)
+    buyType: 'sell',
+    sellType: 'sell',
+    
     // 筛选参数
     minPrice: '',      // 最低价格
     maxPrice: '',      // 最高价格
@@ -277,6 +283,34 @@ Page({
     })
   },
 
+  // 购买方案切换
+  onBuyTypeChange(e) {
+    const type = e.currentTarget.dataset.type
+    if (type === this.data.buyType) return
+    this.setData({
+      buyType: type,
+      pageNum: 1,
+      skinList: []
+    }, () => {
+      this.updateFilterDescription()
+      this.loadData()
+    })
+  },
+
+  // 出售方案切换
+  onSellTypeChange(e) {
+    const type = e.currentTarget.dataset.type
+    if (type === this.data.sellType) return
+    this.setData({
+      sellType: type,
+      pageNum: 1,
+      skinList: []
+    }, () => {
+      this.updateFilterDescription()
+      this.loadData()
+    })
+  },
+
   // 确定搜索（同时保存设置）
   async doSearch() {
     // 保存设置到后端
@@ -350,7 +384,9 @@ Page({
       page_num: this.data.pageNum,
       page_size: this.data.pageSize,
       source: source,
-      target: target
+      target: target,
+      buy_type: this.data.buyType,
+      sell_type: this.data.sellType
     }
 
     // 添加筛选参数
@@ -489,6 +525,11 @@ Page({
     const sourceName = this.data.platforms[this.data.sourceIndex]
     const targetName = this.data.platforms[this.data.targetIndex]
     
+    // 购买方案描述
+    const buyTypeDesc = this.data.buyType === 'bidding' ? '求购价购买' : '在售价购买'
+    // 出售方案描述
+    const sellTypeDesc = this.data.sellType === 'bidding' ? '丢求购' : '挂底价'
+    
     const minPrice = this.data.minPrice || 0
     const maxPrice = this.data.maxPrice || 10000
     const priceRange = `价格${minPrice}-${maxPrice}元`
@@ -507,7 +548,7 @@ Page({
     const conditionStr = conditions.length > 0 ? '，' + conditions.join('，') : ''
     
     this.setData({
-      filterDescription: `从${sourceName}平台买入饰品，到${targetName}平台卖出（${priceRange}${conditionStr}）`
+      filterDescription: `从${sourceName}（${buyTypeDesc}）→ ${targetName}（${sellTypeDesc}）（${priceRange}${conditionStr}）`
     })
   },
 

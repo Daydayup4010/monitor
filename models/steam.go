@@ -10,9 +10,9 @@ type Steam struct {
 	gorm.Model
 	Id             uint    `json:"id" gorm:"primaryKey"`
 	MarketHashName string  `json:"marketHashName" gorm:"type:varchar(255);uniqueIndex;not null"`
-	SellPrice      float64 `json:"sellPrice"`
-	SellCount      int64   `json:"sellCount"`
-	BiddingPrice   float64 `json:"biddingPrice"`
+	SellPrice      float64 `json:"sellPrice" gorm:"index"`
+	SellCount      int64   `json:"sellCount" gorm:"index"`
+	BiddingPrice   float64 `json:"biddingPrice" gorm:"index"`
 	BiddingCount   int64   `json:"biddingCount"`
 	BeforeTime     int64   `json:"beforeTime"`
 	BeforeCount    int64   `json:"beforeCount"`

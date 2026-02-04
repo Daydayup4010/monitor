@@ -42,6 +42,35 @@
       </view>
     </view>
 
+    <!-- 购买/出售方案 -->
+    <view class="scheme-card">
+      <!-- 购买方案 -->
+      <view class="scheme-row">
+        <text class="scheme-label">购买方案:</text>
+        <view class="scheme-tabs">
+          <view class="scheme-tab {{buyType === 'sell' ? 'active' : ''}}" bindtap="onBuyTypeChange" data-type="sell">
+            {{platforms[sourceIndex]}}在售价购买
+          </view>
+          <view class="scheme-tab {{buyType === 'bidding' ? 'active' : ''}}" bindtap="onBuyTypeChange" data-type="bidding">
+            {{platforms[sourceIndex]}}求购价购买
+          </view>
+        </view>
+      </view>
+      <!-- 出售方案 -->
+      <view class="scheme-row">
+        <text class="scheme-label">出售方案:</text>
+        <view class="scheme-tabs">
+          <view class="scheme-tab {{sellType === 'sell' ? 'active' : ''}}" bindtap="onSellTypeChange" data-type="sell">
+            {{platforms[targetIndex]}}挂底价
+          </view>
+          <view class="scheme-tab {{sellType === 'bidding' ? 'active' : ''}}" bindtap="onSellTypeChange" data-type="bidding">
+            {{platforms[targetIndex]}}丢求购
+            <text class="fast-tag">快</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
     <!-- 类别标签（横向滚动） -->
     <scroll-view class="category-scroll" scroll-x="true" enhanced="true" show-scrollbar="false">
       <view class="category-tags">

@@ -110,7 +110,7 @@ import { showMessage } from '@/utils/message'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import 'dayjs/locale/zh-cn'
-import { useUserStore } from '@/store/user'
+import { useUserStore } from '@/stores/user'
 
 dayjs.extend(relativeTime)
 dayjs.locale('zh-cn')

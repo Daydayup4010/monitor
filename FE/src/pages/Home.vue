@@ -8,8 +8,8 @@
 
       <!-- 筛选栏 -->
       <div class="filter-bar" style="display: block !important;">
-        <!-- 第一行 - 平台选择 -->
-        <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 16px;">
+        <!-- 第一行 - 平台选择和方案选择 -->
+        <div style="display: flex; gap: 24px; flex-wrap: wrap; align-items: center; margin-bottom: 16px;">
           <div class="filter-item">
             <label class="filter-label">买入平台</label>
             <el-select
@@ -88,6 +88,61 @@
                 </div>
               </el-option>
             </el-select>
+          </div>
+
+          <!-- 购买方案 -->
+          <div class="filter-item scheme-filter">
+            <div class="scheme-label">
+              <span>购买方案</span>
+              <el-tooltip content="选择从买入平台购买饰品的方式" placement="top">
+                <el-icon style="color: #8c8c8c; cursor: help; font-size: 14px;"><QuestionFilled /></el-icon>
+              </el-tooltip>
+              <span style="color: #8c8c8c;">:</span>
+            </div>
+            <div class="scheme-tabs">
+              <div 
+                class="scheme-tab" 
+                :class="{ active: buyType === 'sell' }"
+                @click="handleBuyTypeChange('sell')"
+              >
+                {{ sourcePlatformName }}在售价购买
+              </div>
+              <div 
+                class="scheme-tab" 
+                :class="{ active: buyType === 'bidding' }"
+                @click="handleBuyTypeChange('bidding')"
+              >
+                {{ sourcePlatformName }}求购价购买
+              </div>
+            </div>
+          </div>
+
+          <!-- 出售方案 -->
+          <div class="filter-item scheme-filter">
+            <div class="scheme-label">
+              <span>出售方案</span>
+              <el-tooltip content="选择在卖出平台出售饰品的方式" placement="top">
+                <el-icon style="color: #8c8c8c; cursor: help; font-size: 14px;"><QuestionFilled /></el-icon>
+              </el-tooltip>
+              <span style="color: #8c8c8c;">:</span>
+            </div>
+            <div class="scheme-tabs">
+              <div 
+                class="scheme-tab" 
+                :class="{ active: sellType === 'sell' }"
+                @click="handleSellTypeChange('sell')"
+              >
+                {{ targetPlatformName }}挂底价
+              </div>
+              <div 
+                class="scheme-tab" 
+                :class="{ active: sellType === 'bidding' }"
+                @click="handleSellTypeChange('bidding')"
+              >
+                {{ targetPlatformName }}丢求购
+                <span class="fast-tag">快</span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -505,6 +560,35 @@ const categories = computed({
   get: () => skinStore.categories,
   set: (val) => { skinStore.categories = val }
 })
+const buyType = computed({
+  get: () => skinStore.buyType,
+  set: (val) => { skinStore.buyType = val }
+})
+const sellType = computed({
+  get: () => skinStore.sellType,
+  set: (val) => { skinStore.sellType = val }
+})
+
+// 平台显示名称
+const sourcePlatformName = computed(() => {
+  const platformNames: Record<string, string> = {
+    'buff': 'BUFF',
+    'uu': '悠悠',
+    'c5': 'C5',
+    'steam': 'Steam'
+  }
+  return platformNames[sourcePlatform.value] || sourcePlatform.value
+})
+
+const targetPlatformName = computed(() => {
+  const platformNames: Record<string, string> = {
+    'buff': 'BUFF',
+    'uu': '悠悠',
+    'c5': 'C5',
+    'steam': 'Steam'
+  }
+  return platformNames[targetPlatform.value] || targetPlatform.value
+})
 
 // 筛选参数
 const filterParams = reactive({
@@ -607,6 +691,24 @@ const handleTargetChange = () => {
   })
 }
 
+// 购买方案切换
+const handleBuyTypeChange = (type: string) => {
+  buyType.value = type
+  skinStore.getSkinItems({
+    search: searchKeyword.value,
+    page_num: 1
+  })
+}
+
+// 出售方案切换
+const handleSellTypeChange = (type: string) => {
+  sellType.value = type
+  skinStore.getSkinItems({
+    search: searchKeyword.value,
+    page_num: 1
+  })
+}
+
 const refreshData = async () => {
   // 先保存设置
   try {
@@ -634,13 +736,19 @@ const getFilterDescription = () => {
   }
   const sourceName = platformNames[sourcePlatform.value] || sourcePlatform.value
   const targetName = platformNames[targetPlatform.value] || targetPlatform.value
+  
+  // 购买方案描述
+  const buyTypeDesc = buyType.value === 'bidding' ? '求购价购买' : '在售价购买'
+  // 出售方案描述
+  const sellTypeDesc = sellType.value === 'bidding' ? '丢求购' : '挂底价'
+  
   const priceRange = `价格${filterParams.min_sell_price}-${filterParams.max_sell_price}元`
   const sellNum = filterParams.min_sell_num > 0 ? `，在售量大于${filterParams.min_sell_num}件` : ''
   const priceDiff = filterParams.min_diff > 0 ? `，价格差大于${filterParams.min_diff}元` : ''
   // 多选类别显示
   const categoryDesc = categories.value.length > 0 ? `，类别：${categories.value.join('、')}` : ''
   
-  return `从${sourceName}平台买入饰品，到${targetName}平台卖出（${priceRange}${sellNum}${priceDiff}${categoryDesc}）`
+  return `从${sourceName}（${buyTypeDesc}）→ ${targetName}（${sellTypeDesc}）（${priceRange}${sellNum}${priceDiff}${categoryDesc}）`
 }
 
 // 加载用户设置
@@ -797,23 +905,27 @@ const getPlatformIconByName = (platformName: string) => {
 
 // 动态列名
 const sourcePriceLabel = computed(() => {
-  const platformLabels: Record<string, string> = {
-    'buff': 'BUFF最低售价(¥)',
-    'uu': '悠悠最低售价(¥)',
-    'c5': 'C5最低售价(¥)',
-    'steam': 'Steam最低售价(¥)'
+  const platformNames: Record<string, string> = {
+    'buff': 'BUFF',
+    'uu': '悠悠',
+    'c5': 'C5',
+    'steam': 'Steam'
   }
-  return platformLabels[sourcePlatform.value] || '买入最低售价(¥)'
+  const name = platformNames[sourcePlatform.value] || '买入'
+  const priceType = buyType.value === 'bidding' ? '求购价' : '最低售价'
+  return `${name}${priceType}(¥)`
 })
 
 const targetPriceLabel = computed(() => {
-  const platformLabels: Record<string, string> = {
-    'buff': 'BUFF最低售价(¥)',
-    'uu': '悠悠最低售价(¥)',
-    'c5': 'C5最低售价(¥)',
-    'steam': 'Steam最低售价(¥)'
+  const platformNames: Record<string, string> = {
+    'buff': 'BUFF',
+    'uu': '悠悠',
+    'c5': 'C5',
+    'steam': 'Steam'
   }
-  return platformLabels[targetPlatform.value] || '卖出最低售价(¥)'
+  const name = platformNames[targetPlatform.value] || '卖出'
+  const priceType = sellType.value === 'bidding' ? '求购价' : '最低售价'
+  return `${name}${priceType}(¥)`
 })
 
 const turnOverLabel = computed(() => {
@@ -932,6 +1044,68 @@ onMounted(async () => {
 .btn-refresh:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* 方案选择样式 */
+.scheme-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.scheme-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  color: #595959;
+  white-space: nowrap;
+}
+
+.scheme-tabs {
+  display: flex;
+  align-items: center;
+  background: #f5f7fa;
+  border-radius: 10px;
+  padding: 4px;
+  gap: 4px;
+}
+
+.scheme-tab {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #595959;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.scheme-tab:hover {
+  color: #1890ff;
+}
+
+.scheme-tab.active {
+  background: #fff;
+  color: #1890ff;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.fast-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 6px;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 4px;
+  margin-left: 4px;
 }
 </style>
 

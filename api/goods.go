@@ -23,7 +23,20 @@ func GetGoods(c *gin.Context) {
 	search := c.Query("search")
 	source := c.Query("source")
 	target := c.Query("target")
-	s, total, code := models.GetGoods(userId, pageSize, pageNum, desc, sort, search, source, target, category)
+
+	// 新增：购买方案和出售方案
+	// buy_type: sell(在售价购买) / bidding(求购价购买)，默认 sell
+	// sell_type: sell(在售价出售) / bidding(求购价出售)，默认 sell
+	buyType := c.Query("buy_type")
+	sellType := c.Query("sell_type")
+	if buyType != "sell" && buyType != "bidding" {
+		buyType = "sell"
+	}
+	if sellType != "sell" && sellType != "bidding" {
+		sellType = "sell"
+	}
+
+	s, total, code := models.GetGoods(userId, pageSize, pageNum, desc, sort, search, source, target, category, buyType, sellType)
 	c.JSON(http.StatusOK, gin.H{
 		"code":  code,
 		"data":  s,

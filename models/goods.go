@@ -266,7 +266,10 @@ func GetPlatformListBatch(marketHashNames []string) map[string][]*Platform {
 	return result
 }
 
-func GetGoods(userId string, pageSize, pageNum int, isDesc bool, sortField, search, source, target, category string) (*[]Goods, int64, int) {
+// GetGoods 获取搬砖数据
+// buyType: sell(在售价购买) / bidding(求购价购买)
+// sellType: sell(在售价出售) / bidding(求购价出售)
+func GetGoods(userId string, pageSize, pageNum int, isDesc bool, sortField, search, source, target, category, buyType, sellType string) (*[]Goods, int64, int) {
 	var goods []Goods
 	var total int64
 	validFields := map[string]bool{
@@ -284,7 +287,7 @@ func GetGoods(userId string, pageSize, pageNum int, isDesc bool, sortField, sear
 	sourceTable := tableMap[source]
 
 	if !validFields[sortField] {
-		sortField = "id" // 默认排序字段
+		sortField = "profit_rate" // 默认按利润率排序
 	}
 
 	order := sortField
@@ -322,19 +325,87 @@ func GetGoods(userId string, pageSize, pageNum int, isDesc bool, sortField, sear
 		}
 	}
 
+	targetTable := targetMap["table"].(string)
+
+	// 根据 buyType 和 sellType 确定使用的价格字段
+	// buyType: 购买方案 - sell(在售价购买) / bidding(求购价购买)
+	// sellType: 出售方案 - sell(在售价出售) / bidding(求购价出售)
+	var sourcePriceField, targetPriceField string
+	if buyType == "bidding" {
+		sourcePriceField = "bidding_price" // 求购价购买：用来源平台的求购价作为买入价
+	} else {
+		sourcePriceField = "sell_price" // 在售价购买：用来源平台的在售价作为买入价
+	}
+	if sellType == "bidding" {
+		targetPriceField = "bidding_price" // 求购价出售：用目标平台的求购价作为卖出价
+	} else {
+		targetPriceField = "sell_price" // 在售价出售：用目标平台的在售价作为卖出价
+	}
+
+	// 构建 SELECT 语句
+	// source_price: 买入价（来源平台）
+	// target_price: 卖出价（目标平台）
+	// price_diff: 差价 = 卖出价 - 买入价
+	// profit_rate: 利润率 = 差价 / 买入价
+	selectSQL := fmt.Sprintf(`
+		%s.id as id,
+		%s.sell_count as sell_count,
+		%s.turn_over as turn_over,
+		%s.bidding_count as bidding_count,
+		%s.bidding_price as bidding_price,
+		base_goods.market_hash_name as market_hash_name,
+		base_goods.name as name,
+		base_goods.icon_url as image_url,
+		u_base_info.type_name as type_name,
+		%s.%s as target_price,
+		%s.%s as source_price,
+		(%s.%s - %s.%s) as price_diff,
+		ROUND((%s.%s - %s.%s) / %s.%s, 4) as profit_rate,
+		%s.update_time as target_update_time,
+		%s.update_time as source_update_time`,
+		targetTable,
+		targetTable,
+		targetTable,
+		targetTable,
+		targetTable,
+		targetTable, targetPriceField,
+		sourceTable, sourcePriceField,
+		targetTable, targetPriceField, sourceTable, sourcePriceField,
+		targetTable, targetPriceField, sourceTable, sourcePriceField, sourceTable, sourcePriceField,
+		targetTable,
+		sourceTable)
+
+	// 构建 WHERE 条件
+	// 差价 > 最小差价
+	// 目标平台在售数量 > 最小在售数量
+	// 来源平台买入价 < 最大价格 且 > 最小价格
+	// 同时要求使用的价格字段 > 0（避免除零错误和无效数据）
+	whereSQL := fmt.Sprintf(`
+		(%s.%s - %s.%s) > ? AND
+		%s.sell_count > ? AND
+		%s.%s < ? AND
+		%s.%s > ? AND
+		%s.%s > 0 AND
+		%s.%s > 0`,
+		targetTable, targetPriceField, sourceTable, sourcePriceField,
+		targetTable,
+		sourceTable, sourcePriceField,
+		sourceTable, sourcePriceField,
+		sourceTable, sourcePriceField,
+		targetTable, targetPriceField)
+
 	query1 := config.DB.Model(targetMap["model"]).
-		Select(fmt.Sprintf("%s.id as id, %s.sell_count as sell_count, %s.turn_over as turn_over, %s.bidding_count as bidding_count, %s.bidding_price as bidding_price, base_goods.market_hash_name as market_hash_name, base_goods.name as name, base_goods.icon_url as image_url, u_base_info.type_name as type_name, %s.sell_price as target_price, %s.sell_price as source_price, (%s.sell_price - %s.sell_price) as price_diff, ROUND((%s.sell_price - %s.sell_price)/%s.sell_price,4) as profit_rate, %s.update_time as target_update_time, %s.update_time as source_update_time", targetMap["table"], targetMap["table"], targetMap["table"], targetMap["table"], targetMap["table"], targetMap["table"], sourceTable, targetMap["table"], sourceTable, targetMap["table"], sourceTable, sourceTable, targetMap["table"], sourceTable)).
-		Joins(fmt.Sprintf("join %s ON %s.market_hash_name = %s.market_hash_name", sourceTable, targetMap["table"], sourceTable)).
-		Joins(fmt.Sprintf("join base_goods ON %s.market_hash_name = base_goods.market_hash_name", targetMap["table"])).
-		Joins(fmt.Sprintf("left join u_base_info ON %s.market_hash_name = u_base_info.hash_name", targetMap["table"])).
-		Where(fmt.Sprintf("(%s.sell_price - %s.sell_price) > ? and %s.sell_count > ? and %s.sell_price < ? and %s.sell_price > ?", targetMap["table"], sourceTable, targetMap["table"], sourceTable, sourceTable),
-			settings.MinDiff, settings.MinSellNum, settings.MaxSellPrice, settings.MinSellPrice)
+		Select(selectSQL).
+		Joins(fmt.Sprintf("join %s ON %s.market_hash_name = %s.market_hash_name", sourceTable, targetTable, sourceTable)).
+		Joins(fmt.Sprintf("join base_goods ON %s.market_hash_name = base_goods.market_hash_name", targetTable)).
+		Joins(fmt.Sprintf("left join u_base_info ON %s.market_hash_name = u_base_info.hash_name", targetTable)).
+		Where(whereSQL, settings.MinDiff, settings.MinSellNum, settings.MaxSellPrice, settings.MinSellPrice)
+
 	query2 := config.DB.Model(targetMap["model"]).
-		Joins(fmt.Sprintf("join %s ON %s.market_hash_name = %s.market_hash_name", sourceTable, targetMap["table"], sourceTable)).
-		Joins(fmt.Sprintf("join base_goods ON %s.market_hash_name = base_goods.market_hash_name", targetMap["table"])).
-		Joins(fmt.Sprintf("left join u_base_info ON %s.market_hash_name = u_base_info.hash_name", targetMap["table"])).
-		Where(fmt.Sprintf("(%s.sell_price - %s.sell_price) > ? and %s.sell_count > ? and %s.sell_price < ? and %s.sell_price > ?", targetMap["table"], sourceTable, targetMap["table"], sourceTable, sourceTable),
-			settings.MinDiff, settings.MinSellNum, settings.MaxSellPrice, settings.MinSellPrice)
+		Joins(fmt.Sprintf("join %s ON %s.market_hash_name = %s.market_hash_name", sourceTable, targetTable, sourceTable)).
+		Joins(fmt.Sprintf("join base_goods ON %s.market_hash_name = base_goods.market_hash_name", targetTable)).
+		Joins(fmt.Sprintf("left join u_base_info ON %s.market_hash_name = u_base_info.hash_name", targetTable)).
+		Where(whereSQL, settings.MinDiff, settings.MinSellNum, settings.MaxSellPrice, settings.MinSellPrice)
 
 	if category != "" {
 		// 支持多个类别，逗号分隔
@@ -344,7 +415,7 @@ func GetGoods(userId string, pageSize, pageNum int, isDesc bool, sortField, sear
 	}
 
 	if search != "" {
-		query1 = query1.Where("name LIKE ?", "%"+search+"%")
+		query1 = query1.Where("base_goods.name LIKE ?", "%"+search+"%")
 		query2 = query2.Where("base_goods.name LIKE ?", "%"+search+"%")
 	}
 
