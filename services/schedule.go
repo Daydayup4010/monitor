@@ -100,3 +100,12 @@ func StartDailyPriceHistoryScheduler() {
 		SafeGo(RecordDailyPriceHistory)
 	}
 }
+
+func UpdateSteamItemNameIdsScheduler() {
+	SafeGo(UpdateSteamItemNameIds)
+	ticker := time.NewTicker(120 * time.Hour)
+	defer ticker.Stop()
+	for range ticker.C {
+		SafeGo(UpdateSteamItemNameIds)
+	}
+}

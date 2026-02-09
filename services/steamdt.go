@@ -3,6 +3,7 @@ package services
 import (
 	"fmt"
 	"math"
+	"regexp"
 	"time"
 	"uu/config"
 	"uu/models"
@@ -340,4 +341,114 @@ func RecordDailyPriceHistory() {
 
 	// 清除涨幅缓存，让下次查询获取最新数据
 	models.ClearPriceIncreaseCache()
+}
+
+// Steam 社区市场客户端
+var steamCommunityClient = utils.CreateClient("https://steamcommunity.com")
+
+// FetchSteamItemNameId 从 Steam 商品详情页获取 item_nameid
+func FetchSteamItemNameId(link string) (string, error) {
+	// link 格式: https://steamcommunity.com/market/listings/730/AK-47%20|%20Redline%20(Field-Tested)
+	// 提取路径部分
+	path := link
+	if idx := len("https://steamcommunity.com/"); len(link) > idx {
+		path = link[idx:]
+	}
+
+	var result string
+	opts := utils.RequestOptions{
+		Result: &result,
+	}
+
+	resp, err := steamCommunityClient.DoRequest("GET", path, opts)
+	if err != nil {
+		return "", err
+	}
+	if resp.StatusCode() != 200 {
+		return "", fmt.Errorf("steam response status: %d", resp.StatusCode())
+	}
+
+	html := resp.String()
+
+	// 正则提取 item_nameid
+	// 方法1: ItemActivityTicker.Start( 730, 'item_nameid' )
+	re1 := regexp.MustCompile(`ItemActivityTicker\.Start\(\s*\d+\s*,\s*'(\d+)'`)
+	if matches := re1.FindStringSubmatch(html); len(matches) > 1 {
+		return matches[1], nil
+	}
+
+	// 方法2: Market_LoadOrderSpread( item_nameid )
+	re2 := regexp.MustCompile(`Market_LoadOrderSpread\(\s*(\d+)`)
+	if matches := re2.FindStringSubmatch(html); len(matches) > 1 {
+		return matches[1], nil
+	}
+
+	return "", fmt.Errorf("item_nameid not found in page")
+}
+
+// UpdateSteamItemNameIds 批量更新 Steam 表中的 item_nameid（建议每周执行一次）
+func UpdateSteamItemNameIds() {
+	config.Log.Info("Starting to update Steam item_nameid...")
+
+	// 获取所有没有 item_nameid 的商品
+	steams, err := models.GetSteamsWithoutItemNameId()
+	if err != nil {
+		config.Log.Errorf("Failed to get steams without item_nameid: %v", err)
+		return
+	}
+
+	if len(steams) == 0 {
+		config.Log.Info("All steam items already have item_nameid")
+		return
+	}
+
+	config.Log.Infof("Found %d steam items without item_nameid", len(steams))
+
+	// 收集待更新的数据，批量写入
+	pendingUpdates := make(map[string]string) // marketHashName -> itemNameId
+	batchSize := 50
+	successCount := 0
+	failCount := 0
+
+	for i, item := range steams {
+		if item.Link == "" {
+			config.Log.Warnf("[%d/%d] %s has no link, skipped", i+1, len(steams), item.MarketHashName)
+			failCount++
+			continue
+		}
+
+		itemNameId, err := FetchSteamItemNameId(item.Link)
+		if err != nil {
+			config.Log.Warnf("[%d/%d] Failed to get item_nameid for %s: %v", i+1, len(steams), item.MarketHashName, err)
+			failCount++
+		} else {
+			pendingUpdates[item.MarketHashName] = itemNameId
+			config.Log.Infof("[%d/%d] Fetched %s -> %s", i+1, len(steams), item.MarketHashName, itemNameId)
+		}
+
+		// 每 batchSize 条批量写入一次
+		if len(pendingUpdates) >= batchSize {
+			count, err := models.BatchUpdateSteamItemNameIds(pendingUpdates)
+			if err != nil {
+				config.Log.Warnf("Batch update failed: %v", err)
+				failCount += len(pendingUpdates)
+			} else {
+				successCount += count
+			}
+			pendingUpdates = make(map[string]string)
+		}
+	}
+
+	// 处理剩余的数据
+	if len(pendingUpdates) > 0 {
+		count, err := models.BatchUpdateSteamItemNameIds(pendingUpdates)
+		if err != nil {
+			config.Log.Warnf("Batch update failed: %v", err)
+			failCount += len(pendingUpdates)
+		} else {
+			successCount += count
+		}
+	}
+
+	config.Log.Infof("Update steam item_nameid complete. Success: %d, Failed: %d", successCount, failCount)
 }

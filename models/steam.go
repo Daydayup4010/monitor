@@ -60,3 +60,30 @@ func BatchUpdateSteamGoods(steam []*Steam) {
 		config.Log.Errorf("Update Steam Goods fail: %v", err)
 	}
 }
+
+// GetSteamsWithoutItemNameId 获取所有没有 item_nameid 的商品
+func GetSteamsWithoutItemNameId() ([]Steam, error) {
+	var steams []Steam
+	err := config.DB.Where("id = '' OR id IS NULL").Find(&steams).Error
+	return steams, err
+}
+
+// BatchUpdateSteamItemNameIds 批量更新 item_nameid
+func BatchUpdateSteamItemNameIds(updates map[string]string) (int, error) {
+	if len(updates) == 0 {
+		return 0, nil
+	}
+
+	// 使用事务批量更新
+	tx := config.DB.Begin()
+	count := 0
+	for marketHashName, itemNameId := range updates {
+		if err := tx.Model(&Steam{}).Where("market_hash_name = ?", marketHashName).Update("id", itemNameId).Error; err != nil {
+			tx.Rollback()
+			return count, err
+		}
+		count++
+	}
+	tx.Commit()
+	return count, nil
+}

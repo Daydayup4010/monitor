@@ -17,6 +17,7 @@ func main() {
 	go services.UpdateAllGoodsScheduler()
 	go services.UpdateIconScheduler()
 	go services.StartDailyPriceHistoryScheduler()
+	go services.UpdateSteamItemNameIdsScheduler()
 	r := core.InitRouter()
 	addr := config.CONFIG.Server.GetAddr()
 	err := r.Run(addr)
