@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math"
 	"regexp"
+	"strconv"
+	"strings"
 	"time"
 	"uu/config"
 	"uu/models"
@@ -386,7 +388,8 @@ func FetchSteamItemNameId(link string) (string, error) {
 	return "", fmt.Errorf("item_nameid not found in page")
 }
 
-// UpdateSteamItemNameIds 批量更新 Steam 表中的 item_nameid（建议每周执行一次）
+// UpdateSteamItemNameIds 批量更新 Steam 表中的 item_nameid
+// limit: 每次执行的最大数量，0 表示不限制（建议设置 500-1000，分多次执行）
 func UpdateSteamItemNameIds() {
 	config.Log.Info("Starting to update Steam item_nameid...")
 
@@ -402,13 +405,16 @@ func UpdateSteamItemNameIds() {
 		return
 	}
 
-	config.Log.Infof("Found %d steam items without item_nameid", len(steams))
+	total := len(steams)
+
+	config.Log.Infof("Found %d items without item_nameid, processing %d this time", total, len(steams))
 
 	// 收集待更新的数据，批量写入
 	pendingUpdates := make(map[string]string) // marketHashName -> itemNameId
-	batchSize := 50
+	batchSize := 20
 	successCount := 0
 	failCount := 0
+	consecutive429 := 0 // 连续 429 错误计数
 
 	for i, item := range steams {
 		if item.Link == "" {
@@ -417,10 +423,35 @@ func UpdateSteamItemNameIds() {
 			continue
 		}
 
-		itemNameId, err := FetchSteamItemNameId(item.Link)
-		if err != nil {
-			config.Log.Warnf("[%d/%d] Failed to get item_nameid for %s: %v", i+1, len(steams), item.MarketHashName, err)
+		// 尝试获取，遇到 429 会重试
+		var itemNameId string
+		var fetchErr error
+		for retry := 0; retry < 3; retry++ {
+			itemNameId, fetchErr = FetchSteamItemNameId(item.Link)
+			if fetchErr == nil {
+				consecutive429 = 0 // 成功，重置计数
+				break
+			}
+			// 检查是否是 429 错误
+			if strings.Contains(fetchErr.Error(), "429") {
+				consecutive429++
+				waitTime := time.Duration(30*(retry+1)) * time.Second // 30s, 60s, 90s
+				config.Log.Warnf("[%d/%d] Rate limited (429), waiting %v before retry %d/3...", i+1, len(steams), waitTime, retry+1)
+				time.Sleep(waitTime)
+			} else {
+				break // 非 429 错误不重试
+			}
+		}
+
+		if fetchErr != nil {
+			config.Log.Warnf("[%d/%d] Failed to get item_nameid for %s: %v", i+1, len(steams), item.MarketHashName, fetchErr)
 			failCount++
+			// 如果连续多次 429，暂停更长时间
+			if consecutive429 >= 5 {
+				config.Log.Warnf("Too many rate limits, waiting 5 minutes...")
+				time.Sleep(5 * time.Minute)
+				consecutive429 = 0
+			}
 		} else {
 			pendingUpdates[item.MarketHashName] = itemNameId
 			config.Log.Infof("[%d/%d] Fetched %s -> %s", i+1, len(steams), item.MarketHashName, itemNameId)
@@ -437,6 +468,8 @@ func UpdateSteamItemNameIds() {
 			}
 			pendingUpdates = make(map[string]string)
 		}
+
+		time.Sleep(2500 * time.Millisecond)
 	}
 
 	// 处理剩余的数据
@@ -450,5 +483,134 @@ func UpdateSteamItemNameIds() {
 		}
 	}
 
-	config.Log.Infof("Update steam item_nameid complete. Success: %d, Failed: %d", successCount, failCount)
+	config.Log.Infof("Update steam item_nameid complete. Success: %d, Failed: %d, Remaining: %d", successCount, failCount, total-len(steams))
+}
+
+// SteamOrderHistogram Steam 市场订单数据响应结构
+type SteamOrderHistogram struct {
+	Success          int    `json:"success"`
+	LowestSellOrder  string `json:"lowest_sell_order"`  // 最低售价（分）
+	HighestBuyOrder  string `json:"highest_buy_order"`  // 最高求购价（分）
+	SellOrderSummary string `json:"sell_order_summary"` // 在售数量的 HTML
+	BuyOrderSummary  string `json:"buy_order_summary"`  // 求购数量的 HTML
+}
+
+// SteamOrderData 解析后的订单数据
+type SteamOrderData struct {
+	SellPrice    float64 // 最低售价（元）
+	SellCount    int64   // 在售数量
+	BiddingPrice float64 // 最高求购价（元）
+	BiddingCount int64   // 求购数量
+}
+
+// FetchSteamOrderData 获取 Steam 市场订单数据（求购价、售价、数量）
+func FetchSteamOrderData(itemNameId string) (*SteamOrderData, error) {
+	if itemNameId == "" {
+		return nil, fmt.Errorf("item_nameid is empty")
+	}
+
+	// currency=23 是人民币
+	url := fmt.Sprintf("market/itemordershistogram?country=CN&language=schinese&currency=23&item_nameid=%s", itemNameId)
+
+	var result SteamOrderHistogram
+	opts := utils.RequestOptions{
+		Result: &result,
+	}
+
+	resp, err := steamCommunityClient.DoRequest("GET", url, opts)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode() != 200 {
+		return nil, fmt.Errorf("steam response status: %d", resp.StatusCode())
+	}
+
+	if result.Success != 1 {
+		return nil, fmt.Errorf("steam api returned success=%d", result.Success)
+	}
+
+	data := &SteamOrderData{}
+
+	// 解析最低售价（分 -> 元）
+	if result.LowestSellOrder != "" {
+		if price, err := strconv.ParseInt(result.LowestSellOrder, 10, 64); err == nil {
+			data.SellPrice = float64(price) / 100.0
+		}
+	}
+
+	// 解析最高求购价（分 -> 元）
+	if result.HighestBuyOrder != "" {
+		if price, err := strconv.ParseInt(result.HighestBuyOrder, 10, 64); err == nil {
+			data.BiddingPrice = float64(price) / 100.0
+		}
+	}
+
+	// 从 sell_order_summary 提取在售数量
+	// 格式: <span class="market_commodity_orders_header_promote">164</span> 个出售中...
+	sellCountRe := regexp.MustCompile(`<span[^>]*>(\d+)</span>\s*个出售中`)
+	if matches := sellCountRe.FindStringSubmatch(result.SellOrderSummary); len(matches) > 1 {
+		if count, err := strconv.ParseInt(matches[1], 10, 64); err == nil {
+			data.SellCount = count
+		}
+	}
+
+	// 从 buy_order_summary 提取求购数量
+	// 格式: <span class="market_commodity_orders_header_promote">6872</span> 人请求...
+	buyCountRe := regexp.MustCompile(`<span[^>]*>(\d+)</span>\s*人请求`)
+	if matches := buyCountRe.FindStringSubmatch(result.BuyOrderSummary); len(matches) > 1 {
+		if count, err := strconv.ParseInt(matches[1], 10, 64); err == nil {
+			data.BiddingCount = count
+		}
+	}
+
+	return data, nil
+}
+
+// UpdateSteamPricesFromMarket 从 Steam 市场更新价格数据（需要先有 item_nameid）
+func UpdateSteamPricesFromMarket() {
+	config.Log.Info("Starting to update Steam prices from market...")
+
+	// 获取有 item_nameid 且 sell_price < 500 的商品
+	var steams []models.Steam
+	config.DB.Where("id != '' AND id IS NOT NULL AND sell_price < 500").Find(&steams)
+
+	if len(steams) == 0 {
+		config.Log.Info("No steam items with item_nameid and sell_price < 500 found")
+		return
+	}
+
+	config.Log.Infof("Found %d steam items with item_nameid and sell_price < 500", len(steams))
+
+	successCount := 0
+	failCount := 0
+
+	for i, item := range steams {
+		orderData, err := FetchSteamOrderData(item.Id)
+		if err != nil {
+			config.Log.Warnf("[%d/%d] Failed to get order data for %s: %v", i+1, len(steams), item.MarketHashName, err)
+			failCount++
+		} else {
+			// 更新数据库
+			updates := map[string]interface{}{
+				"sell_price":    orderData.SellPrice,
+				"sell_count":    orderData.SellCount,
+				"bidding_price": orderData.BiddingPrice,
+				"bidding_count": orderData.BiddingCount,
+				"update_time":   time.Now().Unix(),
+			}
+			if err := config.DB.Model(&models.Steam{}).Where("market_hash_name = ?", item.MarketHashName).Updates(updates).Error; err != nil {
+				config.Log.Warnf("[%d/%d] Failed to update %s: %v", i+1, len(steams), item.MarketHashName, err)
+				failCount++
+			} else {
+				config.Log.Infof("[%d/%d] Updated %s: sell=%.2f(%d), bid=%.2f(%d)",
+					i+1, len(steams), item.MarketHashName,
+					orderData.SellPrice, orderData.SellCount,
+					orderData.BiddingPrice, orderData.BiddingCount)
+				successCount++
+			}
+		}
+		time.Sleep(500 * time.Millisecond)
+	}
+
+	config.Log.Infof("Update steam prices complete. Success: %d, Failed: %d", successCount, failCount)
 }

@@ -11,7 +11,7 @@ import (
 
 type Steam struct {
 	MarketHashName string  `json:"marketHashName" gorm:"type:varchar(255);primaryKey"`
-	Id             string  `json:"platformItemId"`
+	Id             string  `json:"platformItemId" gorm:"type:varchar(50)"`
 	SellPrice      float64 `json:"sellPrice" gorm:"index"`
 	SellCount      int64   `json:"sellCount" gorm:"index"`
 	BiddingPrice   float64 `json:"biddingPrice" gorm:"index"`
