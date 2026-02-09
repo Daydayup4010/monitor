@@ -64,7 +64,7 @@ func BatchUpdateSteamGoods(steam []*Steam) {
 // GetSteamsWithoutItemNameId 获取所有没有 item_nameid 的商品
 func GetSteamsWithoutItemNameId() ([]Steam, error) {
 	var steams []Steam
-	err := config.DB.Where("id = '' OR id IS NULL").Find(&steams).Error
+	err := config.DB.Where("(id = '' OR id IS NULL) AND sell_price < 500").Find(&steams).Error
 	return steams, err
 }
 
