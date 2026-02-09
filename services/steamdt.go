@@ -346,7 +346,7 @@ func RecordDailyPriceHistory() {
 }
 
 // Steam 社区市场客户端
-var steamCommunityClient = utils.CreateClient("https://steamcommunity.com")
+var steamCommunityClient = utils.CreateClient("https://steamcommunity-a.akamaihd.net")
 
 // FetchSteamItemNameId 从 Steam 商品详情页获取 item_nameid
 func FetchSteamItemNameId(link string) (string, error) {
