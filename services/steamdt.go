@@ -3,6 +3,7 @@ package services
 import (
 	"fmt"
 	"math"
+	neturl "net/url"
 	"regexp"
 	"strconv"
 	"strings"
@@ -345,23 +346,25 @@ func RecordDailyPriceHistory() {
 	models.ClearPriceIncreaseCache()
 }
 
-// Steam 社区市场客户端（使用不重定向的客户端）
-var steamCommunityClient = utils.CreateClientNoRedirect("https://steamcommunity-a.akamaihd.net")
+// Steam 社区市场客户端
+var steamCommunityClient = utils.CreateClient("https://steamcommunity-a.akamaihd.net")
 
 // FetchSteamItemNameId 从 Steam 商品详情页获取 item_nameid
-func FetchSteamItemNameId(link string) (string, error) {
-	// link 格式: https://steamcommunity.com/market/listings/730/AK-47%20|%20Redline%20(Field-Tested)
-	// 替换域名为 CDN 地址
-	url := strings.Replace(link, "https://steamcommunity.com", "", 1)
-	url = strings.Replace(url, "http://steamcommunity.com", "", 1)
-	// 确保 path 以 / 开头
-	if !strings.HasPrefix(url, "/") {
-		url = "/" + url
-	}
+// marketHashName: 商品的 market_hash_name，如 "AK-47 | Redline (Field-Tested)"
+func FetchSteamItemNameId(marketHashName string) (string, error) {
+	// 直接构建路径，不依赖数据库的 link 字段
+	// URL 编码 marketHashName
+	encodedName := neturl.PathEscape(marketHashName)
+	url := "/market/listings/730/" + encodedName
 
 	var result string
 	opts := utils.RequestOptions{
 		Result: &result,
+		Headers: map[string]string{
+			"User-Agent":      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+			"Accept":          "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+			"Accept-Language": "en-US,en;q=0.5",
+		},
 	}
 
 	resp, err := steamCommunityClient.DoRequest("GET", url, opts)
@@ -419,17 +422,11 @@ func UpdateSteamItemNameIds() {
 	consecutive429 := 0 // 连续 429 错误计数
 
 	for i, item := range steams {
-		if item.Link == "" {
-			config.Log.Warnf("[%d/%d] %s has no link, skipped", i+1, len(steams), item.MarketHashName)
-			failCount++
-			continue
-		}
-
 		// 尝试获取，遇到 429 会重试
 		var itemNameId string
 		var fetchErr error
 		for retry := 0; retry < 3; retry++ {
-			itemNameId, fetchErr = FetchSteamItemNameId(item.Link)
+			itemNameId, fetchErr = FetchSteamItemNameId(item.MarketHashName)
 			if fetchErr == nil {
 				consecutive429 = 0 // 成功，重置计数
 				break
