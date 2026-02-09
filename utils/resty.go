@@ -24,6 +24,19 @@ func CreateClient(baseURL string) *HttpClient {
 	return client
 }
 
+// CreateClientNoRedirect 创建不跟随重定向的 HTTP 客户端
+func CreateClientNoRedirect(baseURL string) *HttpClient {
+	return &HttpClient{
+		client: resty.New().
+			SetBaseURL(baseURL).
+			SetTimeout(120 * time.Second).
+			SetRetryCount(2).
+			SetDebug(false).
+			SetRedirectPolicy(resty.NoRedirectPolicy()),
+		baseURL: baseURL,
+	}
+}
+
 // RequestOptions 请求选项
 type RequestOptions struct {
 	PathParams  map[string]string

@@ -345,16 +345,18 @@ func RecordDailyPriceHistory() {
 	models.ClearPriceIncreaseCache()
 }
 
-// Steam 社区市场客户端
-var steamCommunityClient = utils.CreateClient("https://steamcommunity-a.akamaihd.net")
+// Steam 社区市场客户端（使用不重定向的客户端）
+var steamCommunityClient = utils.CreateClientNoRedirect("https://steamcommunity-a.akamaihd.net")
 
 // FetchSteamItemNameId 从 Steam 商品详情页获取 item_nameid
 func FetchSteamItemNameId(link string) (string, error) {
 	// link 格式: https://steamcommunity.com/market/listings/730/AK-47%20|%20Redline%20(Field-Tested)
-	// 提取路径部分
-	path := link
-	if idx := len("https://steamcommunity.com/"); len(link) > idx {
-		path = link[idx:]
+	// 替换域名为 CDN 地址
+	url := strings.Replace(link, "https://steamcommunity.com", "", 1)
+	url = strings.Replace(url, "http://steamcommunity.com", "", 1)
+	// 确保 path 以 / 开头
+	if !strings.HasPrefix(url, "/") {
+		url = "/" + url
 	}
 
 	var result string
@@ -362,7 +364,7 @@ func FetchSteamItemNameId(link string) (string, error) {
 		Result: &result,
 	}
 
-	resp, err := steamCommunityClient.DoRequest("GET", path, opts)
+	resp, err := steamCommunityClient.DoRequest("GET", url, opts)
 	if err != nil {
 		return "", err
 	}
