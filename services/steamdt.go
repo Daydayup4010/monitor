@@ -469,7 +469,7 @@ func UpdateSteamItemNameIds() {
 			pendingUpdates = make(map[string]string)
 		}
 
-		time.Sleep(2500 * time.Millisecond)
+		time.Sleep(3000 * time.Millisecond)
 	}
 
 	// 处理剩余的数据
@@ -609,7 +609,7 @@ func UpdateSteamPricesFromMarket() {
 				successCount++
 			}
 		}
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(800 * time.Millisecond)
 	}
 
 	config.Log.Infof("Update steam prices complete. Success: %d, Failed: %d", successCount, failCount)
