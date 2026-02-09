@@ -241,6 +241,7 @@ func UpdateAllPlatformData() {
 				steam.SellCount = dataList[i].SellCount
 				steam.BiddingPrice = dataList[i].BiddingPrice
 				steam.BiddingCount = dataList[i].BiddingCount
+				steam.Id = dataList[i].PlatformItemId
 				steam.UpdateTime = dataList[i].UpdateTime
 				steam.Link = fmt.Sprintf("https://steamcommunity.com/market/listings/730/%s", data.MarketHashName)
 				steamList = append(steamList, steam)

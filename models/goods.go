@@ -252,7 +252,7 @@ func GetPlatformListBatch(marketHashNames []string) map[string][]*Platform {
 	config.DB.Where("market_hash_name IN ?", marketHashNames).Find(&steamList)
 	for _, steam := range steamList {
 		result[steam.MarketHashName] = append(result[steam.MarketHashName], &Platform{
-			Id:           fmt.Sprintf("%d", steam.Id),
+			Id:           steam.Id,
 			SellPrice:    steam.SellPrice,
 			SellCount:    steam.SellCount,
 			BiddingPrice: steam.BiddingPrice,
