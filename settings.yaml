@@ -10,7 +10,7 @@ mysql:
   maxOpenConns: 50
 
 logger:
-  level: debug
+  level: error
   prefix: '[uu]'
   show-line: true
   log-in-console: true
