@@ -112,10 +112,9 @@ func UpdateSteamItemNameIdsScheduler() {
 
 // UpdateSteamPricesScheduler 持续更新 Steam 价格，执行完一次后继续执行
 func UpdateSteamPricesScheduler() {
-	SafeGo(UpdateSteamPricesFromMarket)
-	ticker := time.NewTicker(150 * time.Minute)
-	defer ticker.Stop()
-	for range ticker.C {
-		SafeGo(UpdateSteamPricesFromMarket)
+	for {
+		UpdateSteamPricesFromMarket()
+		// 每轮执行完后休息 1 分钟，避免过于频繁
+		time.Sleep(1 * time.Minute)
 	}
 }

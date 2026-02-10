@@ -636,13 +636,40 @@ func UpdateSteamPricesFromMarket() {
 
 	successCount := 0
 	failCount := 0
-	nowTime := time.Now().Unix()
+	consecutive429 := 0
 
 	for i, item := range steams {
-		orderData, err := FetchSteamOrderData(item.Id)
-		if err != nil {
-			config.Log.Errorf("[%d/%d] Failed to get order data for %s: %v", i+1, len(steams), item.MarketHashName, err)
+		nowTime := time.Now().Unix()
+
+		// 带重试的请求
+		var orderData *SteamOrderData
+		var fetchErr error
+		for retry := 0; retry < 3; retry++ {
+			orderData, fetchErr = FetchSteamOrderData(item.Id)
+			if fetchErr == nil {
+				consecutive429 = 0
+				break
+			}
+			// 检查是否是 429 错误
+			if strings.Contains(fetchErr.Error(), "429") {
+				consecutive429++
+				waitTime := time.Duration(30*(retry+1)) * time.Second // 30s, 60s, 90s
+				config.Log.Warnf("[%d/%d] Rate limited (429), waiting %v before retry %d/3...", i+1, len(steams), waitTime, retry+1)
+				time.Sleep(waitTime)
+			} else {
+				break // 非 429 错误不重试
+			}
+		}
+
+		if fetchErr != nil {
+			config.Log.Warnf("[%d/%d] Failed to get order data for %s: %v", i+1, len(steams), item.MarketHashName, fetchErr)
 			failCount++
+			// 如果连续多次 429，暂停更长时间
+			if consecutive429 >= 5 {
+				config.Log.Warnf("Too many rate limits, waiting 5 minutes...")
+				time.Sleep(5 * time.Minute)
+				consecutive429 = 0
+			}
 		} else {
 			// 更新数据库
 			updates := map[string]interface{}{
@@ -672,7 +699,8 @@ func UpdateSteamPricesFromMarket() {
 				successCount++
 			}
 		}
-		time.Sleep(800 * time.Millisecond)
+
+		time.Sleep(500 * time.Millisecond)
 	}
 
 	config.Log.Infof("Update steam prices complete. Success: %d, Failed: %d", successCount, failCount)
