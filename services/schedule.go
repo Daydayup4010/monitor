@@ -109,3 +109,12 @@ func UpdateSteamItemNameIdsScheduler() {
 		SafeGo(UpdateSteamItemNameIds)
 	}
 }
+
+// UpdateSteamPricesScheduler 持续更新 Steam 价格，执行完一次后继续执行
+func UpdateSteamPricesScheduler() {
+	for {
+		UpdateSteamPricesFromMarket()
+		// 每轮执行完后休息 1 分钟，避免过于频繁
+		time.Sleep(1 * time.Minute)
+	}
+}

@@ -1,9 +1,11 @@
 package services
 
 import (
+	"encoding/json"
 	"fmt"
 	"math"
 	neturl "net/url"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -346,6 +348,80 @@ func RecordDailyPriceHistory() {
 	models.ClearPriceIncreaseCache()
 }
 
+// InitSteamItemNameIds 从 steam_id.json 文件初始化 Steam 表的 item_nameid
+func InitSteamItemNameIds() {
+	config.Log.Info("Starting to init Steam item_nameid from steam_id.json...")
+
+	// 读取 JSON 文件
+	data, err := os.ReadFile("steam_id.json")
+	if err != nil {
+		config.Log.Errorf("Failed to read steam_id.json: %v", err)
+		return
+	}
+
+	// 解析 JSON
+	var itemNameIds map[string]int64
+	if err := json.Unmarshal(data, &itemNameIds); err != nil {
+		config.Log.Errorf("Failed to parse steam_id.json: %v", err)
+		return
+	}
+
+	config.Log.Infof("Loaded %d item_nameid from steam_id.json", len(itemNameIds))
+
+	// 获取所有没有 item_nameid 的商品
+	steams, err := models.GetSteamsWithoutItemNameId()
+	if err != nil {
+		config.Log.Errorf("Failed to get steams without item_nameid: %v", err)
+		return
+	}
+
+	if len(steams) == 0 {
+		config.Log.Info("All steam items already have item_nameid")
+		return
+	}
+
+	config.Log.Infof("Found %d items without item_nameid", len(steams))
+
+	// 收集待更新的数据
+	updates := make(map[string]string)
+	notFoundCount := 0
+	for _, steam := range steams {
+		if itemNameId, ok := itemNameIds[steam.MarketHashName]; ok {
+			updates[steam.MarketHashName] = strconv.FormatInt(itemNameId, 10)
+		} else {
+			notFoundCount++
+		}
+	}
+
+	// 分批更新，每批 500 条
+	batchSize := 500
+	updateCount := 0
+	batch := make(map[string]string)
+	for k, v := range updates {
+		batch[k] = v
+		if len(batch) >= batchSize {
+			count, err := models.BatchUpdateSteamItemNameIds(batch)
+			if err != nil {
+				config.Log.Errorf("Batch update failed: %v", err)
+			} else {
+				updateCount += count
+			}
+			batch = make(map[string]string)
+		}
+	}
+	// 处理剩余的
+	if len(batch) > 0 {
+		count, err := models.BatchUpdateSteamItemNameIds(batch)
+		if err != nil {
+			config.Log.Errorf("Batch update failed: %v", err)
+		} else {
+			updateCount += count
+		}
+	}
+
+	config.Log.Infof("Init steam item_nameid complete. Updated: %d, Not found in json: %d", updateCount, notFoundCount)
+}
+
 // Steam 社区市场客户端
 var steamCommunityClient = utils.CreateClient("https://steamcommunity-a.akamaihd.net")
 
@@ -457,7 +533,7 @@ func UpdateSteamItemNameIds() {
 			}
 		}
 
-		time.Sleep(3 * time.Second)
+		time.Sleep(4 * time.Second)
 	}
 
 	config.Log.Infof("Update steam item_nameid complete. Success: %d, Failed: %d", successCount, failCount)
