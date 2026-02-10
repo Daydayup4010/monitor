@@ -641,7 +641,7 @@ func UpdateSteamPricesFromMarket() {
 	for i, item := range steams {
 		orderData, err := FetchSteamOrderData(item.Id)
 		if err != nil {
-			config.Log.Warnf("[%d/%d] Failed to get order data for %s: %v", i+1, len(steams), item.MarketHashName, err)
+			config.Log.Errorf("[%d/%d] Failed to get order data for %s: %v", i+1, len(steams), item.MarketHashName, err)
 			failCount++
 		} else {
 			// 更新数据库
