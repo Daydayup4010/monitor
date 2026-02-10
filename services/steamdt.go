@@ -236,19 +236,19 @@ func UpdateAllPlatformData() {
 				if steam == nil {
 					steam = &models.Steam{}
 				}
-				if dataList[i].UpdateTime-steam.BeforeTime >= 43200 {
-					turnOver := int64(math.Abs(float64(dataList[i].SellCount - steam.BeforeCount)))
-					steam.BeforeCount = dataList[i].SellCount
-					steam.BeforeTime = dataList[i].UpdateTime
-					steam.TurnOver = turnOver
-				}
+				//if dataList[i].UpdateTime-steam.BeforeTime >= 43200 {
+				//	turnOver := int64(math.Abs(float64(dataList[i].SellCount - steam.BeforeCount)))
+				//	steam.BeforeCount = dataList[i].SellCount
+				//	steam.BeforeTime = dataList[i].UpdateTime
+				//	steam.TurnOver = turnOver
+				//}
 				steam.MarketHashName = data.MarketHashName
-				steam.SellPrice = dataList[i].SellPrice
-				steam.SellCount = dataList[i].SellCount
-				steam.BiddingPrice = dataList[i].BiddingPrice
-				steam.BiddingCount = dataList[i].BiddingCount
-				steam.Id = dataList[i].PlatformItemId
-				steam.UpdateTime = dataList[i].UpdateTime
+				//steam.SellPrice = dataList[i].SellPrice
+				//steam.SellCount = dataList[i].SellCount
+				//steam.BiddingPrice = dataList[i].BiddingPrice
+				//steam.BiddingCount = dataList[i].BiddingCount
+				//steam.Id = dataList[i].PlatformItemId
+				//steam.UpdateTime = dataList[i].UpdateTime
 				steam.Link = fmt.Sprintf("https://steamcommunity.com/market/listings/730/%s", data.MarketHashName)
 				steamList = append(steamList, steam)
 			}
@@ -636,6 +636,7 @@ func UpdateSteamPricesFromMarket() {
 
 	successCount := 0
 	failCount := 0
+	nowTime := time.Now().Unix()
 
 	for i, item := range steams {
 		orderData, err := FetchSteamOrderData(item.Id)
@@ -649,8 +650,17 @@ func UpdateSteamPricesFromMarket() {
 				"sell_count":    orderData.SellCount,
 				"bidding_price": orderData.BiddingPrice,
 				"bidding_count": orderData.BiddingCount,
-				"update_time":   time.Now().Unix(),
+				"update_time":   nowTime,
 			}
+
+			// 计算 turnOver（每隔 12 小时更新一次）
+			if nowTime-item.BeforeTime >= 43200 {
+				turnOver := int64(math.Abs(float64(orderData.SellCount - item.BeforeCount)))
+				updates["turn_over"] = turnOver
+				updates["before_time"] = nowTime
+				updates["before_count"] = orderData.SellCount
+			}
+
 			if err := config.DB.Model(&models.Steam{}).Where("market_hash_name = ?", item.MarketHashName).Updates(updates).Error; err != nil {
 				config.Log.Warnf("[%d/%d] Failed to update %s: %v", i+1, len(steams), item.MarketHashName, err)
 				failCount++

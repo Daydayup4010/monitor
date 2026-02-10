@@ -39,8 +39,9 @@ func BatchUpdateSteamGoods(steam []*Steam) {
 	for i := 0; i < maxRetries; i++ {
 		err = config.DB.Transaction(func(tx *gorm.DB) error {
 			if err := tx.Clauses(clause.OnConflict{
-				Columns:   []clause.Column{{Name: "market_hash_name"}},
-				DoUpdates: clause.AssignmentColumns([]string{"sell_price", "sell_count", "bidding_price", "bidding_count", "update_time", "turn_over", "link"}),
+				Columns: []clause.Column{{Name: "market_hash_name"}},
+				//DoUpdates: clause.AssignmentColumns([]string{"sell_price", "sell_count", "bidding_price", "bidding_count", "update_time", "turn_over", "link"}),
+				DoUpdates: clause.AssignmentColumns([]string{"link"}),
 			}).CreateInBatches(steam, 50).Error; err != nil {
 				return err
 			}
