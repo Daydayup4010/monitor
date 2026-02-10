@@ -16,7 +16,7 @@ import (
 )
 
 type Goods struct {
-	Id               int64       `json:"id"`
+	Id               string      `json:"id"`
 	MarketHashName   string      `json:"market_hash_name"`
 	UserId           string      `json:"user_id"`
 	Name             string      `json:"name"`
@@ -461,7 +461,7 @@ func GetCategory() (*[]string, int) {
 
 // BigItemBidding 大件求购数据结构
 type BigItemBidding struct {
-	Id             int64       `json:"id"`
+	Id             string      `json:"id"`
 	MarketHashName string      `json:"market_hash_name"`
 	Name           string      `json:"name"`
 	ImageUrl       string      `json:"image_url"`
