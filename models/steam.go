@@ -68,6 +68,11 @@ func GetSteamsWithoutItemNameId() ([]Steam, error) {
 	return steams, err
 }
 
+// UpdateSteamItemNameId 更新单条记录的 item_nameid
+func UpdateSteamItemNameId(marketHashName string, itemNameId string) error {
+	return config.DB.Model(&Steam{}).Where("market_hash_name = ?", marketHashName).Update("id", itemNameId).Error
+}
+
 // BatchUpdateSteamItemNameIds 批量更新 item_nameid
 func BatchUpdateSteamItemNameIds(updates map[string]string) (int, error) {
 	if len(updates) == 0 {

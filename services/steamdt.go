@@ -393,8 +393,7 @@ func FetchSteamItemNameId(marketHashName string) (string, error) {
 	return "", fmt.Errorf("item_nameid not found in page")
 }
 
-// UpdateSteamItemNameIds 批量更新 Steam 表中的 item_nameid
-// limit: 每次执行的最大数量，0 表示不限制（建议设置 500-1000，分多次执行）
+// UpdateSteamItemNameIds 更新 Steam 表中的 item_nameid（逐条写入）
 func UpdateSteamItemNameIds() {
 	config.Log.Info("Starting to update Steam item_nameid...")
 
@@ -411,12 +410,8 @@ func UpdateSteamItemNameIds() {
 	}
 
 	total := len(steams)
+	config.Log.Infof("Found %d items without item_nameid", total)
 
-	config.Log.Infof("Found %d items without item_nameid, processing %d this time", total, len(steams))
-
-	// 收集待更新的数据，批量写入
-	pendingUpdates := make(map[string]string) // marketHashName -> itemNameId
-	batchSize := 20
 	successCount := 0
 	failCount := 0
 	consecutive429 := 0 // 连续 429 错误计数
@@ -435,7 +430,7 @@ func UpdateSteamItemNameIds() {
 			if strings.Contains(fetchErr.Error(), "429") {
 				consecutive429++
 				waitTime := time.Duration(30*(retry+1)) * time.Second // 30s, 60s, 90s
-				config.Log.Warnf("[%d/%d] Rate limited (429), waiting %v before retry %d/3...", i+1, len(steams), waitTime, retry+1)
+				config.Log.Warnf("[%d/%d] Rate limited (429), waiting %v before retry %d/3...", i+1, total, waitTime, retry+1)
 				time.Sleep(waitTime)
 			} else {
 				break // 非 429 错误不重试
@@ -443,7 +438,7 @@ func UpdateSteamItemNameIds() {
 		}
 
 		if fetchErr != nil {
-			config.Log.Warnf("[%d/%d] Failed to get item_nameid for %s: %v", i+1, len(steams), item.MarketHashName, fetchErr)
+			config.Log.Warnf("[%d/%d] Failed to get item_nameid for %s: %v", i+1, total, item.MarketHashName, fetchErr)
 			failCount++
 			// 如果连续多次 429，暂停更长时间
 			if consecutive429 >= 5 {
@@ -452,37 +447,20 @@ func UpdateSteamItemNameIds() {
 				consecutive429 = 0
 			}
 		} else {
-			pendingUpdates[item.MarketHashName] = itemNameId
-			config.Log.Infof("[%d/%d] Fetched %s -> %s", i+1, len(steams), item.MarketHashName, itemNameId)
-		}
-
-		// 每 batchSize 条批量写入一次
-		if len(pendingUpdates) >= batchSize {
-			count, err := models.BatchUpdateSteamItemNameIds(pendingUpdates)
-			if err != nil {
-				config.Log.Warnf("Batch update failed: %v", err)
-				failCount += len(pendingUpdates)
+			// 逐条写入数据库
+			if err := models.UpdateSteamItemNameId(item.MarketHashName, itemNameId); err != nil {
+				config.Log.Warnf("[%d/%d] Failed to save %s: %v", i+1, total, item.MarketHashName, err)
+				failCount++
 			} else {
-				successCount += count
+				successCount++
+				config.Log.Infof("[%d/%d] Updated %s -> %s", i+1, total, item.MarketHashName, itemNameId)
 			}
-			pendingUpdates = make(map[string]string)
 		}
 
-		time.Sleep(3000 * time.Millisecond)
+		time.Sleep(3 * time.Second)
 	}
 
-	// 处理剩余的数据
-	if len(pendingUpdates) > 0 {
-		count, err := models.BatchUpdateSteamItemNameIds(pendingUpdates)
-		if err != nil {
-			config.Log.Warnf("Batch update failed: %v", err)
-			failCount += len(pendingUpdates)
-		} else {
-			successCount += count
-		}
-	}
-
-	config.Log.Infof("Update steam item_nameid complete. Success: %d, Failed: %d, Remaining: %d", successCount, failCount, total-len(steams))
+	config.Log.Infof("Update steam item_nameid complete. Success: %d, Failed: %d", successCount, failCount)
 }
 
 // SteamOrderHistogram Steam 市场订单数据响应结构
