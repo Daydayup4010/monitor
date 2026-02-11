@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"math/rand"
 	neturl "net/url"
 	"os"
 	"regexp"
@@ -625,14 +626,19 @@ func UpdateSteamPricesFromMarket() {
 
 	// 获取有 item_nameid 且 sell_price < 500 的商品
 	var steams []models.Steam
-	config.DB.Where("id != '' AND id IS NOT NULL AND sell_price < 500").Find(&steams)
+	config.DB.Where("id != '' AND id IS NOT NULL AND sell_price < 3000 and sell_count > 30").Find(&steams)
 
 	if len(steams) == 0 {
-		config.Log.Info("No steam items with item_nameid and sell_price < 500 found")
+		config.Log.Info("No steam items with item_nameid found")
 		return
 	}
 
-	config.Log.Infof("Found %d steam items with item_nameid and sell_price < 500", len(steams))
+	// 打乱顺序，避免每次都从同一批商品开始
+	rand.Shuffle(len(steams), func(i, j int) {
+		steams[i], steams[j] = steams[j], steams[i]
+	})
+
+	config.Log.Infof("Found %d steam items with item_nameid", len(steams))
 
 	successCount := 0
 	failCount := 0
