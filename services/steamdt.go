@@ -633,18 +633,24 @@ func UpdateSteamPricesFromMarket() {
 		return
 	}
 
-	// 打乱顺序，避免每次都从同一批商品开始
-	rand.Shuffle(len(steams), func(i, j int) {
-		steams[i], steams[j] = steams[j], steams[i]
-	})
-
-	config.Log.Infof("Found %d steam items with item_nameid", len(steams))
+	total := len(steams)
+	config.Log.Infof("Found %d steam items with item_nameid", total)
 
 	successCount := 0
 	failCount := 0
 	consecutive429 := 0
+	processed := 0
 
-	for i, item := range steams {
+	// 每次随机选择一个元素处理，处理后移除
+	for len(steams) > 0 {
+		processed++
+		// 随机选择一个索引
+		idx := rand.Intn(len(steams))
+		item := steams[idx]
+		// 移除已选择的元素（与最后一个交换后截断）
+		steams[idx] = steams[len(steams)-1]
+		steams = steams[:len(steams)-1]
+
 		nowTime := time.Now().Unix()
 
 		// 带重试的请求
@@ -660,7 +666,7 @@ func UpdateSteamPricesFromMarket() {
 			if strings.Contains(fetchErr.Error(), "429") {
 				consecutive429++
 				waitTime := time.Duration(30*(retry+1)) * time.Second // 30s, 60s, 90s
-				config.Log.Warnf("[%d/%d] Rate limited (429), waiting %v before retry %d/3...", i+1, len(steams), waitTime, retry+1)
+				config.Log.Warnf("[%d/%d] Rate limited (429), waiting %v before retry %d/3...", processed, total, waitTime, retry+1)
 				time.Sleep(waitTime)
 			} else {
 				break // 非 429 错误不重试
@@ -668,7 +674,7 @@ func UpdateSteamPricesFromMarket() {
 		}
 
 		if fetchErr != nil {
-			config.Log.Warnf("[%d/%d] Failed to get order data for %s: %v", i+1, len(steams), item.MarketHashName, fetchErr)
+			config.Log.Warnf("[%d/%d] Failed to get order data for %s: %v", processed, total, item.MarketHashName, fetchErr)
 			failCount++
 			// 如果连续多次 429，暂停更长时间
 			if consecutive429 >= 5 {
@@ -695,11 +701,11 @@ func UpdateSteamPricesFromMarket() {
 			}
 
 			if err := config.DB.Model(&models.Steam{}).Where("market_hash_name = ?", item.MarketHashName).Updates(updates).Error; err != nil {
-				config.Log.Warnf("[%d/%d] Failed to update %s: %v", i+1, len(steams), item.MarketHashName, err)
+				config.Log.Warnf("[%d/%d] Failed to update %s: %v", processed, total, item.MarketHashName, err)
 				failCount++
 			} else {
 				config.Log.Infof("[%d/%d] Updated %s: sell=%.2f(%d), bid=%.2f(%d)",
-					i+1, len(steams), item.MarketHashName,
+					processed, total, item.MarketHashName,
 					orderData.SellPrice, orderData.SellCount,
 					orderData.BiddingPrice, orderData.BiddingCount)
 				successCount++
