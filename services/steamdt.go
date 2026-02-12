@@ -626,7 +626,7 @@ func UpdateSteamPricesFromMarket() {
 
 	// 获取有 item_nameid 且 sell_price < 500 的商品
 	var steams []models.Steam
-	config.DB.Where("id != '' AND id IS NOT NULL AND sell_price < 3000 and sell_count > 30").Find(&steams)
+	config.DB.Where("id != '' AND id IS NOT NULL AND sell_price < 3000 and sell_count > 70").Find(&steams)
 
 	if len(steams) == 0 {
 		config.Log.Info("No steam items with item_nameid found")
