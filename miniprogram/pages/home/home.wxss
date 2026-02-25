@@ -851,3 +851,18 @@
   font-weight: 600;
   border-radius: 6rpx;
 }
+
+/* 底部说明 */
+.footer-tips {
+  margin-top: 40rpx;
+  padding: 24rpx;
+  padding-bottom: 60rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.tip-text {
+  font-size: 24rpx;
+  color: #8c8c8c;
+}

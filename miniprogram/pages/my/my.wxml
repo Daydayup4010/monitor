@@ -83,5 +83,11 @@
       </view>
     </view>
   </block>
+
+  <!-- 底部说明 -->
+  <view class="footer-tips">
+    <text class="tip-text">• 小程序目前仅提供搬砖比价功能, 其他功能请使用电脑访问网站www.csgoods.com.cn</text>
+    <text class="tip-text">• 如有问题请联系客服</text>
+  </view>
 </view>
 

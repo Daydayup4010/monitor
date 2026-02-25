@@ -169,7 +169,7 @@ func GetUserById(id string) (*User, int) {
 }
 
 func UpdateUserLastLogin(user *User) {
-	err := config.DB.Model(&User{}).Where("email = ?", user.Email).Update("last_login", user.LastLogin).Error
+	err := config.DB.Model(&User{}).Where("id = ?", user.ID).Update("last_login", user.LastLogin).Error
 	if err != nil {
 		config.Log.Errorf("update user last login fail: %v", err)
 	}
