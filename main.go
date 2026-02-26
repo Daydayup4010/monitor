@@ -14,6 +14,7 @@ func main() {
 	core.InitRedis()
 	models.InitKeys()
 	go services.InitSteamItemNameIds()
+	go services.UpdateSteamItemNameIdsScheduler()
 	go services.UpdateSteamPricesScheduler()
 	go services.UpdateBaseGoodsScheduler()
 	go services.UpdateAllGoodsScheduler()

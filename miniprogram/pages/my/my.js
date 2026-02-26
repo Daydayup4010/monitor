@@ -86,6 +86,9 @@ Page({
     // 如果已经显示过引导，不再重复
     if (app.globalData.hasShownGuide) return
 
+    // 如果VIP开关关闭，不引导开通VIP
+    const vipEnabled = app.globalData.minAppConfig?.vipEnabled || false
+
     const userInfo = app.globalData.userInfo
     if (!userInfo) return
 
@@ -97,16 +100,17 @@ Page({
     }
     const hasEmail = userInfo.email && userInfo.email !== ''
 
-    // 如果不是VIP
-    if (!isVip) {
+    // 优先提醒绑定邮箱
+    if (!hasEmail) {
       app.globalData.hasShownGuide = true
-      if (hasEmail) {
-        // 已绑定邮箱，引导开通VIP
-        this.showVipGuide()
-      } else {
-        // 未绑定邮箱，提示先绑定邮箱
-        this.showBindEmailGuide()
-      }
+      this.showBindEmailGuide()
+      return
+    }
+
+    // 如果不是VIP且VIP开关开启，引导开通VIP
+    if (!isVip && vipEnabled) {
+      app.globalData.hasShownGuide = true
+      this.showVipGuide()
     }
   },
 

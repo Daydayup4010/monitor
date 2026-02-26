@@ -427,7 +427,6 @@ func InitSteamItemNameIds() {
 var steamCommunityClient = utils.CreateClient("https://steamcommunity-a.akamaihd.net")
 
 // FetchSteamItemNameId 从 Steam 商品详情页获取 item_nameid
-// marketHashName: 商品的 market_hash_name，如 "AK-47 | Redline (Field-Tested)"
 func FetchSteamItemNameId(marketHashName string) (string, error) {
 	// 直接构建路径，不依赖数据库的 link 字段
 	// URL 编码 marketHashName
@@ -534,7 +533,7 @@ func UpdateSteamItemNameIds() {
 			}
 		}
 
-		time.Sleep(4 * time.Second)
+		time.Sleep(7 * time.Second)
 	}
 
 	config.Log.Infof("Update steam item_nameid complete. Success: %d, Failed: %d", successCount, failCount)
