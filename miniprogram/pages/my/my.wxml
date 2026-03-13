@@ -37,14 +37,11 @@
           <text class="email" wx:else>未绑定邮箱</text>
         </view>
       </view>
-      <!-- VIP状态区域 -->
-      <view class="vip-status-row">
-        <view class="vip-badge {{isVipValid ? 'active' : ''}}" bindtap="goVip" wx:if="{{vipEnabled}}">
+      <!-- VIP状态区域 - 仅在VIP开关开启时显示 -->
+      <view class="vip-status-row" wx:if="{{vipEnabled}}">
+        <view class="vip-badge {{isVipValid ? 'active' : ''}}" bindtap="goVip">
           <text wx:if="{{isVipValid}}">VIP会员</text>
           <text wx:else>开通VIP</text>
-        </view>
-        <view class="vip-badge active" wx:elif="{{isVipValid}}">
-          <text>VIP会员</text>
         </view>
         <!-- VIP到期时间 -->
         <text class="vip-expiry" wx:if="{{isVipValid && vipExpiryText}}">到期：{{vipExpiryText}}</text>

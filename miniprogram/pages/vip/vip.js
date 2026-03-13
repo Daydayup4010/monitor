@@ -14,6 +14,12 @@ Page({
   },
 
   onLoad() {
+    // 如果 VIP 功能关闭，重定向回首页
+    const vipEnabled = app.globalData.minAppConfig?.vipEnabled || false
+    if (!vipEnabled) {
+      wx.switchTab({ url: '/pages/home/home' })
+      return
+    }
     this.loadVipPlans()
     this.checkUserInfo()
   },

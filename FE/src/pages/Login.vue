@@ -73,7 +73,8 @@
           </el-form-item>
         </div>
 
-        <div style="text-align: right; margin-bottom: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <el-checkbox v-model="rememberMe">记住密码</el-checkbox>
           <router-link to="/reset-password" style="color: #1890ff; font-size: 13px; text-decoration: none;">
             忘记密码？
           </router-link>
@@ -162,6 +163,7 @@ const userStore = useUserStore()
 
 const loginType = ref<'password' | 'email'>('password')
 const isSubmitting = ref(false) // 防止重复提交
+const rememberMe = ref(false) // 记住密码
 
 // 图形验证码
 const captchaId = ref('')
@@ -187,9 +189,18 @@ const refreshCaptcha = async () => {
   }
 }
 
-// 页面加载时获取验证码
+// 页面加载时获取验证码和读取已保存的账密
 onMounted(() => {
   refreshCaptcha()
+  
+  // 读取已保存的账密
+  const savedEmail = localStorage.getItem('rememberedEmail')
+  const savedPassword = localStorage.getItem('rememberedPassword')
+  if (savedEmail && savedPassword) {
+    passwordForm.email = savedEmail
+    passwordForm.password = savedPassword
+    rememberMe.value = true
+  }
 })
 
 const passwordRules: FormRules = {
@@ -328,6 +339,15 @@ const handlePasswordLogin = async () => {
       captcha_code: passwordForm.captchaCode,
     })
     if (success) {
+      // 保存或清除记住的密码
+      if (rememberMe.value) {
+        localStorage.setItem('rememberedEmail', passwordForm.email)
+        localStorage.setItem('rememberedPassword', passwordForm.password)
+      } else {
+        localStorage.removeItem('rememberedEmail')
+        localStorage.removeItem('rememberedPassword')
+      }
+      
       await new Promise(resolve => setTimeout(resolve, 100))
       if (userStore.isVip || userStore.isAdmin) {
         router.push('/app/dashboard')
